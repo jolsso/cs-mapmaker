@@ -126,3 +126,33 @@ Every applied patch creates a new `MapVersion` with seed/config stored.
 Preview (after export):
 
 ![UML overview](docs/diagram.png)
+
+---
+
+## Backend (FastAPI) — Getting Started
+
+- Install Python 3.10+.
+- Create a venv and install deps:
+  - Windows PowerShell:
+    - `cd backend`
+    - `python -m venv .venv`
+    - `.\.venv\Scripts\Activate.ps1`
+    - `pip install -r requirements.txt`
+  - macOS/Linux:
+    - `cd backend`
+    - `python -m venv .venv`
+    - `source .venv/bin/activate`
+    - `pip install -r requirements.txt`
+- Run the API:
+  - `uvicorn app.main:app --reload --port 8000`
+
+Endpoints (stubbed, deterministic):
+- `POST /concepts`: `{ prompt }` -> `MapIntent`
+- `POST /layouts`: `MapIntent` -> `LayoutGraph`
+- `POST /geometry`: `LayoutGraph` -> `Geometry2D`
+- `POST /maps`: `Geometry2D` -> `MapExport`
+- `POST /edits`: `{ prompt }` -> `{ version_id, patch[] }`
+
+Quick check:
+- `GET /` -> `{ service: "cs-mapmaker", status: "ok" }`
+- `GET /health` -> `{ status: "healthy" }`
