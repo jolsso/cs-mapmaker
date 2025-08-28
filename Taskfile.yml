@@ -16,7 +16,8 @@ tasks:
   run:
     desc: Start FastAPI with uvicorn (reload, port 8000)
     deps: [bootstrap]
-    dir: backend
+    env:
+      PYTHONPATH: backend
     cmds:
       - '{{.VENV_PY}} -m uvicorn app.main:app --reload --port 8000'
 
