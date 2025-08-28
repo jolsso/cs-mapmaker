@@ -1,0 +1,27 @@
+version: '3'
+
+vars:
+  # Cross-platform path to the venv's Python
+  VENV_PY: '{{if eq OS "windows"}}backend\\.venv\\Scripts\\python.exe{{else}}backend/.venv/bin/python{{end}}'
+
+tasks:
+  bootstrap:
+    desc: Create venv and install backend/test dependencies
+    cmds:
+      - python -m venv backend/.venv
+      - '{{.VENV_PY}} -m pip install -U pip'
+      - '{{.VENV_PY}} -m pip install -r backend/requirements.txt'
+      - '{{.VENV_PY}} -m pip install -U pytest'
+
+  run:
+    desc: Start FastAPI with uvicorn (reload, port 8000)
+    deps: [bootstrap]
+    dir: backend
+    cmds:
+      - '{{.VENV_PY}} -m uvicorn app.main:app --reload --port 8000'
+
+  test:
+    desc: Run pytest from repo root
+    deps: [bootstrap]
+    cmds:
+      - '{{.VENV_PY}} -m pytest -q'
