@@ -2,6 +2,22 @@
 
 Visual-first, AI-assisted CS 1.6 map maker. Describe a concept, see it instantly as a 2D layout, refine with direct manipulation and AI suggestions, and export clean `.map` files.
 
+## Quickstart (Task)
+- Prereqs: Python 3.10+ and pip installed.
+- Install Task (choose one):
+  - Windows (Scoop): `scoop install task`
+  - Windows (Chocolatey, Admin): `choco install go-task -y`
+  - Cross‑platform (pip fallback): `pip install go-task-bin` (ensure the pip Scripts directory is on PATH; see Troubleshooting below)
+- Start the backend and UI: `task run`
+  - API docs: http://127.0.0.1:8000/docs
+  - UI (prototype): http://127.0.0.1:8000/ui/
+- Run tests: `task test`
+
+What `task run` does:
+- Creates a virtualenv at `backend/.venv`
+- Installs backend dependencies
+- Runs `uvicorn app.main:app --reload --port 8000`
+
 ## Why Visual-First
 - Keep the canvas central: every action updates the view.
 - AI is a co-pilot: it proposes diffs you can preview and apply.
@@ -81,6 +97,7 @@ Visual-first, AI-assisted CS 1.6 map maker. Describe a concept, see it instantly
 
 ## Architecture (Concise)
 - Frontend: SvelteKit (TypeScript) + Canvas 2D (WebGL later if needed).
+  - Note: A minimal static prototype UI is currently served at `/ui` (see Frontend UI below) while the full SvelteKit app is scoped for later.
 - Backend: Python FastAPI for API, AI orchestration, geometry/brush generation.
 - Jobs: Redis + Celery for async generation/compile; progress via WebSocket (SSE optional).
 - Storage: Local dev: SQLite + filesystem. Production: Postgres (metadata/specs) + S3-compatible blobs (artifacts). Optional Dockerized compile workers (VHLT, Phase 2).
@@ -156,3 +173,42 @@ Endpoints (stubbed, deterministic):
 Quick check:
 - `GET /` -> `{ service: "cs-mapmaker", status: "ok" }`
 - `GET /health` -> `{ status: "healthy" }`
+
+---
+
+## Frontend UI (Prototype)
+- Served by FastAPI at `/ui` using static files in `frontend/`.
+- Files to tweak:
+  - `frontend/index.html` — page structure and controls
+  - `frontend/styles.css` — dark theme styles
+  - `frontend/app.js` — calls API endpoints and renders geometry to canvas
+- Usage flow:
+  - Enter a prompt and click “Generate Concept” (or “Run All”).
+  - Click “Generate Layout”, then “Generate Geometry” to see a preview square.
+  - Click “Export Map” to get artifact links.
+  - Use “Propose Edit” to send a natural‑language edit and get a deterministic version id.
+
+## Task Targets
+- `task bootstrap`: Create venv and install deps
+- `task run`: Start FastAPI with reload on port 8000
+- `task test`: Run pytest
+
+## Troubleshooting Task on Windows
+If you installed Task via pip and `task` is not found, add pip’s user Scripts directory to your PATH.
+
+For Microsoft Store Python 3.13, the default location is:
+
+```
+%LOCALAPPDATA%\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\Scripts
+```
+
+You can set it for your user in PowerShell:
+
+```
+[Environment]::SetEnvironmentVariable(
+  'Path', $env:Path + ';' + "$env:LOCALAPPDATA\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\Scripts",
+  'User'
+)
+```
+
+Then restart your shell and run `task run` again.
