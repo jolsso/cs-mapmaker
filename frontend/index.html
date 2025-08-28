@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>cs-mapmaker UI</title>
+    <link rel="stylesheet" href="/ui/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>cs-mapmaker</h1>
+      <p class="muted">Prototype UI for concept → layout → geometry → export</p>
+    </header>
+
+    <main>
+      <section>
+        <h2>1) Concept</h2>
+        <div class="row">
+          <input id="prompt" type="text" value="Symmetric hostage rescue, two routes, small" />
+          <button id="btnConcept">Generate Concept</button>
+          <button id="btnAll">Run All</button>
+        </div>
+        <pre id="outConcept" class="out"></pre>
+      </section>
+
+      <section>
+        <h2>2) Layout</h2>
+        <div class="row">
+          <button id="btnLayout">Generate Layout</button>
+        </div>
+        <pre id="outLayout" class="out"></pre>
+      </section>
+
+      <section>
+        <h2>3) Geometry</h2>
+        <div class="row">
+          <button id="btnGeometry">Generate Geometry</button>
+        </div>
+        <div class="row">
+          <canvas id="geomCanvas" width="400" height="400"></canvas>
+        </div>
+        <pre id="outGeometry" class="out"></pre>
+      </section>
+
+      <section>
+        <h2>4) Export</h2>
+        <div class="row">
+          <button id="btnExport">Export Map</button>
+        </div>
+        <pre id="outExport" class="out"></pre>
+      </section>
+
+      <section>
+        <h2>Edits</h2>
+        <div class="row">
+          <input id="editPrompt" type="text" value="Move CT spawn 200 units east" />
+          <button id="btnEdit">Propose Edit</button>
+        </div>
+        <pre id="outEdit" class="out"></pre>
+      </section>
+    </main>
+
+    <footer>
+      <span class="muted">Backend: <a href="/docs">/docs</a> • UI served from /ui</span>
+    </footer>
+
+    <script src="/ui/app.js"></script>
+  </body>
+  </html>
+

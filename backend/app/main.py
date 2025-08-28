@@ -5,6 +5,7 @@ from typing import Dict
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .models import (
     ConceptRequest,
@@ -32,6 +33,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Serve a minimal static UI from /ui (frontend/ directory at repo root)
+try:
+    app.mount("/ui", StaticFiles(directory="frontend", html=True), name="ui")
+except Exception:
+    # Directory may not exist in some environments; ignore mounting failure
+    pass
 
 @app.get("/")
 def root() -> Dict[str, str]:
@@ -126,4 +133,3 @@ def propose_edit(req: EditRequest) -> EditResponse:
     version_id = f"v-{digest}"
     # Minimal: empty patch; future: generate RFC6902 JSON Patch
     return EditResponse(version_id=version_id, patch=[])
-
