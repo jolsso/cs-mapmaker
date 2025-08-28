@@ -1,0 +1,95 @@
+﻿%% UML Class Diagram
+classDiagram
+  direction LR
+
+  class MapIntent {
+    +string prompt
+    +string map_type
+    +string symmetry
+    +string size
+    +string theme
+    +int seed
+  }
+
+  class Node {
+    +string id
+    +string kind
+    +float width
+  }
+
+  class Edge {
+    +string a
+    +string b
+  }
+
+  class LayoutGraph {
+    +Node[] nodes
+    +Edge[] edges
+  }
+
+  class Point {
+    +float x
+    +float y
+  }
+
+  class Polygon {
+    +string id
+    +Point[] points
+    +float elevation
+  }
+
+  class Entity {
+    +string type
+    +Point position
+  }
+
+  class Geometry2D {
+    +Polygon[] polygons
+    +Entity[] entities
+  }
+
+  class MapExport {
+    +string map_url
+    +string report_url
+  }
+
+  LayoutGraph "1" *-- "0..*" Node : contains
+  LayoutGraph "1" *-- "0..*" Edge : contains
+  Geometry2D "1" *-- "0..*" Polygon : contains
+  Geometry2D "1" *-- "0..*" Entity : contains
+  Polygon "1" *-- "3..*" Point : corners
+  Entity "1" *-- "1" Point : position
+
+  Edge ..> Node : a (by id)
+  Edge ..> Node : b (by id)
+
+
+%% API Flow Sequence Diagram
+sequenceDiagram
+  participant UI as Svelte UI
+  participant API as FastAPI
+  participant Engine as Geometry Engine
+  participant Store as Storage
+
+  UI->>API: POST /concepts {prompt}
+  API-->>UI: MapIntent
+
+  UI->>API: POST /layouts MapIntent
+  API->>Engine: Build LayoutGraph
+  Engine-->>API: LayoutGraph
+  API-->>UI: LayoutGraph
+
+  UI->>API: POST /geometry LayoutGraph
+  API->>Engine: Create Geometry2D
+  Engine-->>API: Geometry2D
+  API-->>UI: Geometry2D
+
+  UI->>API: POST /maps Geometry2D
+  API->>Store: Persist artifacts
+  Store-->>API: URLs
+  API-->>UI: MapExport
+
+  UI->>API: POST /edits {prompt}
+  API->>Engine: Compute JSON Patch
+  Engine-->>API: Patch + version id
+  API-->>UI: Version metadata

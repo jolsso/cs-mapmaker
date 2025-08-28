@@ -1,91 +1,128 @@
 # cs-mapmaker
 
-AI-assisted CS 1.6 map generator. Prompt an idea, visualize a 2D overview, generate `.map` files, and iteratively edit with AI suggestions.
+Visual-first, AI-assisted CS 1.6 map maker. Describe a concept, see it instantly as a 2D layout, refine with direct manipulation and AI suggestions, and export clean `.map` files.
 
-**Stack**
-- Frontend: SvelteKit (TypeScript) + Canvas/WebGL for 2D preview/editing
-- Backend: Python (FastAPI) for API + AI orchestration and geometry/brush generation
-- Jobs: Celery or RQ with Redis for async tasks (generation/compile)
-- Storage: Postgres (metadata/specs), S3-compatible blob store (artifacts), optional Dockerized compile workers
+## Why Visual-First
+- Keep the canvas central: every action updates the view.
+- AI is a co-pilot: it proposes diffs you can preview and apply.
+- Deterministic generation ensures compile-friendly, reproducible maps.
 
-**Goals**
-- Map target: GoldSrc/CS 1.6 `.map` (brush-based) with valid entities
-- AI + prompting: Natural language → structured design spec → deterministic generation
-- Fast 2D iteration: Top-down layout preview and safe, incremental edits
-- Deterministic core: Reproducible builds; validation against common pitfalls (leaks, limits)
+## UX Principles
+- Visual-first: Canvas is the source of truth; edits are always visible.
+- AI as co-pilot: Suggestions arrive as diffs, never silent overwrites.
+- Progressive disclosure: Start simple; reveal advanced controls as needed.
+- Safe by design: All changes are reversible, validated, and seedable.
 
-**System Overview**
-- Frontend (SvelteKit)
-  - Concept/Preview page: Prompt, review constraints, 2D layout preview, quick tuners
-  - Editor page: 2D orthographic editor with snapping, entity placement, AI-assisted diffs
-  - Realtime: WebSocket/SSE progress for long-running jobs
-- Backend (FastAPI)
-  - API Gateway: REST for CRUD + job submission; WS/SSE for progress
-  - AI Orchestrator: LLM calls, schema validation, guardrails
-  - Geometry/Brush Engine: Deterministic conversion of spec → layout → brushes → `.map`
-  - Map I/O: `.map` parser/serializer; optional `.bsp` compile integration
-  - Workers: Async generation/compile tasks with structured logs and retries
+## Information Architecture
+- Left Panel: Projects/maps, versions, layers, templates.
+- Canvas (Center): 2D top-down, grid + snapping, rulers, overlays.
+- Right Panel: Properties inspector and AI prompt/chat.
+- Bottom Bar: Metrics (route timings, chokepoints), job progress/logs, undo/redo.
 
-**Core Data Model**
-- Project: name, default WAD packs, settings
-- MapVersion: immutable snapshot; parent pointer; authored by user/AI; artifacts
-- MapIntent (AI-facing): extracted from prompt; map type/size/theme/goals
-- LayoutGraph: nodes (areas/objectives/spawns), edges (paths/chokepoints)
-- Geometry2D: polygons per room/corridor, widths, elevations, snapping grid
-- BrushSet: convex brushes, textures/alignments, entity list with keyvalues
-- Artifacts: `.map`, preview images, validation/compile logs, optional `.bsp`
+## First-Time Onboarding
+- Coach marks highlighting prompt box, Generate, and canvas controls.
+- 6-10 curated templates (symmetry, size, route count).
+- Empty state prompt with example chips (type, symmetry, theme, size).
 
-**AI → Geometry Pipeline**
-1) Prompt → Intent: LLM produces `MapIntent` JSON (schema-validated)
-2) Intent → Layout: Programmatic generator (graph) with LLM-assisted constraint checks
-3) Layout → Geometry: Deterministic 2D polygons with widths, cover, elevation; grid-snap
-4) Geometry → Brushes: CSG-friendly convex brushes; textures; entity placement
-5) Validation: Leak detection, reachability, brush/face limits, path timings
-6) Edit with AI: Natural language → JSON Patch ops → preview diff → apply
+## Flow: Concept -> Layout
+- Prompt Box: Free text + chips for map type, symmetry, theme, size.
+- AI Parse: Extracted constraints shown as editable chips for transparency.
+- Generate Preview: Intent -> layout; renders areas, paths, spawns/objectives.
+- Quick Tuners: Sliders for scale, corridor width, chokepoint density, symmetry toggle.
+- Risk Hints: Inline warnings for timing imbalance, loops, sightlines.
 
-**API (FastAPI, draft)**
-- POST `/concepts`: prompt → `MapIntent`
-- POST `/layouts`: intent → `LayoutGraph` + preview image
-- POST `/geometry`: layout → `Geometry2D` + preview image
-- POST `/maps`: geometry → `.map` + validation report
-- POST `/edits`: NL prompt → patch ops → new `MapVersion`
-- POST `/compile`: build `.bsp` from `.map` (optional, containerized)
-- GET `/versions/{id}`: metadata + artifact links + validation
-- WS/SSE `/progress`: subscribe to job updates
+## Flow: Layout -> Geometry
+- Commit Concept: 'Looks good -> Make geometry' triggers deterministic generation.
+- Preview Layers: Toggle brush outlines, cover modules, entities.
+- Validation Panel: Leak risk, brush counts, unreachable paths, timing parity.
 
-**Frontend (SvelteKit) Features**
-- Canvas-based 2D views: layers for areas, paths, entities, cover, measurements
-- Controls: drag walls, resize rooms, snap-to-grid, rotate, align, texture presets
-- AI Assistant: chat UI proposes patch ops; side-by-side diff overlay before apply
-- History: version timeline, branching, rollback, import/export `.map`
+## Editor (Visual-First)
+- Direct Manipulation: Drag walls/vertices, resize rooms, rotate, snap-to-grid.
+- Entity Palette: Spawns, bombsites, buyzones; click-to-place with guides.
+- Properties: Contextual fields (width, height, elevation, texture preset).
+- Guides: Route time heatmap, choke widths, sightlines overlay.
 
-**Backend (Python) Components**
-- Schemas: Pydantic models for `MapIntent`, `LayoutGraph`, `Geometry2D`, `BrushSet`
-- Orchestration: LLM client with schema/JSON mode and output validation
-- Geometry Engine: deterministic generators; unit-tested; seedable
-- Map I/O: `.map` parser/serializer; texture/WAD presets for dev grid textures
-- Validation: flood-fill leak checks, brush limits, portal complexity heuristics
-- Compile (optional): VHLT (`hlcsg`, `hlbsp`, `hlvis`, `hlrad`) via Docker; logs/artifacts captured
+## AI Co-Pilot
+- Ask: 'Narrow mid by ~20%', 'Add alternate connector to A'.
+- Propose: Side-by-side diff and overlay highlights of changed polygons/entities.
+- Apply: JSON Patch; create a new version with seed/config notes.
+- Explain: Why-summary (timing delta, chokepoint count change, validation effects).
 
-**Storage & Ops**
-- DB: Postgres (JSONB for specs); migrations with Alembic if needed
-- Queue: Redis for Celery/RQ; idempotent job payloads with versioned seeds/configs
-- Blobs: S3 bucket paths per Project/MapVersion; signed URLs for downloads
-- Observability: structured logs, job traces, artifact retention policy
+## Feedback & Metrics
+- Sanity Meters: Route parity, chokepoint and cover density, portal complexity.
+- Inline Deltas: Before/after metrics for every change (manual or AI).
+- Tooltips: Short guidance with recommended ranges.
 
-**MVP Milestones**
-1) Prompt → Intent → 2D layout preview; save versions
-2) Geometry generation + `.map` export + validation report; import `.map`
-3) AI edit diffs with preview; version history and visual diffs
-4) Optional compile to `.bsp`; texture packs; performance checks
+## Versioning & History
+- Timeline: Named versions with thumbnails and key metrics.
+- Branching: 'Try alternative mid' -> branch; visual merge/compare.
+- Compare: Split-view canvas; toggle layers to see what changed.
 
-**Implementation Notes**
-- Keep the deterministic geometry/brush engine separate from AI logic
-- Use JSON schemas and JSON Patch for safe, testable AI edits
-- Store seeds, tool versions, and config with each `MapVersion` for reproducibility
+## Jobs & Progress
+- Non-blocking: Long tasks run in background; progress toast + bottom logs.
+- Artifacts: Preview PNG/SVG, validation JSON, `.map`, optional `.bsp`.
+- Retry/Pin: Re-run with same seed; pin stable versions.
 
-**Next Steps**
-- Define Pydantic models for `MapIntent` and `MapSpec`
-- Stub FastAPI routes and job submission with Redis
-- Scaffold SvelteKit pages: Concept/Preview and Editor (Canvas)
-- Implement a basic rectilinear layout → geometry prototype with dev grid textures
+## Import/Export
+- Import `.map`: Parse and render; warn on invalid brushes; baseline version.
+- Export: Always `.map`; optional compile to `.bsp` with logs.
+
+## Keyboard & Micro-Interactions
+- Shortcuts: Pan (Space+Drag), snap (Shift), align (A), measure (M).
+- Context Menu: Area/path -> duplicate/mirror, add connector, set width.
+- Grid Controls: Quick grid-size switcher; dev grid textures toggle.
+
+## Error Handling & Guardrails
+- Soft Blocks: Red outlines for illegal geometry; explain constraints.
+- Recoverable Edits: All changes are reversible and logged as patches.
+- Licensing: Clear WAD pack selection; disclaimers for third-party content.
+
+---
+
+## Architecture (Concise)
+- Frontend: SvelteKit (TypeScript) + Canvas 2D (WebGL later if needed).
+- Backend: Python FastAPI for API, AI orchestration, geometry/brush generation.
+- Jobs: Redis + Celery for async generation/compile; progress via WebSocket (SSE optional).
+- Storage: Local dev: SQLite + filesystem. Production: Postgres (metadata/specs) + S3-compatible blobs (artifacts). Optional Dockerized compile workers (VHLT, Phase 2).
+- Deterministic Core: Separate geometry/brush engine; seedable and unit-tested.
+- Realtime: WebSocket for events; SSE for logs-only streams if desired.
+
+## Core Data Model (Brief)
+- Project, MapVersion (immutable), MapIntent (from prompt), LayoutGraph, Geometry2D, BrushSet, Artifacts.
+
+## Patch Targets
+- Intent: JSON Patch over `MapIntent` for high-level goals.
+- Layout: JSON Patch over `LayoutGraph` (nodes/edges, widths, symmetry).
+- Geometry: JSON Patch over `Geometry2D` (polygons, elevations, modules).
+Every applied patch creates a new `MapVersion` with seed/config stored.
+
+## API Surface (Draft)
+- POST `/concepts`: prompt -> MapIntent.
+- POST `/layouts`: intent -> LayoutGraph + preview image.
+- POST `/geometry`: layout -> Geometry2D + preview image.
+- POST `/maps`: geometry -> `.map` + validation report.
+- POST `/edits`: NL prompt -> JSON Patch -> new MapVersion.
+- POST `/compile`: optional `.bsp` compile; logs/artifacts (Phase 2).
+- GET `/versions/{id}`: metadata + artifact links.
+- WS/SSE `/progress`: job updates.
+
+## MVP Scope
+- Must: Prompt -> layout preview, quick tuners, geometry generation, editor basics, AI diffs with preview, versioning, `.map` export, validation panel.
+- Later: `.bsp` compile, multi-user collab, texture painting, template RAG.
+
+## Next Steps
+- Scaffold SvelteKit pages: Concept/Preview and Editor (Canvas).
+- Define Pydantic models for MapIntent, LayoutGraph, Geometry2D, BrushSet.
+- Stub FastAPI routes and Redis-backed Celery jobs; stream progress to frontend via WebSocket.
+- Implement a basic rectilinear layout -> geometry prototype with dev grid textures.
+
+---
+
+## Diagrams
+- Source (Mermaid): `docs/diagram.mmd` (class + sequence)
+- Export PNG (Windows): `./scripts/export-diagram.ps1`
+- Export PNG (Node-only): `npx -y @mermaid-js/mermaid-cli -i docs/diagram.mmd -o docs/diagram.png`
+
+Preview (after export):
+
+![UML overview](docs/diagram.png)
