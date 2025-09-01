@@ -1,4 +1,4 @@
-version: '3'
+﻿version: '3'
 
 vars:
   VENV_PY: '{{if eq OS "windows"}}backend\\.venv\\Scripts\\python.exe{{else}}backend/.venv/bin/python{{end}}'
@@ -38,3 +38,12 @@ tasks:
       PYTHONPATH: backend
     cmds:
       - '{{.VENV_PY}} -m app.cli generate --bbox 12.5,55.6,12.6,55.7 --out maps/example.map --wad halflife.wad'
+
+  test:
+    desc: Run pytest
+    deps: [bootstrap]
+    env:
+      PYTHONPATH: backend
+    cmds:
+      - '{{.VENV_PY}} -m pytest -q'
+
