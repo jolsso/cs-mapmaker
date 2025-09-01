@@ -4,7 +4,7 @@ import json
 import os
 import sys
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -107,7 +107,7 @@ def fetch(
     )
 
     # Name output by bbox and count
-    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     slug = f"{box.min_lon:.5f}_{box.min_lat:.5f}_{box.max_lon:.5f}_{box.max_lat:.5f}_{count}"
     fname = output_name or f"df_2677_{slug}_{stamp}.geojson"
     out_path = out / fname

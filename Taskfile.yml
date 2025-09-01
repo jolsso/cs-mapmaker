@@ -10,7 +10,7 @@ tasks:
       - python -m venv backend/.venv
       - '{{.VENV_PY}} -m pip install -U pip'
       - '{{.VENV_PY}} -m pip install -r backend/requirements.txt'
-      - cmd: if not exist config.yaml copy config.example.yaml config.yaml
+      - cmd: powershell -NoProfile -Command "if (-not (Test-Path 'config.yaml')) { Copy-Item 'config.example.yaml' 'config.yaml' }"
         platforms: [windows]
       - cmd: sh -c 'test -f config.yaml || cp config.example.yaml config.yaml'
         platforms: [linux, darwin]
