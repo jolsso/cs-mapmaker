@@ -1,15 +1,3 @@
 ﻿Modules:
 - SvelteKit UI (TypeScript + Canvas)
 - FastAPI app (Python) for API/orchestration
-- Deterministic geometry engine (pure Python)
-- Jobs: optional Celery + Redis for long tasks
-- Storage: SQLite (dev) → Postgres/S3 (prod)
-- Realtime: WebSocket/SSE for progress logs
-- Data: Project → MapVersion (intent, layout, geometry, artifacts)
-- Flow: Prompt → MapIntent (seeded, editable)
-- Flow: Intent → LayoutGraph (nodes/edges, widths, symmetry)
-- Flow: LayoutGraph → Geometry2D (polygons, modules, metrics)
-- Export: Geometry2D → BrushSet → .map (+ previews)
-- Edits: NL prompt → JSON Patch → new version
-- Determinism: same seed/config → same output
-- Non-goals (MVP): full 3D editor, texture painting, multiuser
