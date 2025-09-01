@@ -1,0 +1,17 @@
+﻿# Dataforsyningen defaults for dataset 2677 (GeoDanmark Bygning)
+#
+# Find the WFS endpoint and layer (typename) from the dataset page services:
+# 1) Open https://dataforsyningen.dk/data/2677
+# 2) In the Webservice section, locate the WFS service and open its GetCapabilities link.
+# 3) Copy the base OWS URL as wfs_url and the building layer Name as wfs_typename.
+#
+# Note: Many Dataforsyningen OGC services expose an OWS endpoint that looks like:
+#   https://<host>/<path>/ows
+# And a WFS typename that looks like a namespaced layer, e.g.:
+#   gd:bygning
+
+dataforsyningen:
+  wfs_url: "https://<host>/<path>/ows"
+  wfs_typename: "<layer_name>"
+
+

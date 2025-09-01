@@ -10,6 +10,10 @@ tasks:
       - python -m venv backend/.venv
       - '{{.VENV_PY}} -m pip install -U pip'
       - '{{.VENV_PY}} -m pip install -r backend/requirements.txt'
+      - cmd: if not exist config.yaml copy config.example.yaml config.yaml
+        platforms: [windows]
+      - cmd: sh -c 'test -f config.yaml || cp config.example.yaml config.yaml'
+        platforms: [linux, darwin]
 
   cli:help:
     desc: Show CLI help
@@ -20,7 +24,7 @@ tasks:
       - '{{.VENV_PY}} -m app.cli --help'
 
   cli:example:fetch:
-    desc: Example fetch (no network yet; stub)
+    desc: Example fetch (requires DF_WFS_URL and DF_WFS_TYPENAME)
     deps: [bootstrap]
     env:
       PYTHONPATH: backend
@@ -34,4 +38,3 @@ tasks:
       PYTHONPATH: backend
     cmds:
       - '{{.VENV_PY}} -m app.cli generate --bbox 12.5,55.6,12.6,55.7 --out maps/example.map --wad halflife.wad'
-

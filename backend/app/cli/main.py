@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from dataclasses import dataclass
 from datetime import datetime
@@ -13,9 +14,11 @@ from rich.console import Console
 
 from app import __version__
 from app.export.map220 import write_empty_map
+from app.providers.wfs import fetch_wfs_bbox_first_page
+from app.config import AppConfig
 
 
-app = typer.Typer(help="csmap CLI — bbox -> cache -> .map (Hammer 220)")
+app = typer.Typer(help="csmap CLI - bbox -> cache -> .map (Hammer 220)")
 console = Console()
 
 
@@ -56,30 +59,78 @@ def version() -> None:
 def fetch(
     bbox: str = typer.Option(..., help="<minLon,minLat,maxLon,maxLat> in EPSG:4326"),
     out: Path = typer.Option(Path("cache"), help="Cache directory"),
-    dataset: str = typer.Option("2677", help="Dataforsyningen dataset id"),
-    crs: int = typer.Option(25832, help="Working CRS (meters), e.g., 25832"),
-    dry_run: bool = typer.Option(False, help="Do not write files; print plan only"),
+    wfs_url: Optional[str] = typer.Option(
+        None,
+        help=(
+            "WFS endpoint base URL (e.g., https://<host>/<path>/ows). "
+            "If omitted, reads DF_WFS_URL env var."
+        ),
+    ),
+    typename: Optional[str] = typer.Option(
+        None,
+        help=(
+            "WFS type name/layer for buildings (e.g., 'bygning'). "
+            "If omitted, reads DF_WFS_TYPENAME env var."
+        ),
+    ),
+    count: int = typer.Option(100, help="Max features to fetch (first page)"),
+    srs_name: str = typer.Option(
+        "EPSG:4326", help="CRS for server response and bbox parameter"
+    ),
+    output_name: Optional[str] = typer.Option(
+        None, help="Output filename (defaults to bbox hash).geojson"
+    ),
 ) -> None:
-    """Fetch building footprints for bbox (stub; caching only)."""
+    """Fetch the first page of building polygons via WFS and cache as GeoJSON.
+
+    Note: Dataforsyningen requires the correct WFS URL and typename for dataset 2677.
+    Provide them via --wfs-url and --typename or DF_WFS_URL / DF_WFS_TYPENAME env vars.
+    """
     box = BBox.parse(bbox)
     ensure_dir(out)
-    plan = {
-        "dataset": dataset,
-        "bbox": box.__dict__,
-        "crs": crs,
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-    }
-    if dry_run:
-        rprint(plan)
-        return
 
-    # Stub: create a cache marker and a plan.json
-    (out / "README.txt").write_text(
-        "csmap cache directory (stub) — raw GeoJSON tiles will be stored here\n",
-        encoding="utf-8",
+    cfg = AppConfig.load()
+    wfs_url = wfs_url or os.getenv("DF_WFS_URL") or cfg.dataforsyningen.url
+    typename = typename or os.getenv("DF_WFS_TYPENAME") or cfg.dataforsyningen.typename
+    if not wfs_url or not typename:
+        raise typer.BadParameter(
+            "Missing --wfs-url and/or --typename (or env DF_WFS_URL / DF_WFS_TYPENAME)."
+        )
+
+    bbox_tuple = (box.min_lon, box.min_lat, box.max_lon, box.max_lat)
+    features, request_url = fetch_wfs_bbox_first_page(
+        wfs_url=wfs_url,
+        typename=typename,
+        bbox=bbox_tuple,
+        srs_name=srs_name,
+        count=count,
     )
-    (out / "plan.json").write_text(json.dumps(plan, indent=2), encoding="utf-8")
-    console.print("[green]Fetch stub complete[/green] →", out)
+
+    # Name output by bbox and count
+    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    slug = f"{box.min_lon:.5f}_{box.min_lat:.5f}_{box.max_lon:.5f}_{box.max_lat:.5f}_{count}"
+    fname = output_name or f"df_2677_{slug}_{stamp}.geojson"
+    out_path = out / fname
+    ensure_dir(out)
+    out_path.write_text(json.dumps(features), encoding="utf-8")
+
+    # Write a small fetch manifest
+    manifest = {
+        "source": "wfs",
+        "url": wfs_url,
+        "typename": typename,
+        "bbox": bbox_tuple,
+        "srs_name": srs_name,
+        "count": count,
+        "request_url": request_url,
+        "out": str(out_path),
+        "timestamp": stamp,
+    }
+    (out / f"{fname}.fetch.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    console.print(
+        f"[green]Fetched[/green] {len(features.get('features', []))} features -> {out_path}"
+    )
 
 
 @app.command()
@@ -100,14 +151,14 @@ def generate(
 
     if stub:
         write_empty_map(out, wads=wads)
-        console.print("[green].map created[/green] →", out)
+        console.print("[green].map created[/green] ->", out)
         console.print(
             "[yellow]Note[/yellow]: generation pipeline is stubbed; solids will be added later."
         )
         return
 
     console.print(
-        "[red]Not implemented[/red]: full generation pipeline will process cache → brushes."
+        "[red]Not implemented[/red]: full generation pipeline will process cache -> brushes."
     )
     raise typer.Exit(code=1)
 
@@ -122,7 +173,7 @@ def preview(
     out = Path(out)
     ensure_dir(out.parent)
     out.write_text(f"Preview (stub) for bbox: {box}\n", encoding="utf-8")
-    console.print("[green]Preview stub[/green] →", out)
+    console.print("[green]Preview stub[/green] ->", out)
 
 
 @app.command()
@@ -147,4 +198,3 @@ def _main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(_main(sys.argv[1:]))
-

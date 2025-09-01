@@ -9,6 +9,16 @@ Status: CLI scaffold ready; generation is stubbed (empty map).
   - `task bootstrap`
   - `task cli:help`
   - `task cli:example:generate` (writes `maps/example.map` with worldspawn)
+  - To fetch real buildings (requires WFS details):
+    - Either edit `config.yaml` (auto-created from `config.example.yaml` on first bootstrap), or set env vars:
+      - In `config.yaml` set:
+        - `dataforsyningen.wfs_url: https://<host>/<path>/ows`
+        - `dataforsyningen.wfs_typename: <buildings_layer_name>`
+      - Or set env vars:
+        - `DF_WFS_URL="https://<host>/<path>/ows"`
+        - `DF_WFS_TYPENAME="<buildings_layer_name>"`
+    - Then run: `task cli:example:fetch`
+    - Tip: Open `<DF_WFS_URL>?service=WFS&request=GetCapabilities` in a browser to find the correct layer `Name` (use that as `DF_WFS_TYPENAME`).
 - Manual (without Task):
   - Create venv and install deps:
     - Windows PowerShell:
@@ -21,6 +31,10 @@ Status: CLI scaffold ready; generation is stubbed (empty map).
       - `pip install -r backend/requirements.txt`
   - Show help: `python -m app.cli --help`
   - Generate empty map: `python -m app.cli generate --bbox 12.5,55.6,12.6,55.7 --out maps/example.map --wad halflife.wad`
+  - Fetch first buildings page (WFS):
+    - With flags: `python -m app.cli fetch --bbox 12.5,55.6,12.6,55.7 --out cache --wfs-url https://<host>/<path>/ows --typename <layer>`
+    - With config: Set `config.yaml` as above, then `python -m app.cli fetch --bbox 12.5,55.6,12.6,55.7 --out cache`
+    - Or with env: `set DF_WFS_URL=...`, `set DF_WFS_TYPENAME=...`, then `python -m app.cli fetch --bbox 12.5,55.6,12.6,55.7 --out cache`
   - Open `maps/example.map` in Hammer (no solids yet; worldspawn only).
 
 ## Overview
@@ -95,7 +109,7 @@ Status: CLI scaffold ready; generation is stubbed (empty map).
 - M4: Performance, attribution file, docs polish.
 
 ## CLI Commands
-- `fetch`: Parses bbox and prepares cache (stub; writes `cache/plan.json`).
+- `fetch`: Fetches the first page of building polygons via WFS for a bbox and caches GeoJSON.
 - `generate`: Produces a `.map`. Currently writes an empty worldspawn (stub). Accepts `--wad` to set WAD paths.
 - `preview`: Writes a simple textual preview for a bbox (stub).
 - `clean`: Prints intended cache cleanup (stub).
