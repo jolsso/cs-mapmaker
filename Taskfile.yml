@@ -39,6 +39,14 @@ tasks:
     cmds:
       - '{{.VENV_PY}} -m app.cli generate --bbox 12.5,55.6,12.6,55.7 --out maps/example.map --wad halflife.wad'
 
+  cli:fetch:skjern:
+    desc: Fetch Skjern buildings (EPSG:4326) into cache/skjern
+    deps: [bootstrap]
+    env:
+      PYTHONPATH: backend
+    cmds:
+      - '{{.VENV_PY}} -m app.cli fetch --bbox 8.491654,55.947181,8.495559,55.949266 --srs-name EPSG:4326 --count 100 --out cache/skjern'
+
   test:
     desc: Run pytest
     deps: [bootstrap]
