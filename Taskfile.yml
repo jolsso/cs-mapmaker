@@ -1,0 +1,37 @@
+version: '3'
+
+vars:
+  VENV_PY: '{{if eq OS "windows"}}backend\\.venv\\Scripts\\python.exe{{else}}backend/.venv/bin/python{{end}}'
+
+tasks:
+  bootstrap:
+    desc: Create venv and install CLI dependencies
+    cmds:
+      - python -m venv backend/.venv
+      - '{{.VENV_PY}} -m pip install -U pip'
+      - '{{.VENV_PY}} -m pip install -r backend/requirements.txt'
+
+  cli:help:
+    desc: Show CLI help
+    deps: [bootstrap]
+    env:
+      PYTHONPATH: backend
+    cmds:
+      - '{{.VENV_PY}} -m app.cli --help'
+
+  cli:example:fetch:
+    desc: Example fetch (no network yet; stub)
+    deps: [bootstrap]
+    env:
+      PYTHONPATH: backend
+    cmds:
+      - '{{.VENV_PY}} -m app.cli fetch --bbox 12.5,55.6,12.6,55.7 --out cache'
+
+  cli:example:generate:
+    desc: Example generate (writes empty .map)
+    deps: [bootstrap]
+    env:
+      PYTHONPATH: backend
+    cmds:
+      - '{{.VENV_PY}} -m app.cli generate --bbox 12.5,55.6,12.6,55.7 --out maps/example.map --wad halflife.wad'
+

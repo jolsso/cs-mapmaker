@@ -2,26 +2,7 @@
 
 Generate Counter-Strike 1.6 Hammer `.map` files from real Danish city data. Provide a lat/lon bounding box, fetch building footprints from Dataforsyningen (dataset 2677), convert to convex brushes, and open in Hammer to refine.
 
-Status: CLI scaffold ready; generation is stubbed (empty map).
-
-## Quickstart
-- Using Task (recommended):
-  - `task bootstrap`
-  - `task cli:help`
-  - `task cli:example:generate` (writes `maps/example.map` with worldspawn)
-- Manual (without Task):
-  - Create venv and install deps:
-    - Windows PowerShell:
-      - `python -m venv backend/.venv`
-      - `.\\backend\\.venv\\Scripts\\Activate.ps1`
-      - `pip install -r backend/requirements.txt`
-    - macOS/Linux:
-      - `python -m venv backend/.venv`
-      - `source backend/.venv/bin/activate`
-      - `pip install -r backend/requirements.txt`
-  - Show help: `python -m app.cli --help`
-  - Generate empty map: `python -m app.cli generate --bbox 12.5,55.6,12.6,55.7 --out maps/example.map --wad halflife.wad`
-  - Open `maps/example.map` in Hammer (no solids yet; worldspawn only).
+Status: Planning/Docs first. CLI + pipeline scaffolding to follow.
 
 ## Overview
 - Input: Lat/lon bounding box over Denmark.
@@ -94,11 +75,9 @@ Status: CLI scaffold ready; generation is stubbed (empty map).
 - M3: Ingest heights, better UVs/textures, presets; preview image.
 - M4: Performance, attribution file, docs polish.
 
-## CLI Commands
-- `fetch`: Parses bbox and prepares cache (stub; writes `cache/plan.json`).
-- `generate`: Produces a `.map`. Currently writes an empty worldspawn (stub). Accepts `--wad` to set WAD paths.
-- `preview`: Writes a simple textual preview for a bbox (stub).
-- `clean`: Prints intended cache cleanup (stub).
+## Getting Started (soon)
+- This repository will add a Python CLI and optional FastAPI service.
+- Initial commands will target a very small bbox to validate `.map` export.
 
 ## Attribution
 - Include Dataforsyningen/GeoDanmark attribution in exports as required.
