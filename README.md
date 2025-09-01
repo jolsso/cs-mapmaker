@@ -12,11 +12,11 @@ Status: CLI scaffold ready; generation is stubbed (empty map).
   - To fetch real buildings (requires WFS details):
     - Either edit `config.yaml` (auto-created from `config.example.yaml` on first bootstrap), or set env vars:
       - In `config.yaml` set:
-        - `dataforsyningen.wfs_url: https://<host>/<path>/ows`
-        - `dataforsyningen.wfs_typename: <buildings_layer_name>`
+        - `dataforsyningen.wfs_url: https://api.dataforsyningen.dk/building_inspire`
+        - `dataforsyningen.wfs_typename: BU.Building` (or `BU.BuildingPart`)
       - Or set env vars:
-        - `DF_WFS_URL="https://<host>/<path>/ows"`
-        - `DF_WFS_TYPENAME="<buildings_layer_name>"`
+        - `DF_WFS_URL="https://api.dataforsyningen.dk/building_inspire"`
+        - `DF_WFS_TYPENAME="BU.Building"`
     - Then run: `task cli:example:fetch`
     - Tip: Open `<DF_WFS_URL>?service=WFS&request=GetCapabilities` in a browser to find the correct layer `Name` (use that as `DF_WFS_TYPENAME`).
 - Manual (without Task):

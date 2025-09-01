@@ -11,6 +11,12 @@
 #   gd:bygning
 
 dataforsyningen:
-  wfs_url: "https://<host>/<path>/ows"
-  wfs_typename: "<layer_name>"
-
+  # Example for INSPIRE Buildings (dataset 2677):
+  # The WMS capabilities you shared is:
+  #   https://api.dataforsyningen.dk/building_inspire?service=WMS&request=GetCapabilities
+  # The corresponding WFS base is the same endpoint with service=WFS.
+  # Commonly used feature type names from capabilities include:
+  #   - BU.Building
+  #   - BU.BuildingPart
+  wfs_url: "https://api.dataforsyningen.dk/building_inspire"
+  wfs_typename: "BU.Building"
