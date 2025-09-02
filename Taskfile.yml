@@ -45,7 +45,15 @@ tasks:
     env:
       PYTHONPATH: backend
     cmds:
-      - '{{.VENV_PY}} -m app.cli fetch --bbox 8.491654,55.947181,8.495559,55.949266 --srs-name EPSG:4326 --out cache/skjern --gpkg cache/DK_Building/building_inspire.gpkg'
+      - '{{.VENV_PY}} -m app.cli fetch --bbox 8.491713,55.946504,8.495897,55.949315 --srs-name EPSG:4326 --out cache/skjern --gpkg cache/DK_Building/building_inspire.gpkg'
+
+  cli:generate:
+    desc: Generate Skjern .map from local GPKG
+    deps: [bootstrap]
+    env:
+      PYTHONPATH: backend
+    cmds:
+      - '{{.VENV_PY}} -m app.cli generate --bbox 8.491713,55.946504,8.495897,55.949315 --gpkg cache/DK_Building/building_inspire.gpkg --out maps/skjern.map --wad halflife.wad --default-height 10 --scale 32'
 
   test:
     desc: Run pytest
