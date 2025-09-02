@@ -1,0 +1,17 @@
+# Python venv
+backend/.venv/
+
+# Caches and artifacts
+cache/
+maps/
+previews/
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Test / temp
+tmp_*
+*.fetch.json
+*.geojson
