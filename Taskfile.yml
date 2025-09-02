@@ -45,7 +45,7 @@ tasks:
     env:
       PYTHONPATH: backend
     cmds:
-      - '{{.VENV_PY}} -m app.cli fetch --bbox 8.491654,55.947181,8.495559,55.949266 --srs-name EPSG:4326 --count 100 --out cache/skjern'
+      - '{{.VENV_PY}} -m app.cli fetch --bbox 8.491654,55.947181,8.495559,55.949266 --srs-name EPSG:4326 --count 100 --out cache/skjern --gpkg cache/DK_Building/building_inspire.gpkg'
 
   test:
     desc: Run pytest

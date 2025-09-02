@@ -22,6 +22,9 @@ DEFAULT_CONFIG_PATHS = (
 class WFSConfig:
     url: Optional[str] = None
     typename: Optional[str] = None
+    api_key: Optional[str] = None
+    api_key_header: Optional[str] = None  # e.g., 'X-API-Key'
+    api_key_query: Optional[str] = None   # e.g., 'api-key' or 'token'
 
 
 @dataclass(frozen=True)
@@ -44,10 +47,19 @@ class AppConfig:
             data = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
 
         # Env overrides
-        df_url = os.getenv("DF_WFS_URL") or data.get("dataforsyningen", {}).get("wfs_url")
-        df_typename = os.getenv("DF_WFS_TYPENAME") or data.get("dataforsyningen", {}).get(
-            "wfs_typename"
+        df_section = data.get("dataforsyningen", {})
+        df_url = os.getenv("DF_WFS_URL") or df_section.get("wfs_url")
+        df_typename = os.getenv("DF_WFS_TYPENAME") or df_section.get("wfs_typename")
+        df_api_key = os.getenv("DF_API_KEY") or df_section.get("api_key")
+        df_api_key_header = os.getenv("DF_API_KEY_HEADER") or df_section.get("api_key_header")
+        df_api_key_query = os.getenv("DF_API_KEY_QUERY") or df_section.get("api_key_query")
+
+        return AppConfig(
+            dataforsyningen=WFSConfig(
+                url=df_url,
+                typename=df_typename,
+                api_key=df_api_key,
+                api_key_header=df_api_key_header,
+                api_key_query=df_api_key_query,
+            )
         )
-
-        return AppConfig(dataforsyningen=WFSConfig(url=df_url, typename=df_typename))
-

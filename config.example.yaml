@@ -20,3 +20,10 @@ dataforsyningen:
   #   - BU.BuildingPart
   wfs_url: "https://api.dataforsyningen.dk/building_inspire"
   wfs_typename: "BU.Building"
+  # If the service requires an API key, set one of the following:
+  # Send as HTTP header (recommended):
+  # api_key: "<your-api-key>"
+  # api_key_header: "X-API-Key"
+  # Or send as query parameter instead (if required by the service):
+  # api_key: "<your-api-key>"
+  # api_key_query: "api-key"
