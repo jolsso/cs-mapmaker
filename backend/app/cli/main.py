@@ -10,6 +10,14 @@ from typing import Optional
 import typer
 from rich import print as rprint
 from rich.console import Console
+from rich.progress import (
+    Progress,
+    BarColumn,
+    TimeRemainingColumn,
+    SpinnerColumn,
+    MofNCompleteColumn,
+    TextColumn,
+)
 
 from app import __version__
 from app.export.map220 import write_empty_map
@@ -100,6 +108,10 @@ def generate(
     default_height: float = typer.Option(10.0, help="Default building height (m)"),
     wall_texture: str = typer.Option("BRICK/BRICK01", help="Wall texture path"),
     roof_texture: str = typer.Option("ROOF/ROOF01", help="Roof texture path"),
+    progress: bool = typer.Option(True, help="Show progress while reading GPKG"),
+    max_features: Optional[int] = typer.Option(
+        None, help="Process at most N features (early stop)"
+    ),
     stub: bool = typer.Option(False, help="Generate empty map instead of solids"),
 ) -> None:
     """Generate a Hammer .map from cached data or local GPKG."""
@@ -118,7 +130,15 @@ def generate(
     if gpkg:
         try:
             boxes = _boxes_from_gpkg(
-                gpkg, layer, box, source_crs=source_crs, scale=scale, min_area=min_area, height=default_height
+                gpkg,
+                layer,
+                box,
+                source_crs=source_crs,
+                scale=scale,
+                min_area=min_area,
+                height=default_height,
+                show_progress=progress,
+                max_features=max_features,
             )
         except ImportError as ie:
             console.print(
@@ -197,6 +217,8 @@ def _boxes_from_gpkg(
     scale: float,
     min_area: float,
     height: float,
+    show_progress: bool = True,
+    max_features: Optional[int] = None,
 ):
     # Lazy imports to keep CLI lightweight unless used
     import fiona  # type: ignore
@@ -227,19 +249,58 @@ def _boxes_from_gpkg(
             to_wgs84 = Transformer.from_crs(src_crs, crs_wgs84, always_xy=True)
             to_metric = Transformer.from_crs(src_crs, crs_metric, always_xy=True)
             wgs_to_metric = Transformer.from_crs(crs_wgs84, crs_metric, always_xy=True)
+            wgs_to_src = Transformer.from_crs(crs_wgs84, src_crs, always_xy=True)
 
             # Center in metric CRS for normalization
             lon_c = (bbox.min_lon + bbox.max_lon) / 2.0
             lat_c = (bbox.min_lat + bbox.max_lat) / 2.0
             cx, cy = wgs_to_metric.transform(lon_c, lat_c)
 
+            # Compute source-CRS bbox and use collection-level spatial filter if available
+            x1, y1 = wgs_to_src.transform(bbox.min_lon, bbox.min_lat)
+            x2, y2 = wgs_to_src.transform(bbox.max_lon, bbox.max_lat)
+            bbox_src = (
+                min(x1, x2),
+                min(y1, y2),
+                max(x1, x2),
+                max(y1, y2),
+            )
+
+            total = None
+            try:
+                # We can't know the filtered count cheaply; leave total unknown
+                total = None
+            except Exception:
+                total = None
+
+            progress_ctx = None
+            task_id = None
+            if show_progress:
+                progress_ctx = Progress(
+                    SpinnerColumn(),
+                    TextColumn("[bold]Reading GPKG"),
+                    BarColumn(),
+                    MofNCompleteColumn(),
+                    TimeRemainingColumn(),
+                    transient=True,
+                    console=console,
+                )
+                progress_ctx.start()
+                task_id = progress_ctx.add_task("features", total=total)
+
+            # Prefer streaming with a driver-level bbox filter
+            try:
+                iterator = src.filter(bbox=bbox_src)
+            except Exception:
+                iterator = iter(src)
+
             boxes = []
-            for feat in src:
+            for _feat_idx, feat in enumerate(iterator, start=1):
                 if not feat.get("geometry"):
                     continue
                 geom = shape(feat["geometry"])  # src CRS
 
-                # Quick bbox filter: transform to WGS84 and intersect with filter polygon
+                # Quick bbox filter in WGS84 (fallback if driver-level filter is coarse)
                 geom_wgs = stransform(lambda x, y, z=None: to_wgs84.transform(x, y), geom)
                 if not geom_wgs.is_valid or not geom_wgs.intersects(filter_poly_wgs84):
                     continue
@@ -267,5 +328,17 @@ def _boxes_from_gpkg(
                     continue
 
                 boxes.append((minx_u, miny_u, maxx_u, maxy_u, z0_u, z1_u))
+
+                if progress_ctx and task_id is not None:
+                    if total is not None:
+                        progress_ctx.update(task_id, completed=_feat_idx)
+                    else:
+                        progress_ctx.advance(task_id)
+
+                if max_features and len(boxes) >= max_features:
+                    break
+
+            if progress_ctx:
+                progress_ctx.stop()
 
             return boxes
