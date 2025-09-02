@@ -9,16 +9,9 @@ Status: CLI scaffold ready; generation is stubbed (empty map).
   - `task bootstrap`
   - `task cli:help`
   - `task cli:example:generate` (writes `maps/example.map` with worldspawn)
-  - To fetch real buildings (requires WFS details):
-    - Either edit `config.yaml` (auto-created from `config.example.yaml` on first bootstrap), or set env vars:
-      - In `config.yaml` set:
-        - `dataforsyningen.wfs_url: https://api.dataforsyningen.dk/building_inspire`
-        - `dataforsyningen.wfs_typename: BU.Building` (or `BU.BuildingPart`)
-      - Or set env vars:
-        - `DF_WFS_URL="https://api.dataforsyningen.dk/building_inspire"`
-        - `DF_WFS_TYPENAME="BU.Building"`
-    - Then run: `task cli:example:fetch`
-    - Tip: Open `<DF_WFS_URL>?service=WFS&request=GetCapabilities` in a browser to find the correct layer `Name` (use that as `DF_WFS_TYPENAME`).
+  - To register offline data (local GPKG):
+    - Place your GeoPackage at `cache/DK_Building/building_inspire.gpkg` (or another path).
+    - Run: `task cli:example:fetch` (creates a manifest pointing to the local GPKG)
 - Manual (without Task):
   - Create venv and install deps:
     - Windows PowerShell:
@@ -31,10 +24,8 @@ Status: CLI scaffold ready; generation is stubbed (empty map).
       - `pip install -r backend/requirements.txt`
   - Show help: `python -m app.cli --help`
   - Generate empty map: `python -m app.cli generate --bbox 12.5,55.6,12.6,55.7 --out maps/example.map --wad halflife.wad`
-  - Fetch first buildings page (WFS):
-    - With flags: `python -m app.cli fetch --bbox 12.5,55.6,12.6,55.7 --out cache --wfs-url https://<host>/<path>/ows --typename <layer>`
-    - With config: Set `config.yaml` as above, then `python -m app.cli fetch --bbox 12.5,55.6,12.6,55.7 --out cache`
-    - Or with env: `set DF_WFS_URL=...`, `set DF_WFS_TYPENAME=...`, then `python -m app.cli fetch --bbox 12.5,55.6,12.6,55.7 --out cache`
+  - Register local GPKG:
+    - `python -m app.cli fetch --bbox 12.5,55.6,12.6,55.7 --out cache --gpkg cache/DK_Building/building_inspire.gpkg`
   - Open `maps/example.map` in Hammer (no solids yet; worldspawn only).
 
 ## Overview
@@ -109,8 +100,8 @@ Status: CLI scaffold ready; generation is stubbed (empty map).
 - M4: Performance, attribution file, docs polish.
 
 ## CLI Commands
-- `fetch`: Fetches the first page of building polygons via WFS for a bbox and caches GeoJSON.
-- `generate`: Produces a `.map`. Currently writes an empty worldspawn (stub). Accepts `--wad` to set WAD paths.
+- `fetch`: Registers a local GeoPackage for a bbox (offline-only; writes a manifest).
+- `generate`: Produces a `.map`. With `--gpkg`, reads buildings from the GPKG and writes box solids; with `--stub`, writes worldspawn only.
 - `preview`: Writes a simple textual preview for a bbox (stub).
 - `clean`: Prints intended cache cleanup (stub).
 

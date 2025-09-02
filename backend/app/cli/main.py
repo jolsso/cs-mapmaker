@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -14,8 +13,6 @@ from rich.console import Console
 
 from app import __version__
 from app.export.map220 import write_empty_map
-from app.providers.wfs import fetch_wfs_bbox_first_page
-from app.config import AppConfig
 
 
 app = typer.Typer(help="csmap CLI - bbox -> cache -> .map (Hammer 220)")
@@ -59,114 +56,33 @@ def version() -> None:
 def fetch(
     bbox: str = typer.Option(..., help="<minLon,minLat,maxLon,maxLat> in EPSG:4326"),
     out: Path = typer.Option(Path("cache"), help="Cache directory"),
-    gpkg: Optional[Path] = typer.Option(
-        None,
-        help="Path to a local GeoPackage to use instead of web API",
+    gpkg: Path = typer.Option(
+        ..., help="Path to a local GeoPackage with buildings"
     ),
-    wfs_url: Optional[str] = typer.Option(
-        None,
-        help=(
-            "WFS endpoint base URL (e.g., https://<host>/<path>/ows). "
-            "If omitted, reads DF_WFS_URL env var."
-        ),
-    ),
-    typename: Optional[str] = typer.Option(
-        None,
-        help=(
-            "WFS type name/layer for buildings (e.g., 'bygning'). "
-            "If omitted, reads DF_WFS_TYPENAME env var."
-        ),
-    ),
-    count: int = typer.Option(100, help="Max features to fetch (first page)"),
     srs_name: str = typer.Option(
-        "EPSG:4326", help="CRS for server response and bbox parameter"
-    ),
-    output_name: Optional[str] = typer.Option(
-        None, help="Output filename (defaults to bbox hash).geojson"
+        "EPSG:4326", help="CRS of the provided bbox"
     ),
 ) -> None:
-    """Fetch the first page of building polygons via WFS and cache as GeoJSON.
-
-    Note: Dataforsyningen requires the correct WFS URL and typename for dataset 2677.
-    Provide them via --wfs-url and --typename or DF_WFS_URL / DF_WFS_TYPENAME env vars.
-    """
+    """Register a local GeoPackage as the data source for a bbox (offline-only)."""
     box = BBox.parse(bbox)
     ensure_dir(out)
 
-    # Prefer a local GeoPackage if present
-    if gpkg and Path(gpkg).exists():
-        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        manifest = {
-            "source": "local_gpkg",
-            "gpkg": str(Path(gpkg).resolve()),
-            "bbox": (box.min_lon, box.min_lat, box.max_lon, box.max_lat),
-            "srs_name": srs_name,
-            "timestamp": stamp,
-        }
-        fname = f"local_gpkg_{Path(gpkg).stem}_{stamp}.fetch.json"
-        (out / fname).write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-        console.print(
-            f"[green]Using local GeoPackage[/green] -> {manifest['gpkg']} (manifest: {out / fname})"
-        )
-        return
+    gpkg_path = Path(gpkg)
+    if not gpkg_path.exists():
+        raise typer.BadParameter(f"GPKG not found: {gpkg_path}")
 
-    cfg = AppConfig.load()
-    wfs_url = wfs_url or os.getenv("DF_WFS_URL") or cfg.dataforsyningen.url
-    typename = typename or os.getenv("DF_WFS_TYPENAME") or cfg.dataforsyningen.typename
-    if not wfs_url or not typename:
-        raise typer.BadParameter(
-            "Missing --wfs-url and/or --typename (or env DF_WFS_URL / DF_WFS_TYPENAME)."
-        )
-
-    bbox_tuple = (box.min_lon, box.min_lat, box.max_lon, box.max_lat)
-    try:
-        features, request_url = fetch_wfs_bbox_first_page(
-        wfs_url=wfs_url,
-        typename=typename,
-        bbox=bbox_tuple,
-        srs_name=srs_name,
-        count=count,
-        api_key=cfg.dataforsyningen.api_key,
-        api_key_header=cfg.dataforsyningen.api_key_header,
-        api_key_query=cfg.dataforsyningen.api_key_query,
-    )
-    except Exception as exc:  # noqa: BLE001
-        console.print(
-            "[red]Fetch failed[/red]:",
-            str(exc),
-        )
-        console.print(
-            "[yellow]Hint[/yellow]: Some Dataforsyningen services require an API key."
-        )
-        console.print(
-            "Configure it in config.yaml (dataforsyningen.api_key + api_key_header/api_key_query) or set DF_API_KEY."
-        )
-        raise typer.Exit(code=1)
-
-    # Name output by bbox and count
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    slug = f"{box.min_lon:.5f}_{box.min_lat:.5f}_{box.max_lon:.5f}_{box.max_lat:.5f}_{count}"
-    fname = output_name or f"df_2677_{slug}_{stamp}.geojson"
-    out_path = out / fname
-    ensure_dir(out)
-    out_path.write_text(json.dumps(features), encoding="utf-8")
-
-    # Write a small fetch manifest
     manifest = {
-        "source": "wfs",
-        "url": wfs_url,
-        "typename": typename,
-        "bbox": bbox_tuple,
+        "source": "local_gpkg",
+        "gpkg": str(gpkg_path.resolve()),
+        "bbox": (box.min_lon, box.min_lat, box.max_lon, box.max_lat),
         "srs_name": srs_name,
-        "count": count,
-        "request_url": request_url,
-        "out": str(out_path),
         "timestamp": stamp,
     }
-    (out / f"{fname}.fetch.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-
+    fname = f"local_gpkg_{gpkg_path.stem}_{stamp}.fetch.json"
+    (out / fname).write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     console.print(
-        f"[green]Fetched[/green] {len(features.get('features', []))} features -> {out_path}"
+        f"[green]Using local GeoPackage[/green] -> {manifest['gpkg']} (manifest: {out / fname})"
     )
 
 

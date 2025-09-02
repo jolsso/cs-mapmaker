@@ -24,12 +24,12 @@ tasks:
       - '{{.VENV_PY}} -m app.cli --help'
 
   cli:example:fetch:
-    desc: Example fetch (requires DF_WFS_URL and DF_WFS_TYPENAME)
+    desc: Example register local GPKG (offline)
     deps: [bootstrap]
     env:
       PYTHONPATH: backend
     cmds:
-      - '{{.VENV_PY}} -m app.cli fetch --bbox 12.5,55.6,12.6,55.7 --out cache'
+      - '{{.VENV_PY}} -m app.cli fetch --bbox 12.5,55.6,12.6,55.7 --out cache --gpkg cache/DK_Building/building_inspire.gpkg'
 
   cli:example:generate:
     desc: Example generate (writes empty .map)
@@ -45,7 +45,7 @@ tasks:
     env:
       PYTHONPATH: backend
     cmds:
-      - '{{.VENV_PY}} -m app.cli fetch --bbox 8.491654,55.947181,8.495559,55.949266 --srs-name EPSG:4326 --count 100 --out cache/skjern --gpkg cache/DK_Building/building_inspire.gpkg'
+      - '{{.VENV_PY}} -m app.cli fetch --bbox 8.491654,55.947181,8.495559,55.949266 --srs-name EPSG:4326 --out cache/skjern --gpkg cache/DK_Building/building_inspire.gpkg'
 
   test:
     desc: Run pytest
