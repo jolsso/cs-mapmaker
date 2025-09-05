@@ -1,6 +1,0 @@
-worldspawn
-{
-"mapversion" "220"
-"classname" "worldspawn"
-"wad" "halflife.wad"
-}

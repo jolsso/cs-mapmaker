@@ -23,43 +23,10 @@ tasks:
     cmds:
       - '{{.VENV_PY}} -m app.cli --help'
 
-  cli:example:fetch:
-    desc: Example register local GPKG (offline)
-    deps: [bootstrap]
-    env:
-      PYTHONPATH: backend
+  download:
+    desc: Download Denmark buildings dataset to cache
     cmds:
-      - '{{.VENV_PY}} -m app.cli fetch --bbox 12.5,55.6,12.6,55.7 --out cache --gpkg cache/DK_Building/building_inspire.gpkg'
-
-  cli:example:generate:
-    desc: Example generate (writes empty .map)
-    deps: [bootstrap]
-    env:
-      PYTHONPATH: backend
-    cmds:
-      - '{{.VENV_PY}} -m app.cli generate --bbox 12.5,55.6,12.6,55.7 --out maps/example.map --wad halflife.wad'
-
-  cli:fetch:skjern:
-    desc: Fetch Skjern buildings (EPSG:4326) into cache/skjern
-    deps: [bootstrap]
-    env:
-      PYTHONPATH: backend
-    cmds:
-      - '{{.VENV_PY}} -m app.cli fetch --bbox 8.491713,55.946504,8.495897,55.949315 --srs-name EPSG:4326 --out cache/skjern --gpkg cache/DK_Building/building_inspire.gpkg'
-
-  cli:generate:
-    desc: Generate Skjern .map from local GPKG
-    deps: [bootstrap]
-    env:
-      PYTHONPATH: backend
-    cmds:
-      - '{{.VENV_PY}} -m app.cli generate --bbox 8.491713,55.946504,8.495897,55.949315 --gpkg cache/DK_Building/building_inspire.gpkg --out maps/skjern.map --wad halflife.wad --default-height 10 --scale 32'
-
-  test:
-    desc: Run pytest
-    deps: [bootstrap]
-    env:
-      PYTHONPATH: backend
-    cmds:
-      - '{{.VENV_PY}} -m pytest -q'
-
+      - cmd: python scripts/download_dk_buildings.py {{.CLI_ARGS}}
+        platforms: [windows]
+      - cmd: python3 scripts/download_dk_buildings.py {{.CLI_ARGS}}
+        platforms: [linux, darwin]
