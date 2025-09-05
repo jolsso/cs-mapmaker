@@ -30,3 +30,12 @@ tasks:
         platforms: [windows]
       - cmd: python3 scripts/download_dk_buildings.py {{.CLI_ARGS}}
         platforms: [linux, darwin]
+
+  extract:skjern:
+    desc: Extract buildings for Skjern bbox into GeoJSON
+    deps: [bootstrap]
+    cmds:
+      - cmd: '{{.VENV_PY}} scripts\\extract_bbox.py --bbox 8.491938 55.947356 8.495377 55.949194 --out maps\\skjern.buildings.geojson --preview'
+        platforms: [windows]
+      - cmd: '{{.VENV_PY}} scripts/extract_bbox.py --bbox 8.491938 55.947356 8.495377 55.949194 --out maps/skjern.buildings.geojson --preview'
+        platforms: [linux, darwin]
