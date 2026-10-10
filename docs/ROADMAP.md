@@ -56,8 +56,10 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 - [ ] Tracker-plugin (se TRACKER_SPEC.md) skriver CSV
 - [ ] Runner: start server, kør N runder, stop, hent CSV
 - [ ] Parallelle servere (mindst 2)
+- [ ] Spectator-adgang: hver server eksponerer sin UDP-port (27015, 27016, …), `mp_allowspectators 1`, `sv_lan 1`, én ledig slot ud over bots; join med `connect localhost:<port>`
+- [ ] Demo-optagelse pr. run, gemt i `runs/<map>/<iteration>/demos/`, afspilles med `playdemo` ⚠️ VERIFICÉR mekanisme (HLTV-proxy `record` vs. server-side plugin)
 
-**Accept:** 50 runder på blockout kører uden indgriben, CSV valideres mod skema.
+**Accept:** 50 runder på blockout kører uden indgriben, CSV valideres mod skema. Du kan joine en kørende server som spectator uden at påvirke data, og et run kan genses som demo.
 
 ## Fase 5 – Analyse
 **Mål:** Data bliver til metrikker og billeder.

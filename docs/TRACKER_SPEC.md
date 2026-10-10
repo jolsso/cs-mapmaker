@@ -6,6 +6,8 @@ AMX Mod X-plugin (`server/plugins/mapforge_tracker.sma`) der logger spillerposit
 
 ## Krav
 - Påvirker ikke gameplay.
+- Logger kun bots på T og CT. Menneskelige spillere og spectators (fx dig, der kigger med) logges ikke i `positions.csv`/`events.csv`.
+- Er et menneske på T eller CT i en runde, markeres runden med `humans_on_team > 0` i `rounds.csv`, og analysen udelader den.
 - Lavt overhead: sampling via task, buffer i hukommelsen, flush ved rundeslut.
 - Én CSV-mappe pr. server-run: `logs/mapforge/<map>_<run_id>/`.
 - Konfiguration via cvars.
@@ -61,6 +63,7 @@ AMX Mod X-plugin (`server/plugins/mapforge_tracker.sma`) der logger spillerposit
 | reason | elimination / bomb / defuse / time |
 | plant_site | A / B / tom |
 | t_alive_end, ct_alive_end | int |
+| humans_on_team | int (0 = ren bot-runde; > 0 = ugyldig til metrikker) |
 
 ## Runner-integration
 1. Runner sætter `mf_run_id` og `mf_max_rounds` via server.cfg eller rcon.
