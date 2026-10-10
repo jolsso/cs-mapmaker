@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0–3b og Gate A færdig · fase 4 i gang</b></span>
+    <span>status <b>fase 0–4 og Gate A færdig · fase 5 næste</b></span>
     <span>opdateret <b>2026-10-10</b></span>
     <span>designguide <b>docs/DESIGN_GUIDE.md</b></span>
     <span>alle outputs: <b>http://localhost:8080</b> (lokalt website)</span>
@@ -529,10 +529,10 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       <p><b>Layout.</b> ✅ Godkendt 2026-10-10: de_forge01 v004. Topologi og sites er låst; tema vælges før art pass.</p>
     </li>
 
-    <li class="phase next">
+    <li class="phase done">
       <div class="phase-no"><small>Fase</small>4</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Simulation</h3><span class="chip next">i gang</span></div>
+        <div class="phase-head"><h3>Simulation</h3><span class="chip done">færdig</span></div>
         <ul>
           <li class="ok">hlds-image: HLDS (SteamCMD anonym, steam_legacy) + ReHLDS + ReGameDLL + Metamod-R + AMXX + YaPB, headless; add-ons pinnet med SHA256</li>
           <li class="ok">Automatisk YaPB-navigationsgraf pr. map (auto-analyse), cachet pr. .bsp-hash; ingen graf-upload</li>
@@ -540,17 +540,17 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <li class="ok">Smoke-kørsel (3 runder): de_forge01 OK – 5 mod 5 bots, begge sites nået, plants på A og B</li>
           <li class="ok">Hurtigere end realtid: ReHLDS <code>sys_timescale</code>, målt ≈ 4×</li>
           <li class="ok">Batches à 20 runder med Wilson-interval og tidligt stop, 2 servere parallelt: 50 runder på 10,5 min, 0 schema-fejl (T-winrate 0,46, A-plants 0,63)</li>
-          <li>Spectator-adgang: <code>connect localhost:27015</code> fra din CS-klient; tracker logger kun bots</li>
-          <li>Demo-optagelse pr. run (HLTV i containeren) – optages; mangler din test med <code>playdemo</code></li>
+          <li class="ok">Spectator-adgang: <code>connect 127.0.0.1:27015</code> fra en CS 1.6-klient (ikke CZ) med samme .bsp; tracker logger kun bots</li>
+          <li class="ok">Demo-optagelse pr. run (HLTV i containeren), afspilles med <code>playdemo</code></li>
         </ul>
         <p class="accept"><b>Accept:</b> 50 runder kører uden indgriben, og CSV valideres mod skemaet. Du kan kigge med som spectator uden at påvirke data, og et run kan genses som demo.</p>
       </div>
     </li>
 
-    <li class="phase">
+    <li class="phase next">
       <div class="phase-no"><small>Fase</small>5</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Analyse</h3><span class="chip">senere</span></div>
+        <div class="phase-head"><h3>Analyse</h3><span class="chip next">næste</span></div>
         <ul>
           <li>Metrikker fra FITNESS.md → <code>metrics.json</code></li>
           <li>Heatmaps (trafik, kills, deaths, første kontakt) oven på top-down</li>

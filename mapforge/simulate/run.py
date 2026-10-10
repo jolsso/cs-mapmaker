@@ -132,7 +132,7 @@ class Simulation:
     def log(self, msg: str) -> None:
         print(msg, flush=True)
 
-    def _job(self, group: str, index: int, rounds: int) -> ServerJob:
+    def _job(self, group: str, index: int, rounds: int, demo: bool | None = None) -> ServerJob:
         demo_mode = self.sim.get("demo", "none")
         run_id = f"{group}s{index}"
         return ServerJob(
@@ -143,13 +143,17 @@ class Simulation:
             bsp=self.bsp,
             graph=self.graph if self.graph.is_file() else None,
             port=int(self.sim["base_port"]) + index if self.sim.get("bind") else None,
-            demo=demo_mode == "all" or (demo_mode == "first_server" and index == 0),
+            demo=(demo_mode == "all" or (demo_mode == "first_server" and index == 0))
+            if demo is None
+            else demo,
             timescale=self.timescale,
         )
 
-    def run_group(self, group: str, rounds: int, servers: int) -> list[dict]:
+    def run_group(
+        self, group: str, rounds: int, servers: int, demo: bool | None = None
+    ) -> list[dict]:
         per_server = math.ceil(rounds / servers)
-        jobs = [self._job(group, i, per_server) for i in range(servers)]
+        jobs = [self._job(group, i, per_server, demo) for i in range(servers)]
         with ThreadPoolExecutor(max_workers=servers) as pool:
             statuses = list(
                 pool.map(lambda j: run_server(self.client, self.tag, self.sim, j, self.log), jobs)
@@ -198,7 +202,15 @@ class Simulation:
             "groups": [],
         }
         ok = True
-        if not no_smoke:
+        if not self.graph.is_file():
+            # YaPB analyses a new map on first start, and then re-adds only quota - 1 bots
+            # (seen 2026-10-10). Make the graph in a throwaway run; every counted run loads it.
+            self.log("graph: no YaPB graph for this .bsp yet, analysing in a 1-round run ...")
+            statuses = self.run_group("graph", 1, 1, demo=False)
+            report["groups"].append({"name": "graph", "servers": statuses})
+            if not self.graph.is_file():
+                ok = False
+        if ok and not no_smoke:
             n = int(self.sim["smoke_rounds"])
             self.log(f"smoke: {n} rounds on 1 server (timescale {self.timescale}) ...")
             statuses = self.run_group("smoke", n, 1)
@@ -213,7 +225,10 @@ class Simulation:
             ok = smoke["ok"]
         report["graph"] = str(self.graph) if self.graph.is_file() else None
         groups: list[str] = []
-        stop_reason = "smoke failed" if not ok else ("smoke only" if smoke_only else "")
+        if not ok:
+            stop_reason = "smoke failed" if self.graph.is_file() else "no YaPB graph"
+        else:
+            stop_reason = "smoke only" if smoke_only else ""
         summary: dict[str, Any] = {}
         while ok and not smoke_only:
             name = f"b{len(groups) + 1:02d}"
@@ -290,7 +305,8 @@ def main(argv: list[str] | None = None) -> int:
     report = Simulation(cfg, args.map, bsp, out, args).run(args.smoke_only, args.no_smoke)
     text = json.dumps(report, indent=2, ensure_ascii=False)
     (out / "simulation.json").write_text(text, encoding="utf-8")
-    (cfg.path("build_dir") / args.map / "simulation.json").write_text(text, encoding="utf-8")
+    if args.out is None:  # an explicit --out (watch session, loop iteration) keeps the build's
+        (cfg.path("build_dir") / args.map / "simulation.json").write_text(text, encoding="utf-8")
     print(f"simulate {args.map}: {'OK' if report['ok'] else 'FAILED'} ({report['stop_reason']}),"
           f" {report['wall_s']} s -> {out / 'simulation.json'}")  # fmt: skip
     return 0 if report["ok"] else 1

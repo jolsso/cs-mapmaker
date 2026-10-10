@@ -88,14 +88,17 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 - [x] Smoke-kørsel (≈ 3 runder) før fuld simulering: server, graf, bots bevæger sig og når begge sites (de_forge01: OK, 90 s)
 - [x] Batches à ~20 runder med løbende konfidensinterval og tidligt stop, når resultatet er afgjort (Wilson 95 %; "uden for mål" stopper straks, "inden for" kræver min_rounds)
 - [x] Parallelle servere (mindst 2)
-- [ ] Spectator-adgang: hver server eksponerer sin UDP-port (27015, 27016, …), `mp_allowspectators 1`, `sv_lan 1`, én ledig slot ud over bots; join med `connect localhost:<port>`
-- [ ] Demo-optagelse pr. run, gemt i `runs/<map>/<iteration>/demos/`, afspilles med `playdemo` ⚠️ VERIFICÉR mekanisme (HLTV-proxy `record` vs. server-side plugin)
+- [x] Spectator-adgang: hver server eksponerer sin UDP-port (27015, 27016, …), `mp_allowspectators 1`, `sv_lan 1`, én ledig slot ud over bots; join med `connect localhost:<port>`
+- [x] Demo-optagelse pr. run, gemt i `<out>/<gruppe>/<run>/demos/` (loopet: `runs/<map>/<iteration>/sim/`), afspilles med `playdemo` – mekanisme: HLTV-proxy i servercontaineren (`+delay 0 +record`)
 
 Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4, `sys_ticrate 400`). Spectators kan følge med i realtid med `-- --watch`.
 
 **Accept:** 50 runder på blockout kører uden indgriben, CSV valideres mod skema. Du kan joine en kørende server som spectator uden at påvirke data, og et run kan genses som demo.
 - ✅ 2026-10-10: de_forge01, 50 gyldige runder på 631 s (2 servere, timescale 4), 0 schema-fejl, ingen timeouts. T-winrate 0,46 [0,33–0,60], plants på A 0,63 (27 plants). 4 HLTV-demoer.
-- ⏳ Spectator og `playdemo`: testes af dig i CS-klienten. Klienten skal have præcis den .bsp, serveren kører (`-- --watch --bsp <fil>`).
+- Spectator: serveren svarer på `127.0.0.1:27015` fra værten (UDP-forespørgsel testet). Din test i klienten blev fravalgt af dig 2026-10-10. Forudsætninger: klienten skal køre Counter-Strike (`-game cstrike`), ikke Condition Zero, og have præcis den .bsp, serveren kører (`-- --watch --bsp <fil>`).
+- Demo: HLTV-demoer optages og hentes ud. `playdemo` er ikke testet i klienten.
+- Fundet under testen: når YaPB analyserer et nyt map, joiner kun quota − 1 bots. Grafen laves derfor nu i en separat kørsel på 1 runde, der ikke tæller med.
+- ✅ Fase 4 afsluttet 2026-10-10.
 
 ## Fase 5 – Analyse
 **Mål:** Data bliver til metrikker og billeder.
