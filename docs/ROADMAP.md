@@ -2,6 +2,8 @@
 
 Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 🚦 = menneske-gate: stop, opsummér, vent på godkendelse.
 
+**Rækkefølge (omlagt 2026-10-10):** 0 → 1 → 1b → 3 → 3b → 2 → 🚦A → 4 → 5 → 6 → 🚦B → 7 → 🚦C. Det billige loop (validate → render → review → decide) bygges og testes på kendte, officielle maps, før generatoren og den dyre simulering. Fasenumrene er bevaret, så referencer stadig passer.
+
 ## Fase 0 – Fundament
 **Mål:** Repo, værktøjer og et kendt testmap kan compiles.
 
@@ -25,21 +27,19 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 **Accept:** Alle fejltestmaps fanges med korrekt årsag. Claude kan rette et leak-map ud fra `compile.json` alene.
 ✅ Opfyldt 2026-10-10: 7/7 fixtures fanges (`tests/test_validate.py`). En frisk agent fik kun det utætte map (uden kommentarer) + `compile.json`, tilføjede den manglende væg ud fra `leak.first_point`/`leak.line`, og resultatet compilede uden leak og validerede med 0 errors.
 
-## Fase 2 – Generator + blockout
-**Mål:** Fra YAML-layout til spilbart graybox-map.
+## Fase 1b – Referencemaps og kalibrering
+**Mål:** Validate (BSP-delen) er afprøvet og kalibreret på officielle maps, vi ved virker.
 
-- [ ] Layout-spec-format (YAML) dokumenteret
-- [ ] Generator: rum, korridorer, trapper/ramper, sites, spawns, ydre skal
-- [ ] Round-trip: læs .map → ændr → skriv
-- [ ] Første de_-blockout genereret og compileret uden fejl
-- [ ] Pre-sim-nåbarhed: spawn → begge sites på walkable-grafen (hull 1), validator-rule `unreachable_site`; sites/spawn-zoner fra layout-spec
+- [ ] Referencemaps: læses read-only fra den lokale CS 1.6-installation (sti i `config/pipeline.local.yaml`), mountes read-only i containeren og kopieres aldrig ind i repoet
+- [ ] BSP-tilstand i Validate: `./mf validate MAP=de_dust2 SOURCE=reference` (ingen .map, ingen compile)
+- [ ] Buyzones: implicitte buyzones tæller (ingen `func_buyzone` overhovedet = CS laver dem ved spawn); fejl kun hvis kun ét hold har
+- [ ] Nåbarhed: flood-fill fra spawns på walkable-grafen (hull 1); hver spawn skal nå begge bomb targets (`unreachable_site`); korridor-warnings kun i nåbart område
+- [ ] Kalibrering på alle officielle de_-maps; tærskler justeres og begrundes
 
-**Accept:** Et 2-site blockout passerer Fase 1-validering, inkl. nåbarhed.
-
-🚦 **Gate A – Layout:** Mennesket går rundt i blockout in-game. Er grundlayoutet sjovt og læsbart? Lås overordnet struktur i FITNESS.md.
+**Accept:** Alle officielle de_-maps i installationen validerer med 0 errors, og de resterende warnings er gennemgået og giver mening.
 
 ## Fase 3 – Render
-**Mål:** Claude kan se mappet.
+**Mål:** Claude kan se mappet. Bygges og testes på referencemaps (fase 1b), før generatoren findes.
 
 - [ ] newbspguy → OBJ → Blender headless, top-down ortografisk render
 - [ ] Kamera-presets fra YAML → perspektiv-renders
@@ -47,9 +47,30 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 - [ ] Klient-screenshot-script (`+map`, kamera, `screenshot`) ⚠️ VERIFICÉR hvordan kamera positioneres scriptet
 - [ ] Heatmap-overlay-funktion (bruges i Fase 5)
 - [ ] `renders/index.json`: kamera, formål og fil pr. billede
-- [ ] Review-trin (pre-sim-gate): deterministiske checks + Claude ser billederne mod layout-spec og tjekliste → `review.json`; fail går direkte til Decide uden simulering (ARCHITECTURE.md → 5 Review)
+- [ ] Review-trin (pre-sim-gate): deterministiske checks + Claude ser billederne mod tjekliste (og layout-spec, når mappet har en) → `review.json`; fail går direkte til Decide uden simulering (ARCHITECTURE.md → 5 Review)
 
-**Accept:** `./mf render` producerer alle billeder for blockout på < 5 min uden manuelle trin. Et bevidst forkert blockout (fx en forbindelse fra spec'en mangler, eller et site er flyttet) fanges af Review uden at simulere.
+**Accept:** `./mf render` producerer alle billeder for de_dust2 på < 5 min uden manuelle trin, og Review på dust2 består. Et bevidst ødelagt referencemap (fx med en blokeret forbindelse) fanges af Review uden at simulere. Efter fase 2 gentages testen på et genereret blockout mod dets layout-spec.
+
+## Fase 3b – Decide (tørkørsel)
+**Mål:** Decide-trinnet virker på rigtige input, før der findes en generator at anvende planen på.
+
+- [ ] Input-kontrakt (ARCHITECTURE.md → 8 Decide) samles i `runs/<map>/<iteration>/` + `stage.json`
+- [ ] `plan.json`-skema; orchestrator-validering afviser ikke-tilladte ændringstyper og låste beslutninger
+- [ ] Claude Code headless (`claude -p`) får input og returnerer `plan.json` + `NOTES.md`
+
+**Accept:** For dust2 og et bevidst ødelagt referencemap returnerer Decide en skema-gyldig plan, der adresserer de faktiske fund. Planen anvendes ikke endnu.
+
+## Fase 2 – Generator + blockout
+**Mål:** Fra YAML-layout til spilbart graybox-map.
+
+- [ ] Layout-spec-format (YAML) dokumenteret (Review i fase 3 bruger det til egne maps)
+- [ ] Generator: rum, korridorer, trapper/ramper, sites, spawns, ydre skal
+- [ ] Round-trip: læs .map → ændr → skriv
+- [ ] Første de_-blockout genereret og compileret uden fejl
+
+**Accept:** Et 2-site blockout passerer Fase 1-validering, inkl. nåbarhed.
+
+🚦 **Gate A – Layout:** Mennesket går rundt i blockout in-game. Er grundlayoutet sjovt og læsbart? Lås overordnet struktur i FITNESS.md.
 
 ## Fase 4 – Simulation
 **Mål:** Bots spiller mappet, og alt logges.
@@ -81,7 +102,7 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 
 - [ ] Orchestrator med budget, stopkriterier, rollback ved forværring
 - [ ] To-hastigheds-loop: hurtige iterationer (til og med Review) gentages, indtil Review består; først da simuleres
-- [ ] Claude Code headless får input-kontrakten (ARCHITECTURE.md → 8 Decide) og returnerer `plan.json` + `NOTES.md`
+- [ ] Decide fra fase 3b kobles på generatoren: `plan.json` anvendes, og resultatet går gennem loopet
 - [ ] Ændringer begrænset til tilladte parametre (ikke låste beslutninger)
 - [ ] `runs/`-log med NOTES.md pr. iteration
 

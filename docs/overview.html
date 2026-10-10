@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0–1 færdig · fase 2 næste</b></span>
+    <span>status <b>fase 0–1 færdig · fase 1b i gang</b></span>
     <span>opdateret <b>2026-10-10</b></span>
   </div>
   <div class="facts">
@@ -429,7 +429,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
 <section>
   <span class="eyebrow">Roadmap</span>
   <h2>Fase for fase</h2>
-  <p>Hvert lag skal virke selvstændigt, før det næste startes. Ved en gate stopper alt, og du får en opsummering.</p>
+  <p>Hvert lag skal virke selvstændigt, før det næste startes. Ved en gate stopper alt, og du får en opsummering. Rækkefølgen er omlagt, så det billige loop (validate, render, review, decide) bygges og testes på kendte maps før generatoren og den dyre simulering. Fasenumrene er bevaret.</p>
 
   <ol class="road">
     <li class="phase done">
@@ -463,22 +463,18 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
     </li>
 
     <li class="phase next">
-      <div class="phase-no"><small>Fase</small>2</div>
+      <div class="phase-no"><small>Fase</small>1b</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Generator + blockout</h3><span class="chip next">næste</span></div>
+        <div class="phase-head"><h3>Referencemaps og kalibrering</h3><span class="chip next">i gang</span></div>
         <ul>
-          <li>Layout-spec i YAML: rum, korridorer, trapper, sites, spawns</li>
-          <li>Generator med forseglet ydre skal; round-trip læs → ændr → skriv</li>
-          <li>Første 2-site de_-blockout</li>
-          <li>Nåbarhed spawn → begge sites på walkable-grafen, før simulering</li>
+          <li>Officielle maps fra din CS-installation og community-maps i <code>test_maps/</code>, mountet read-only, aldrig i repoet</li>
+          <li>BSP-tilstand: <code>./mf validate MAP=de_dust2 SOURCE=reference</code></li>
+          <li>Implicitte buyzones tæller (CS laver dem selv ved spawn)</li>
+          <li>Nåbarhed: flood-fill fra spawns; hver spawn skal nå begge bomb targets; korridor-checks kun i nåbart område</li>
+          <li>Kalibrering af tærskler på alle referencemaps</li>
         </ul>
-        <p class="accept"><b>Accept:</b> et 2-site blockout passerer fase 1-validering, inkl. nåbarhed.</p>
+        <p class="accept"><b>Accept:</b> alle referencemaps validerer med 0 errors, og de resterende warnings er gennemgået og giver mening.</p>
       </div>
-    </li>
-
-    <li class="gate">
-      <span class="gate-tag">Gate A</span>
-      <p><b>Layout.</b> Du går rundt i blockoutet in-game. Er det sjovt og læsbart? Tema, topologi og sites låses i FITNESS.md.</p>
     </li>
 
     <li class="phase">
@@ -489,10 +485,41 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <li>newbspguy → OBJ → Blender headless: top-down og kamera-presets</li>
           <li>Lysstyrkekort fra lighting-lump, liste over mørke zoner</li>
           <li>Klient-screenshots med rigtige lightmaps (på værten)</li>
-          <li>Review-trin: Claude ser billederne mod layout-spec'en før simulering; fejl går direkte til Decide</li>
+          <li>Review-trin: Claude ser billederne mod tjeklisten (og layout-spec'en, når mappet har en) før simulering; fejl går direkte til Decide</li>
         </ul>
-        <p class="accept"><b>Accept:</b> <code>./mf render</code> laver alle billeder for blockoutet på under 5 min uden manuelle trin, og et bevidst forkert blockout fanges af Review uden simulering.</p>
+        <p class="accept"><b>Accept:</b> <code>./mf render</code> laver alle billeder for de_dust2 på under 5 min, Review består på dust2, og et bevidst ødelagt referencemap fanges uden simulering. Efter fase 2 gentages testen på et genereret blockout.</p>
       </div>
+    </li>
+
+    <li class="phase">
+      <div class="phase-no"><small>Fase</small>3b</div>
+      <div class="phase-body">
+        <div class="phase-head"><h3>Decide (tørkørsel)</h3><span class="chip">senere</span></div>
+        <ul>
+          <li>Input-kontrakt samles i <code>runs/&lt;map&gt;/&lt;iteration&gt;/</code> + <code>stage.json</code></li>
+          <li><code>plan.json</code>-skema; ikke-tilladte ændringer og låste beslutninger afvises</li>
+          <li>Claude headless returnerer plan + NOTES.md for dust2 og et ødelagt referencemap</li>
+        </ul>
+        <p class="accept"><b>Accept:</b> skema-gyldig plan, der adresserer de faktiske fund. Anvendes ikke før generatoren findes.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="phase-no"><small>Fase</small>2</div>
+      <div class="phase-body">
+        <div class="phase-head"><h3>Generator + blockout</h3><span class="chip">senere</span></div>
+        <ul>
+          <li>Layout-spec i YAML: rum, korridorer, trapper, sites, spawns</li>
+          <li>Generator med forseglet ydre skal; round-trip læs → ændr → skriv</li>
+          <li>Første 2-site de_-blockout</li>
+        </ul>
+        <p class="accept"><b>Accept:</b> et 2-site blockout passerer validering (fase 1 + 1b) og Review.</p>
+      </div>
+    </li>
+
+    <li class="gate">
+      <span class="gate-tag">Gate A</span>
+      <p><b>Layout.</b> Du går rundt i blockoutet in-game. Er det sjovt og læsbart? Tema, topologi og sites låses i FITNESS.md.</p>
     </li>
 
     <li class="phase">

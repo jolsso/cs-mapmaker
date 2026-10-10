@@ -11,6 +11,9 @@
 *.log
 *.err
 
+# Third-party reference maps (official or community, unknown licenses): local use only
+/test_maps/
+
 # Generated assets (regenerate with `task wad`)
 assets/wads/*.wad
 
