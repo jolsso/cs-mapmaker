@@ -59,6 +59,7 @@ Værten skal kun have Docker. Alt deterministisk kører i containere, der deler 
 - **forge** (bygget, fase 0): Python, uv, go-task, SDHLT. Generate, compile, validate, analyze, orchestrator.
 - **render** (fase 3): Blender headless.
 - **hlds ×N** (fase 4): HLDS + Metamod + AMXX + YaPB. Eget image; kræver lovligt ejede CS-filer.
+- **Referencemaps:** din Half-Life-installation mountes read-only på `/refmaps/hl` (`HL_DIR` i `.env`); `test_maps/*.rar` pakkes ud i `build/refmaps/` med `unar` i forge-imaget. Bruges kun til test/kalibrering og committes aldrig.
 - **Undtagelse:** CS 1.6-klienten til screenshots med rigtige lightmaps kører på værten (GPU).
 
 ## Komponenter

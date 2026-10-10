@@ -46,6 +46,8 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf test                     # pytest (inkl. compile-smoke-test med Linux-binaries)
 ./mf lint                     # ruff check + format --check
 ./mf validate MAP=<navn>      # compile + validering → build/<map>/validation.json (exit 1 ved errors)
+./mf validate MAP=de_dust2 SOURCE=reference   # kun .bsp fra referencemaps (ingen compile/.map)
+./mf refmaps                  # pak test_maps/*.rar ud og list referencemaps
 ./mf render MAP=<navn>        # top-down + kameraviews        (Fase 3)
 ./mf simulate MAP=<navn>      # HLDS + YaPB, N runder         (Fase 4)
 ./mf analyze MAP=<navn>       # heatmaps + metrikker          (Fase 5)
@@ -54,6 +56,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 Fallback til debugging på værten: `uv run task <navn>` (samme tasks, Windows-binaries i `tools/`). Kun Docker-vejen tæller for acceptkriterier.
 - Imaget er Debian trixie: SDHLT 1.3.0's Linux-binaries kræver glibc ≥ 2.38 (bookworm har 2.36).
 - Compilerne bages ind i imaget under `/opt/tools` (`MAPFORGE_TOOLS_DIR`), venv ligger i `/opt/venv` – intet i containeren skriver til repoets `.venv` eller `tools/`.
+- **Referencemaps** (officielle fra din Half-Life-installation via `HL_DIR` i `.env`, community-maps i `test_maps/`) bruges kun til test og kalibrering. De er ophavsretsbeskyttede/ukendt licens: mountes read-only, pakkes ud i `build/refmaps/`, og intet fra dem må committes.
 - Projektet er ikke en installeret pakke (`[tool.uv] package = false`); moduler køres fra repo-roden.
 
 ## Compiler

@@ -10,6 +10,10 @@ Only our own or free-licensed assets. Every asset is listed here with source and
 
 `.wad` files are build artifacts (gitignored) and are regenerated with `uv run task wad`.
 
+## Reference maps (not in the repo)
+
+Official maps from the local Half-Life install and community maps in `test_maps/` (e.g. de_cold by Reilas, de_mon by MaMuS, from GameBanana) are used only locally to test and calibrate the pipeline. They are gitignored, mounted read-only, and nothing from them (BSPs, WADs, models, renders) may be committed.
+
 ## Third-party tools (not in the repo)
 
 | Tool | Version | Source | License |

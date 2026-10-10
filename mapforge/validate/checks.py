@@ -355,6 +355,18 @@ def check_corridors(bsp: Bsp, cfg: dict[str, Any]) -> tuple[list[Finding], dict[
         float(cfg["min_height"]),
         float(cfg["max_step"]),
     )
+    size = (bsp.models[0]["maxs"] - bsp.models[0]["mins"]).astype(np.float64)
+    samples = float(np.prod(size / [cell, cell, z_step]))
+    if samples > float(cfg.get("max_samples", 5e7)):
+        # A dense scan of the world bounds (which include the skybox) is too slow for big maps.
+        return [
+            Finding(
+                "corridor_scan_skipped",
+                WARNING,
+                f"Corridor scan skipped: {samples / 1e6:.0f}M samples over the world bounds",
+                "bsp",
+            )
+        ], {}
     spots = standing_spots(bsp, cell, z_step)
     if not len(spots):
         return [Finding("no_walkable_space", ERROR, "No place where a player can stand", "bsp")], {}

@@ -88,3 +88,13 @@ validate:
     cell: 8               # horizontal sampling step (units)
     z_step: 4             # vertical sampling step (units)
     max_step: 18          # max step height between neighbouring cells
+
+reference_maps:
+  # Third-party maps used only to test/calibrate the pipeline; never committed.
+  archives_dir: test_maps      # *.rar / *.zip dropped here are unpacked by `./mf refmaps`
+  extract_dir: build/refmaps   # one sub-dir per archive
+  # Searched recursively (in order) for <map>.bsp. Absolute paths are used as-is; missing
+  # dirs are skipped. /refmaps/hl is the read-only Half-Life install mounted by compose.yaml.
+  dirs:
+    - build/refmaps
+    - /refmaps/hl/cstrike/maps

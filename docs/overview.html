@@ -467,8 +467,8 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       <div class="phase-body">
         <div class="phase-head"><h3>Referencemaps og kalibrering</h3><span class="chip next">i gang</span></div>
         <ul>
-          <li>Officielle maps fra din CS-installation og community-maps i <code>test_maps/</code>, mountet read-only, aldrig i repoet</li>
-          <li>BSP-tilstand: <code>./mf validate MAP=de_dust2 SOURCE=reference</code></li>
+          <li class="ok">Officielle maps fra din CS-installation og community-maps i <code>test_maps/</code>, mountet read-only, aldrig i repoet (33 maps fundet)</li>
+          <li class="ok">BSP-tilstand: <code>./mf validate MAP=de_dust2 SOURCE=reference</code></li>
           <li class="ok">Implicitte buyzones tæller (CS laver dem selv ved spawn)</li>
           <li>Nåbarhed: flood-fill fra spawns; hver spawn skal nå begge bomb targets; korridor-checks kun i nåbart område</li>
           <li>Kalibrering af tærskler på alle referencemaps</li>

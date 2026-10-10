@@ -38,7 +38,12 @@ tasks:
       vars: [MAP]
     deps: [setup]
     cmds:
-      - uv run python -m mapforge.validate.run --map {{.MAP}} --profile {{.PROFILE}}
+      - uv run python -m mapforge.validate.run --map {{.MAP}} --profile {{.PROFILE}} --source {{.SOURCE | default "map"}}
+
+  refmaps:
+    desc: Unpack test_maps/ archives and list reference maps (official + community)
+    cmds:
+      - uv run python -m mapforge.refmaps --list
 
   render:
     desc: Top-down + camera views (Phase 3)

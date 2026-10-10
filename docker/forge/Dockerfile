@@ -8,6 +8,10 @@ FROM python:3.11-slim-trixie@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8b
 
 COPY --from=uv /uv /uvx /usr/local/bin/
 
+# unar: unpack third-party reference maps (RAR with filters) from test_maps/.
+RUN apt-get update && apt-get install -y --no-install-recommends unar \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
     UV_PYTHON=/usr/local/bin/python3.11 \
     UV_PYTHON_DOWNLOADS=never \

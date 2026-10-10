@@ -8,3 +8,6 @@ services:
     working_dir: /work
     volumes:
       - .:/work
+      # Local Half-Life install (official maps + WADs), read-only. Set HL_DIR in .env
+      # (see .env.example); without it an empty placeholder dir is mounted.
+      - ${HL_DIR:-./build/no-hl-install}:/refmaps/hl:ro

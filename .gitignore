@@ -30,3 +30,6 @@ __pycache__/
 # Editors
 .vscode/
 .idea/
+
+# Local docker compose settings
+/.env
