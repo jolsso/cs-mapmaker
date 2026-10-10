@@ -68,10 +68,11 @@ Værten skal kun have Docker. Alt deterministisk kører i containere, der deler 
 
 ## Komponenter
 
-### Generator (`generator/`)
-- Layout-spec i YAML: rum, korridorer, højder, sites, spawns, forbindelser.
-- Producerer konvekse brushes på grid, forseglet ydre skal, entities.
-- Skal kunne round-trippe: læse en eksisterende .map, ændre, skrive tilbage.
+### Generator (`mapforge/generator/`) – bygget
+- Layout-spec i YAML (`docs/LAYOUT_SPEC.md`): områder (rum/korridorer/udendørs), døre, trapper, cover, sites, spawns, lys.
+- Spec'en beskriver kun tomt rum; alt andet inden for en ydre skal er solidt (komprimeret grid + grådig sammenfletning til kasse-brushes). Derfor ingen leaks, og alle vertices på grid.
+- Entities: spawns (gitter, vendt mod midten), `func_bomb_target`, `func_buyzone`, `light_environment` for udendørs, punktlys indendørs.
+- Round-trip: `mapforge/mapfile/writer.py` skriver Valve 220; parseren læser.
 
 ### Compile (`mapforge/compile/`) – bygget
 - Profiler: `fast` (hurtig iteration, lav rad-kvalitet) og `final` (`-extra`, flere bounces).

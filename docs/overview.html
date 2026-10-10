@@ -225,7 +225,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <line x1="770" y1="36" x2="1048" y2="36" stroke-width="1" style="stroke:var(--line)"/>
 
           <g fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="20" y="50" width="128" height="96" rx="4"/>
+            <rect x="20" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
             <rect x="170" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
             <rect x="320" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
             <rect x="470" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
@@ -515,9 +515,8 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       <div class="phase-body">
         <div class="phase-head"><h3>Generator + blockout</h3><span class="chip next">i gang</span></div>
         <ul>
-          <li>Layout-spec i YAML: rum, korridorer, trapper, sites, spawns</li>
-          <li class="ok">Round-trip: læs .map → ændr → skriv (Valve 220-writer, kasse-brushes med tekstur pr. side)</li>
-          <li>Generator med forseglet ydre skal</li>
+                    <li class="ok">Round-trip: læs .map → ændr → skriv (Valve 220-writer, kasse-brushes med tekstur pr. side)</li>
+          <li class="ok">Layout-spec i YAML (<code>docs/LAYOUT_SPEC.md</code>) og generator: kun tomt rum beskrives, alt andet er solidt – forseglet af konstruktion, alle vertices på grid; døre, trapper, cover, sites, spawns, lys</li>
           <li>Første 2-site de_-blockout</li>
         </ul>
         <p class="accept"><b>Accept:</b> et 2-site blockout passerer validering (fase 1 + 1b) og Review.</p>

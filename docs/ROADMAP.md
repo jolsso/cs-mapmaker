@@ -67,8 +67,8 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 ## Fase 2 – Generator + blockout
 **Mål:** Fra YAML-layout til spilbart graybox-map.
 
-- [ ] Layout-spec-format (YAML) dokumenteret (Review i fase 3 bruger det til egne maps)
-- [ ] Generator: rum, korridorer, trapper/ramper, sites, spawns, ydre skal
+- [x] Layout-spec-format (YAML) dokumenteret – `docs/LAYOUT_SPEC.md` (Review i fase 3 bruger det til egne maps)
+- [x] Generator: rum, korridorer, trapper (ramper senere), sites, spawns, ydre skal – forseglet af konstruktion (`mapforge/generator/`)
 - [x] Round-trip: læs .map → ændr → skriv (`mapforge/mapfile/writer.py`)
 - [ ] Første de_-blockout genereret og compileret uden fejl
 

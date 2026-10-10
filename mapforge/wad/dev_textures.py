@@ -26,6 +26,10 @@ PALETTE_COLORS = {
     5: (90, 90, 95),  # ceiling base
     6: (70, 70, 75),  # ceiling lines
     7: (230, 120, 40),  # accent (tile corner marker)
+    8: (150, 105, 60),  # crate base
+    9: (105, 70, 38),  # crate planks
+    10: (120, 160, 210),  # sky
+    11: (240, 140, 20),  # trigger (tool texture, stripped by the compiler)
 }
 
 
@@ -55,7 +59,19 @@ def dev_textures() -> list[Texture]:
         Texture("DEV_FLOOR", grid(1, 2), pal),
         Texture("DEV_WALL", grid(3, 4), pal),
         Texture("DEV_CEIL", grid(5, 6, minor=32), pal),
+        Texture("DEV_CRATE", crate(), pal),
+        Texture("SKY", np.full((SIZE, SIZE), 10, dtype=np.uint8), pal),
+        Texture("AAATRIGGER", np.full((16, 16), 11, dtype=np.uint8), pal),
     ]
+
+
+def crate() -> np.ndarray:
+    """Plank crate: frame plus a diagonal brace, so cover reads as cover in renders."""
+    img = np.full((SIZE // 2, SIZE // 2), 8, dtype=np.uint8)
+    img[:4, :] = img[-4:, :] = img[:, :4] = img[:, -4:] = 9
+    for i in range(SIZE // 2):
+        img[i, max(0, i - 2) : i + 2] = 9
+    return img
 
 
 def main() -> int:

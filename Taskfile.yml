@@ -24,6 +24,13 @@ tasks:
     cmds:
       - uv run python -m mapforge.wad.dev_textures
 
+  generate:
+    desc: Generate maps/<map>/src/<map>.map from maps/<map>/layout.yaml (MAP=<name>)
+    requires:
+      vars: [MAP]
+    cmds:
+      - uv run python -m mapforge.generator.run --map {{.MAP}}
+
   compile:
     desc: Compile a map (MAP=<name>, PROFILE=fast|final)
     requires:
