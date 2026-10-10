@@ -22,7 +22,7 @@ Simulering koster timer; alt hvad der kan ses eller beregnes uden bots skal fang
 | 1 Generate | layout-spec (YAML) / forrige .map + ændringsplan | `.map` (Valve 220) | Python-generator | sek. |
 | 2 Compile | `.map`, WADs | `.bsp`, `compile.json` | SDHLT: hlcsg → hlbsp → hlvis → hlrad | sek. (fast) |
 | 3 Validate | `.map`, `.bsp`, `compile.json` | `validation.json` | Python (`mapforge.validate`) | sek. |
-| 4 Render | `.bsp` | `renders/*.png` + `renders/index.json` | newbspguy → OBJ → Blender headless; lysstyrkekort fra BSP | < 5 min |
+| 4 Render | `.bsp`, WADs | `renders/*.png` + `renders/index.json` | Egen renderer: BSP-parser + moderngl (Mesa/EGL headless) med teksturer og kompilerede lightmaps | < 5 min |
 | 5 Review | renders, `validation.json`, layout-spec, review-tjekliste | `review.json` (pass/fail + fund) | Deterministiske pre-sim-checks + Claude (`claude -p`) ser billederne | ~1 min |
 | 6 Simulate | `.bsp`, YaPB-graf | CSV (TRACKER_SPEC.md) | HLDS + Metamod + AMXX + YaPB | min.–timer |
 | 7 Analyze | CSV, renders | `metrics.json`, heatmaps | Python (pandas, numpy, matplotlib) | sek. |
@@ -56,8 +56,7 @@ Output: `plan.json` = `{ "changes": [{ "type": <tilladt ændring fra FITNESS.md>
 
 ## Eksekvering
 Værten skal kun have Docker. Alt deterministisk kører i containere, der deler repoet som én mount (`/work`) og kun taler sammen gennem filer:
-- **forge** (bygget, fase 0): Python, uv, go-task, SDHLT. Generate, compile, validate, analyze, orchestrator.
-- **render** (fase 3): Blender headless.
+- **forge** (bygget, fase 0): Python, uv, go-task, SDHLT, Mesa/EGL. Generate, compile, validate, render, analyze, orchestrator.
 - **hlds ×N** (fase 4): HLDS + Metamod + AMXX + YaPB. Eget image; kræver lovligt ejede CS-filer.
 - **Referencemaps:** din Half-Life-installation mountes read-only på `/refmaps/hl` (`HL_DIR` i `.env`); `test_maps/*.rar` pakkes ud i `build/refmaps/` med `unar` i forge-imaget. Bruges kun til test/kalibrering og committes aldrig.
 - **Undtagelse:** CS 1.6-klienten til screenshots med rigtige lightmaps kører på værten (GPU).
@@ -107,8 +106,10 @@ Begrænsninger:
 - Lysstyrkekort (mørke zoner) bygger på `Bsp.face_lightmap` og kommer i fase 3.
 
 ### Render (`render/`)
-- **Geometri:** newbspguy exportobj → Blender `--background` script med faste kameraer. ⚠️ VERIFICÉR exportobj-kvalitet (markeret WIP i originalt bspguy).
-- **Lys/udseende:** Start klient med `+map <navn>`, sæt kamera via config/script, tag `screenshot`. Lightmaps findes ikke i OBJ-renders.
+- **Egen renderer** (besluttet 2026-10-10 i stedet for newbspguy → OBJ → Blender): faces fra BSP-parseren trianguleres; teksturer fra BSP'en (indlejrede) eller WADs (egne, HL-installationens, community-mappets); lightmaps (style 0) pakkes i et atlas. moderngl tegner offscreen via Mesa/EGL i forge-containeren – ingen GPU eller skærm. Begrundelse: lightmaps kommer med (OBJ-eksport har dem ikke), newbspguy findes kun som natlige builds med `exportobj` [WIP], og Blender er et stort ekstra image.
+- **Top-down:** ortografisk; geometri over spillernes højde (pr. område, fra walk-grafen) skæres væk, så tage ikke skjuler det nåbare område. Spawns og sites tegnes ovenpå.
+- **Mangler i første omgang:** .mdl-modeller, sprites, sky og vand-effekter.
+- **Klient-screenshots** (fase 7, art pass): start klient med `+map <navn>`, sæt kamera, tag `screenshot` ⚠️ VERIFICÉR – det eneste billede med modeller og alle effekter.
 - Kamera-presets i `config/cameras/<map>.yaml` (spawns, sites, mid, key angles).
 
 ### Simulate (`server/`)
@@ -149,7 +150,7 @@ cs-mapmaker/
 │   ├── compile/
 │   ├── generator/           # (Fase 2)
 │   ├── validate/            # (Fase 1)
-│   ├── render/              # (Fase 3)
+│   ├── render/              # (Fase 3) egen renderer (moderngl)
 │   ├── analyze/             # (Fase 5)
 │   └── orchestrator/        # (Fase 6)
 ├── tests/
@@ -172,7 +173,6 @@ cs-mapmaker/
 ## Afhængigheder (verificér versioner ved opsætning)
 - SDHLT 1.3.0 (fork af Vluzacn's ZHLT v34/VHLT), Windows + Linux binaries – hentes med `uv run task tools:fetch`
 - uv + go-task (`go-task-bin` i dev-deps)
-- newbspguy (UnrealKaraulov) – Windows/Linux
-- Blender (headless) eller pyrender
+- moderngl + Mesa/EGL (offscreen rendering), Pillow
 - HLDS via SteamCMD, Metamod(-R), AMX Mod X, YaPB
 - Python: numpy, pandas, matplotlib, pyyaml, pillow

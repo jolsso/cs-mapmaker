@@ -42,10 +42,10 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 ## Fase 3 – Render
 **Mål:** Claude kan se mappet. Bygges og testes på referencemaps (fase 1b), før generatoren findes.
 
-- [ ] newbspguy → OBJ → Blender headless, top-down ortografisk render
-- [ ] Kamera-presets fra YAML → perspektiv-renders
+- [ ] Egen renderer (BSP + moderngl, Mesa/EGL headless): top-down ortografisk med teksturer og lightmaps, tage over spillerhøjde skåret væk
+- [ ] Kameraer → perspektiv-renders: automatiske (spawns, sites) + valgfri `config/cameras/<map>.yaml`
 - [ ] Lysstyrkekort fra lighting-lump → PNG + "mørke zoner"-liste
-- [ ] Klient-screenshot-script (`+map`, kamera, `screenshot`) ⚠️ VERIFICÉR hvordan kamera positioneres scriptet
+- [ ] Klient-screenshot-script (`+map`, kamera, `screenshot`) ⚠️ VERIFICÉR hvordan kamera positioneres scriptet – flyttet til fase 7 (art pass); egne renders har allerede lys
 - [ ] Heatmap-overlay-funktion (bruges i Fase 5)
 - [ ] `renders/index.json`: kamera, formål og fil pr. billede
 - [ ] Review-trin (pre-sim-gate): deterministiske checks + Claude ser billederne mod tjekliste (og layout-spec, når mappet har en) → `review.json`; fail går direkte til Decide uden simulering (ARCHITECTURE.md → 5 Review)

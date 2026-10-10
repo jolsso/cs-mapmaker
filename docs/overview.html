@@ -247,7 +247,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
             <text x="32" y="100">Python-generator</text>
             <text x="182" y="100">SDHLT (VHLT-fork)</text>
             <text x="332" y="100">mapforge.validate</text>
-            <text x="482" y="100">Blender · BSP-lys</text>
+            <text x="482" y="100">moderngl · lys</text>
             <text x="632" y="100">checks + Claude</text>
             <text x="782" y="100">HLDS + YaPB</text>
             <text x="932" y="100">pandas · numpy</text>
@@ -339,14 +339,14 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <text x="416" y="80" font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">forge</text>
           <text x="470" y="80" font-size="11" style="fill:var(--muted)">bygget · Debian trixie</text>
           <text x="416" y="104">Python 3.11 · uv · go-task</text>
-          <text x="416" y="124">SDHLT 1.3.0 (Linux, pinnet SHA256)</text>
-          <text x="416" y="150" font-family="IBM Plex Mono, Consolas, monospace" font-size="11">generate · compile · validate</text>
+          <text x="416" y="124">SDHLT 1.3.0 · Mesa/EGL · unar</text>
+          <text x="416" y="150" font-family="IBM Plex Mono, Consolas, monospace" font-size="11">generate · compile · validate · render</text>
           <text x="416" y="166" font-family="IBM Plex Mono, Consolas, monospace" font-size="11">analyze · orchestrator</text>
 
-          <!-- render -->
-          <rect x="400" y="200" width="200" height="70" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-          <text x="416" y="226" font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">render</text>
-          <text x="416" y="250" style="fill:var(--muted)">Blender headless (fase 3)</text>
+          <!-- HL install, read-only -->
+          <rect x="400" y="200" width="200" height="70" rx="4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <text x="416" y="226" font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">/refmaps/hl</text>
+          <text x="416" y="250" font-size="11" style="fill:var(--muted)">din HL-installation, read-only</text>
 
           <!-- hlds -->
           <rect x="740" y="54" width="310" height="126" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
@@ -364,7 +364,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <g stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah2)">
             <line x1="280" y1="117" x2="398" y2="117"/>
             <line x1="650" y1="180" x2="650" y2="298"/>
-            <line x1="470" y1="270" x2="470" y2="298"/>
+            <line x1="470" y1="198" x2="470" y2="182"/>
             <line x1="895" y1="298" x2="895" y2="182"/>
             <line x1="905" y1="182" x2="905" y2="298"/>
             <line x1="400" y1="322" x2="282" y2="322"/>
@@ -372,7 +372,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <text x="339" y="100" text-anchor="middle" font-family="IBM Plex Mono, Consolas, monospace" font-size="11">compose run</text>
           <text x="339" y="138" text-anchor="middle" font-family="IBM Plex Mono, Consolas, monospace" font-size="11">forge task …</text>
           <text x="660" y="240">.bsp → build/</text>
-          <text x="485" y="290" font-size="11">PNG → runs/</text>
+          <text x="480" y="194" font-size="11">maps · WADs</text>
           <text x="885" y="232" text-anchor="end">læser .bsp</text>
           <text x="915" y="232">CSV → runs/</text>
           <text x="341" y="312" text-anchor="middle" font-size="11">læser .bsp</text>
@@ -482,9 +482,9 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       <div class="phase-body">
         <div class="phase-head"><h3>Render</h3><span class="chip next">næste</span></div>
         <ul>
-          <li>newbspguy → OBJ → Blender headless: top-down og kamera-presets</li>
+          <li>Egen renderer (BSP + moderngl, headless i containeren): top-down og kameraer med teksturer og rigtigt kompileret lys</li>
           <li>Lysstyrkekort fra lighting-lump, liste over mørke zoner</li>
-          <li>Klient-screenshots med rigtige lightmaps (på værten)</li>
+          <li>Klient-screenshots flyttet til fase 7 (egne renders har allerede lys)</li>
           <li>Review-trin: Claude ser billederne mod tjeklisten (og layout-spec'en, når mappet har en) før simulering; fejl går direkte til Decide</li>
         </ul>
         <p class="accept"><b>Accept:</b> <code>./mf render</code> laver alle billeder for de_dust2 på under 5 min, Review består på dust2, og et bevidst ødelagt referencemap fanges uden simulering. Efter fase 2 gentages testen på et genereret blockout.</p>
@@ -603,7 +603,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
         <tr><td>0</td><td>Kører SDHLT's Linux-binaries i containeren?</td><td>Afklaret: kræver glibc ≥ 2.38, derfor Debian trixie</td></tr>
         <tr><td>1b</td><td>Engine-limits: er HLSDK's <code>MAX_MAP_*</code> de rigtige?</td><td>Afklaret: nej, officielle maps overskrider texinfo og lightmaps; korrigeret</td></tr>
         <tr><td>1b</td><td>Design-normerne (min. 64 bred, 96 høj) er strengere end Valves egne maps (typisk 40–56 brede passager). Sænke eller beholde?</td><td>Besluttet: behold 64 / 96 (bevidst strengere end Valve)</td></tr>
-        <tr><td>3</td><td>Er newbspguy's <code>exportobj</code> god nok til renders?</td><td>Åben</td></tr>
+        <tr><td>3</td><td>Er newbspguy's <code>exportobj</code> god nok til renders?</td><td>Afklaret: nej (kun natlige builds, [WIP], ingen lightmaps) → egen renderer</td></tr>
         <tr><td>3</td><td>Hvordan placeres klientens kamera fra et script?</td><td>Åben</td></tr>
         <tr><td>4</td><td>Kommando til automatisk YaPB-graf</td><td>Åben</td></tr>
         <tr><td>4</td><td>Kan HLDS køre hurtigere end realtid?</td><td>Åben, antag realtid</td></tr>
