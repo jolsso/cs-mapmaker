@@ -1,0 +1,52 @@
+# Pipeline configuration. All paths are relative to the repo root.
+# Machine-specific overrides go in config/pipeline.local.yaml (gitignored, deep-merged).
+
+paths:
+  tools_dir: tools
+  build_dir: build
+  maps_dir: maps
+  wad_dirs:
+    - assets/wads
+
+compiler:
+  # SDHLT is the maintained fork of Vluzacn's ZHLT v34 (VHLT). Flags verified
+  # against `-help` output of v1.3.0 (2026-10-10).
+  flavor: sdhlt
+  version: 1.3.0
+  url: https://github.com/seedee/SDHLT/releases/download/v1.3.0/sdhlt_v130.zip
+  sha256: 393bcd59ac840c50d12521ea56370885592bafdb1bcde8d7a011c3182cc12f48
+  archive_root: sdhlt-v1.3.0/tools
+  platforms:
+    windows:
+      bin_dir: Win64
+      csg: sdHLCSG_x64.exe
+      bsp: sdHLBSP_x64.exe
+      vis: sdHLVIS_x64.exe
+      rad: sdHLRAD_x64.exe
+      flags: ["-console", "0"]  # no pop-up console window
+    linux:
+      bin_dir: Linux
+      csg: sdHLCSG
+      bsp: sdHLBSP
+      vis: sdHLVIS
+      rad: sdHLRAD
+      flags: []
+
+# Flags per compile step. Shared defaults (-low priority) come from SDHLT's settings.txt.
+profiles:
+  fast:
+    csg: []
+    bsp: []
+    vis: ["-fast"]
+    rad: []
+  final:
+    csg: []
+    bsp: []
+    vis: ["-full"]
+    rad: ["-extra", "-bounce", "8"]
+
+wad:
+  # WADs whose textures are embedded into the .bsp (hlcsg -wadinclude), so the
+  # client needs no external WAD.
+  include:
+    - mapforge_dev.wad

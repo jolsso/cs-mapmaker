@@ -14,7 +14,7 @@
 | Trin | Input | Output | Værktøj |
 |---|---|---|---|
 | 1 Generate | layout-spec (YAML) / forrige .map + ændringer | `.map` (Valve 220) | Python-generator |
-| 2 Compile | `.map`, WADs | `.bsp`, compile-log | VHLT: hlcsg → hlbsp → hlvis → hlrad |
+| 2 Compile | `.map`, WADs | `.bsp`, compile-log | SDHLT (VHLT-fork): hlcsg → hlbsp → hlvis → hlrad |
 | 3 Validate | `.bsp`, log | `validation.json` (leaks, limits, r_speeds-estimat) | Python BSP-parser, newbspguy `info` |
 | 4 Render | `.bsp` | PNG: top-down, kameraviews, lysstyrkekort | newbspguy → OBJ → Blender headless; klient-screenshots for lys |
 | 5 Simulate | `.bsp`, YaPB-graf | CSV-events (se TRACKER_SPEC.md) | HLDS (Docker) + Metamod + AMXX + YaPB |
@@ -60,36 +60,46 @@
 ## Repo-struktur
 
 ```
-cs16-mapforge/
+cs-mapmaker/
 ├── CLAUDE.md
-├── Makefile
+├── Taskfile.yml             # go-task; kør via `uv run task <navn>`
+├── pyproject.toml           # uv-projekt, ruff, pytest
 ├── config/
-│   ├── pipeline.yaml        # stier, profiler, budget
+│   ├── pipeline.yaml        # stier, compiler (pinnet), profiler, budget
+│   ├── pipeline.local.yaml  # valgfri maskin-override (gitignored)
 │   ├── fitness.yaml         # tærskler (spejler FITNESS.md)
 │   └── cameras/
 ├── docs/
-├── generator/
-├── compile/
-├── validate/
-├── render/
+├── mapforge/                # Python-pakke, ét undermodul pr. trin
+│   ├── config.py
+│   ├── tools/               # fetch af compilere m.m.
+│   ├── wad/                 # WAD3 writer + dev-teksturer
+│   ├── compile/
+│   ├── generator/           # (Fase 2)
+│   ├── validate/            # (Fase 1)
+│   ├── render/              # (Fase 3)
+│   ├── analyze/             # (Fase 5)
+│   └── orchestrator/        # (Fase 6)
+├── tests/
 ├── server/
 │   ├── Dockerfile
 │   ├── plugins/             # AMXX .sma
 │   └── cfg/
-├── analyze/
-├── orchestrator/
 ├── maps/<navn>/
 │   ├── layout.yaml
 │   ├── ART_DIRECTION.md
 │   └── src/<navn>.map
 ├── assets/
-│   ├── wads/
+│   ├── wads/                # genererede .wad (gitignored)
 │   └── LICENSES.md
+├── tools/                   # hentede tredjepartsværktøjer (gitignored)
+├── build/<navn>/            # compile-output (gitignored)
 └── runs/<navn>/<iteration>/
 ```
 
 ## Afhængigheder (verificér versioner ved opsætning)
-- VHLT (Vluzacn's ZHLT) compilere
+- SDHLT 1.3.0 (fork af Vluzacn's ZHLT v34/VHLT), Windows + Linux binaries – hentes med `uv run task tools:fetch`
+- uv + go-task (`go-task-bin` i dev-deps)
 - newbspguy (UnrealKaraulov) – Windows/Linux
 - Blender (headless) eller pyrender
 - HLDS via SteamCMD, Metamod(-R), AMX Mod X, YaPB

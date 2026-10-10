@@ -1,0 +1,561 @@
+<title>MapForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column on a faint 16-unit grid (the editor grid); wide figures scroll in their own box. Accent = the orange corner marker from our DEV textures. */
+:root {
+  --bg: #e9e8e4;
+  --surface: #f6f5f2;
+  --ink: #23262b;
+  --muted: #5d636b;
+  --line: #c4c3bd;
+  --grid: rgba(35, 38, 43, 0.045);
+  --accent: #c25e14;
+  --accent-soft: rgba(194, 94, 20, 0.12);
+  --ok: #2f7a4a;
+  --ok-soft: rgba(47, 122, 74, 0.12);
+  --font-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.25rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #1b1d20;
+    --surface: #24272b;
+    --ink: #e4e2dd;
+    --muted: #9da2a8;
+    --line: #3d4146;
+    --grid: rgba(228, 226, 221, 0.035);
+    --accent: #f0904a;
+    --accent-soft: rgba(240, 144, 74, 0.14);
+    --ok: #6cc08a;
+    --ok-soft: rgba(108, 192, 138, 0.13);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1b1d20;
+  --surface: #24272b;
+  --ink: #e4e2dd;
+  --muted: #9da2a8;
+  --line: #3d4146;
+  --grid: rgba(228, 226, 221, 0.035);
+  --accent: #f0904a;
+  --accent-soft: rgba(240, 144, 74, 0.14);
+  --ok: #6cc08a;
+  --ok-soft: rgba(108, 192, 138, 0.13);
+}
+
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+}
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  padding-block: 40px 72px;
+  display: grid;
+  gap: 56px;
+}
+section { display: grid; gap: 18px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: 0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+p { margin: 0; max-width: 68ch; }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.lede { color: var(--muted); font-size: 1.0625rem; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+
+header { display: grid; gap: 14px; }
+.facts {
+  display: flex; flex-wrap: wrap; gap: 8px 22px;
+  font-family: var(--font-mono); font-size: var(--step--1); color: var(--muted);
+}
+.facts b { color: var(--ink); font-weight: 500; }
+
+figure { margin: 0; display: grid; gap: 10px; }
+.diagram {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px;
+}
+.diagram svg { display: block; width: 100%; min-width: 860px; height: auto; color: var(--ink); }
+figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+.swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 6px; }
+.swatch.built { background: var(--accent-soft); border: 1.5px solid var(--accent); }
+.swatch.plain { border: 1.5px solid var(--ink); }
+.swatch.proposal { border: 1.5px dashed var(--accent); }
+
+/* Fitness strip */
+.fit { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.fit > div { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+.fit ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 0.9375rem; }
+.fit .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Roadmap */
+.road { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.phase {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 18px;
+  padding-block: 20px;
+  border-top: 1px solid var(--line);
+}
+.phase-no {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1;
+}
+.phase-no small { display: block; font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; font-weight: 400; }
+.phase.done .phase-no { color: var(--ok); }
+.phase.next .phase-no { color: var(--accent); }
+.phase-body { display: grid; gap: 8px; min-width: 0; }
+.phase-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.chip {
+  font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em;
+  padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted);
+}
+.chip.done { color: var(--ok); border-color: var(--ok); background: var(--ok-soft); }
+.chip.next { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.phase ul { margin: 0; padding-left: 18px; display: grid; gap: 2px; font-size: 0.9375rem; }
+.phase li.ok::marker { content: "✓  "; color: var(--ok); }
+.phase li.add::marker { content: "+  "; color: var(--accent); }
+.accept { font-size: 0.9375rem; color: var(--muted); }
+.accept b { color: var(--ink); font-weight: 600; }
+
+.gate {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 18px;
+  align-items: center;
+  padding: 14px 0;
+  border-top: 2px solid var(--accent);
+  background: linear-gradient(90deg, var(--accent-soft), transparent 70%);
+}
+.gate-tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); padding-left: 10px; }
+.gate p { font-size: 0.9375rem; }
+.gate b { font-family: var(--font-display); font-weight: 600; }
+
+/* Verify list */
+.verify { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.verify-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+.verify th, .verify td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.verify tr:last-child td { border-bottom: 0; }
+.verify th { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.verify td:first-child { white-space: nowrap; font-family: var(--font-mono); font-size: 0.8125rem; color: var(--muted); }
+
+@media (max-width: 560px) {
+  .phase, .gate { grid-template-columns: 1fr; gap: 8px; }
+  .gate-tag { padding-left: 0; }
+  h1 { font-size: 1.875rem; }
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">CS 1.6 · GoldSrc · cs-mapmaker</span>
+  <h1>MapForge</h1>
+  <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
+  <div class="facts">
+    <span>1 unit ≈ 1 inch</span>
+    <span>grid <b>16/8</b></span>
+    <span>spiller <b>32×32×72</b></span>
+    <span>max trin <b>18</b></span>
+    <span>grænse <b>±4096</b></span>
+    <span>format <b>Valve 220 · WAD3 · BSP v30</b></span>
+  </div>
+</header>
+
+<section>
+  <span class="eyebrow">Arkitektur 1 / 2</span>
+  <h2>Én iteration af loopet</h2>
+  <p>Hvert trin læser filen fra trinnet før og skriver sin egen. Alt gemmes i <code>runs/&lt;map&gt;/&lt;iteration&gt;/</code>, så en iteration kan genskabes fra kode og config alene.</p>
+  <figure>
+    <div class="diagram">
+      <svg viewBox="0 0 1090 310" role="img" aria-label="Seks trin fra Generate til Analyze kører venstre mod højre. Analyze sender metrikker til Decide, som sender en ændringsplan tilbage til Generate. Fejler Validate et hårdt krav, går iterationen direkte til Decide uden simulering. Kun Compile er bygget.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+          <marker id="ah-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/>
+          </marker>
+        </defs>
+
+        <g font-family="IBM Plex Sans, Segoe UI, sans-serif" font-size="12" fill="currentColor">
+          <!-- Top row: x = 20,200,380,560,740,920; w = 150; y = 50..146 -->
+          <g fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="20" y="50" width="150" height="96" rx="4"/>
+            <rect x="200" y="50" width="150" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
+            <rect x="380" y="50" width="150" height="96" rx="4"/>
+            <rect x="560" y="50" width="150" height="96" rx="4"/>
+            <rect x="740" y="50" width="150" height="96" rx="4"/>
+            <rect x="920" y="50" width="150" height="96" rx="4"/>
+            <rect x="450" y="220" width="190" height="66" rx="4"/>
+          </g>
+
+          <g font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">
+            <text x="34" y="76">1 Generate</text>
+            <text x="214" y="76">2 Compile</text>
+            <text x="394" y="76">3 Validate</text>
+            <text x="574" y="76">4 Render</text>
+            <text x="754" y="76">5 Simulate</text>
+            <text x="934" y="76">6 Analyze</text>
+            <text x="464" y="246">7 Decide</text>
+          </g>
+          <g style="fill:var(--muted)">
+            <text x="34" y="100">Python-generator</text>
+            <text x="214" y="100">SDHLT (VHLT-fork)</text>
+            <text x="394" y="100">BSP-parser · limits</text>
+            <text x="574" y="100">newbspguy · Blender</text>
+            <text x="754" y="100">HLDS + YaPB-bots</text>
+            <text x="934" y="100">pandas · numpy</text>
+            <text x="464" y="270">Claude Code (claude -p)</text>
+          </g>
+          <g font-family="IBM Plex Mono, Consolas, monospace" font-size="11">
+            <text x="34" y="128">→ .map (Valve 220)</text>
+            <text x="214" y="128">→ .bsp · compile.log</text>
+            <text x="394" y="128">→ validation.json</text>
+            <text x="574" y="128">→ PNG-views</text>
+            <text x="754" y="128">→ CSV-events</text>
+            <text x="934" y="128">→ metrics.json</text>
+          </g>
+
+          <!-- forward arrows -->
+          <g stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah)">
+            <line x1="170" y1="98" x2="198" y2="98"/>
+            <line x1="350" y1="98" x2="378" y2="98"/>
+            <line x1="530" y1="98" x2="558" y2="98"/>
+            <line x1="710" y1="98" x2="738" y2="98"/>
+            <line x1="890" y1="98" x2="918" y2="98"/>
+          </g>
+
+          <!-- feedback loop -->
+          <g stroke="currentColor" stroke-width="1.5" fill="none">
+            <polyline points="995,146 995,253 642,253" marker-end="url(#ah)"/>
+            <polyline points="450,253 95,253 95,148" marker-end="url(#ah)"/>
+          </g>
+          <text x="818" y="244" text-anchor="middle">metrics · heatmaps · renders</text>
+          <text x="282" y="244" text-anchor="middle">ændringsplan → næste .map</text>
+          <text x="282" y="274" text-anchor="middle" font-size="11" style="fill:var(--muted)">kun tilladte ændringer, låste beslutninger urørt</text>
+
+          <!-- hard-requirement short-circuit -->
+          <line x1="505" y1="146" x2="505" y2="218" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah-acc)" style="stroke:var(--accent)"/>
+          <text x="516" y="178" font-size="11" style="fill:var(--accent)">hårdt krav fejler</text>
+          <text x="516" y="193" font-size="11" style="fill:var(--accent)">→ ugyldig, ingen sim</text>
+
+          <!-- scope bracket -->
+          <text x="20" y="30" font-size="11" font-family="IBM Plex Mono, Consolas, monospace" style="fill:var(--muted)">deterministisk, scriptet</text>
+          <line x1="20" y1="38" x2="1070" y2="38" stroke-width="1" style="stroke:var(--line)"/>
+        </g>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><span class="swatch built"></span>bygget (fase 0)</span>
+      <span><span class="swatch plain"></span>planlagt</span>
+      <span>stiplet = genvej når et hårdt krav fejler</span>
+    </div>
+    <figcaption>Trin 1–6 er rent deterministiske. Kun trin 7 involverer en model: Claude får metrikker, billeder og FITNESS.md og må kun foreslå ændringer fra listen over tilladte ændringer.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <span class="eyebrow">Arkitektur 2 / 2 · forslag</span>
+  <h2>Hvor koden kører</h2>
+  <p>Forslaget: værten skal kun have Docker. Alt deterministisk kører i containere, der deler repoet som én mount. CS-klienten er den ene undtagelse, fordi screenshots med rigtige lightmaps kræver GPU og en rigtig klient.</p>
+  <figure>
+    <div class="diagram">
+      <svg viewBox="0 0 1090 380" role="img" aria-label="Værten kører Docker, editor, Claude Code og CS-klienten. Den starter forge-containeren med docker compose. Forge, render og hlds-containerne læser og skriver i en fælles repo-mount: forge skriver .bsp til build, hlds læser .bsp og skriver CSV til runs, render skriver PNG til runs. CS-klienten på værten læser .bsp direkte.">
+        <defs>
+          <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g font-family="IBM Plex Sans, Segoe UI, sans-serif" font-size="12" fill="currentColor">
+          <!-- host -->
+          <rect x="20" y="20" width="260" height="340" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="38" y="48" font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">Vært (Windows)</text>
+          <g>
+            <text x="38" y="84">Docker Desktop</text>
+            <text x="38" y="108">Editor · git</text>
+            <text x="38" y="132">Claude Code (dig + loop)</text>
+          </g>
+          <line x1="38" y1="290" x2="262" y2="290" style="stroke:var(--line)"/>
+          <text x="38" y="316">CS 1.6-klient</text>
+          <text x="38" y="334" font-size="11" style="fill:var(--muted)">screenshots af lys (fase 3)</text>
+
+          <!-- docker region -->
+          <rect x="380" y="20" width="690" height="340" rx="6" fill="none" stroke-width="1.5" stroke-dasharray="6 5" style="stroke:var(--accent)"/>
+          <text x="398" y="40" font-size="11" font-family="IBM Plex Mono, Consolas, monospace" style="fill:var(--accent)">docker compose</text>
+
+          <!-- forge -->
+          <rect x="400" y="54" width="300" height="126" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
+          <text x="416" y="80" font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">forge</text>
+          <text x="470" y="80" font-size="11" style="fill:var(--muted)">toolchain-image</text>
+          <text x="416" y="104">Python 3.11 · uv · go-task</text>
+          <text x="416" y="124">SDHLT 1.3.0 (Linux, pinnet SHA256)</text>
+          <text x="416" y="150" font-family="IBM Plex Mono, Consolas, monospace" font-size="11">generate · compile · validate</text>
+          <text x="416" y="166" font-family="IBM Plex Mono, Consolas, monospace" font-size="11">analyze · orchestrator</text>
+
+          <!-- render -->
+          <rect x="400" y="200" width="200" height="70" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="416" y="226" font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">render</text>
+          <text x="416" y="250" style="fill:var(--muted)">Blender headless (fase 3)</text>
+
+          <!-- hlds -->
+          <rect x="740" y="54" width="310" height="126" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="756" y="80" font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">hlds ×N</text>
+          <text x="826" y="80" font-size="11" style="fill:var(--muted)">eget image (fase 4)</text>
+          <text x="756" y="104">HLDS · Metamod · AMXX · YaPB</text>
+          <text x="756" y="124">tracker-plugin skriver CSV</text>
+          <text x="756" y="150" font-size="11" style="fill:var(--muted)">kræver dine CS-filer, aldrig i repoet</text>
+
+          <!-- shared mount -->
+          <rect x="400" y="300" width="650" height="44" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="416" y="327" font-family="IBM Plex Mono, Consolas, monospace" font-size="12">/work  =  repo-mount:  maps/ · config/ · build/ · runs/</text>
+
+          <!-- arrows -->
+          <g stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah2)">
+            <line x1="280" y1="117" x2="398" y2="117"/>
+            <line x1="650" y1="180" x2="650" y2="298"/>
+            <line x1="470" y1="270" x2="470" y2="298"/>
+            <line x1="895" y1="298" x2="895" y2="182"/>
+            <line x1="905" y1="182" x2="905" y2="298"/>
+            <line x1="400" y1="322" x2="282" y2="322"/>
+          </g>
+          <text x="339" y="100" text-anchor="middle" font-family="IBM Plex Mono, Consolas, monospace" font-size="11">compose run</text>
+          <text x="339" y="138" text-anchor="middle" font-family="IBM Plex Mono, Consolas, monospace" font-size="11">forge task …</text>
+          <text x="660" y="240">.bsp → build/</text>
+          <text x="485" y="290" font-size="11">PNG → runs/</text>
+          <text x="885" y="232" text-anchor="end">læser .bsp</text>
+          <text x="915" y="232">CSV → runs/</text>
+          <text x="341" y="312" text-anchor="middle" font-size="11">læser .bsp</text>
+        </g>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><span class="swatch built"></span>første container (bygges nu, hvis du godkender)</span>
+      <span><span class="swatch proposal"></span>Docker-grænsen</span>
+    </div>
+    <figcaption>Containerne taler kun sammen gennem filer i den fælles mount. Ingen container kalder en anden direkte. Om orchestratoren selv starter hlds-containerne (via Docker-socket) eller kører på værten, afgøres i fase 6.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <span class="eyebrow">Fitness</span>
+  <h2>Hvad "bedre" betyder</h2>
+  <div class="fit">
+    <div>
+      <h3>Hårde krav</h3>
+      <ul>
+        <li>Compile uden errors og uden leak</li>
+        <li>Ingen engine-limit over <span class="num">90 %</span></li>
+        <li>Ingen off-grid vertices, alle brushes konvekse</li>
+        <li>Spawns pr. hold <span class="num">≥ 10</span>, bomb targets <span class="num">= 2</span>, buyzones <span class="num">≥ 1</span></li>
+        <li>Alle spawns kan nå begge sites</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Gameplay-mål</h3>
+      <ul>
+        <li>T-winrate <span class="num">45–55 %</span></li>
+        <li>Plants A/B <span class="num">35–65 %</span></li>
+        <li>Første kontakt <span class="num">15–25 s</span></li>
+        <li>Døde zoner <span class="num">&lt; 5 %</span> af gangbart areal</li>
+        <li>Ingen celle med <span class="num">&gt; 10 %</span> af alle kills</li>
+        <li>Målt over <span class="num">≥ 100</span> bot-runder, med konfidensinterval</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Loopet stopper ved</h3>
+      <ul>
+        <li>Alle mål ramt <span class="num">2</span> målinger i træk</li>
+        <li>Ingen forbedring i <span class="num">5</span> iterationer</li>
+        <li>Budget: <span class="num">20</span> iterationer eller wall-clock</li>
+        <li>Hårde krav fejler <span class="num">3</span> gange i træk</li>
+        <li>En gate er nået</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Roadmap</span>
+  <h2>Fase for fase</h2>
+  <p>Hvert lag skal virke selvstændigt, før det næste startes. Ved en gate stopper alt, og du får en opsummering.</p>
+
+  <ol class="road">
+    <li class="phase done">
+      <div class="phase-no"><small>Fase</small>0</div>
+      <div class="phase-body">
+        <div class="phase-head"><h3>Fundament</h3><span class="chip done">færdig · ikke committet</span></div>
+        <ul>
+          <li class="ok">Repo-struktur, Taskfile, <code>config/pipeline.yaml</code></li>
+          <li class="ok">SDHLT hentes pinnet og kaldes fra script</li>
+          <li class="ok"><code>test_box</code>: forseglet kasse, 1 lys, 2 spawns pr. hold</li>
+          <li class="ok"><code>uv run task compile MAP=test_box</code> giver en .bsp</li>
+          <li class="add">Forslag: kør det hele i <code>forge</code>-containeren</li>
+        </ul>
+        <p class="accept"><b>Accept:</b> test_box compiler uden errors fra rent checkout med én kommando. Opfyldt lokalt; skal gentages i Docker.</p>
+      </div>
+    </li>
+
+    <li class="phase next">
+      <div class="phase-no"><small>Fase</small>1</div>
+      <div class="phase-body">
+        <div class="phase-head"><h3>Compile + validering</h3><span class="chip next">næste</span></div>
+        <ul>
+          <li>Compile-log-parser → <code>compile.json</code> (errors, warnings, leak-koordinater)</li>
+          <li>BSP-parser: entities, planes, faces, clipnodes, lighting</li>
+          <li>Validator: limits, off-grid, korridorbredder, spawns, bomb targets, buyzones</li>
+          <li>Bevidst ødelagte testmaps, som validatoren skal fange</li>
+        </ul>
+        <p class="accept"><b>Accept:</b> alle fejlmaps fanges med korrekt årsag. Claude kan rette et leak alene ud fra <code>compile.json</code>.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="phase-no"><small>Fase</small>2</div>
+      <div class="phase-body">
+        <div class="phase-head"><h3>Generator + blockout</h3><span class="chip">senere</span></div>
+        <ul>
+          <li>Layout-spec i YAML: rum, korridorer, trapper, sites, spawns</li>
+          <li>Generator med forseglet ydre skal; round-trip læs → ændr → skriv</li>
+          <li>Første 2-site de_-blockout</li>
+        </ul>
+        <p class="accept"><b>Accept:</b> et 2-site blockout passerer fase 1-validering.</p>
+      </div>
+    </li>
+
+    <li class="gate">
+      <span class="gate-tag">Gate A</span>
+      <p><b>Layout.</b> Du går rundt i blockoutet in-game. Er det sjovt og læsbart? Tema, topologi og sites låses i FITNESS.md.</p>
+    </li>
+
+    <li class="phase">
+      <div class="phase-no"><small>Fase</small>3</div>
+      <div class="phase-body">
+        <div class="phase-head"><h3>Render</h3><span class="chip">senere</span></div>
+        <ul>
+          <li>newbspguy → OBJ → Blender headless: top-down og kamera-presets</li>
+          <li>Lysstyrkekort fra lighting-lump, liste over mørke zoner</li>
+          <li>Klient-screenshots med rigtige lightmaps (på værten)</li>
+        </ul>
+        <p class="accept"><b>Accept:</b> <code>task render</code> laver alle billeder for blockoutet på under 5 min uden manuelle trin.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="phase-no"><small>Fase</small>4</div>
+      <div class="phase-body">
+        <div class="phase-head"><h3>Simulation</h3><span class="chip">senere</span></div>
+        <ul>
+          <li>hlds-image: HLDS + Metamod + AMXX + YaPB, headless</li>
+          <li>Automatisk YaPB-navigationsgraf pr. map</li>
+          <li>Tracker-plugin skriver <code>positions</code>, <code>events</code>, <code>rounds</code>.csv</li>
+          <li>Mindst 2 servere parallelt</li>
+        </ul>
+        <p class="accept"><b>Accept:</b> 50 runder kører uden indgriben, og CSV valideres mod skemaet.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="phase-no"><small>Fase</small>5</div>
+      <div class="phase-body">
+        <div class="phase-head"><h3>Analyse</h3><span class="chip">senere</span></div>
+        <ul>
+          <li>Metrikker fra FITNESS.md → <code>metrics.json</code></li>
+          <li>Heatmaps (trafik, kills, deaths, første kontakt) oven på top-down</li>
+          <li>Delta-rapport mellem iterationer; sanity-check på et kendt map</li>
+        </ul>
+        <p class="accept"><b>Accept:</b> én rapport pr. iteration, som både du og Claude kan læse.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="phase-no"><small>Fase</small>6</div>
+      <div class="phase-body">
+        <div class="phase-head"><h3>Autonomt loop</h3><span class="chip">senere</span></div>
+        <ul>
+          <li>Orchestrator med budget, stopkriterier og rollback ved forværring</li>
+          <li>Claude headless får metrikker og billeder og returnerer en ændringsplan</li>
+          <li><code>runs/</code>-log med NOTES.md pr. iteration</li>
+        </ul>
+        <p class="accept"><b>Accept:</b> loopet flytter et bevidst ubalanceret map mod målintervallerne uden at bryde låste beslutninger.</p>
+      </div>
+    </li>
+
+    <li class="gate">
+      <span class="gate-tag">Gate B</span>
+      <p><b>Geometri låst.</b> Du godkender balancen. Geometrien fryses før art pass.</p>
+    </li>
+
+    <li class="phase">
+      <div class="phase-no"><small>Fase</small>7</div>
+      <div class="phase-body">
+        <div class="phase-head"><h3>Art pass</h3><span class="chip">senere</span></div>
+        <ul>
+          <li>ART_DIRECTION.md udfyldt for mappet</li>
+          <li>Regelbaseret lys, <code>lights.rad</code>-texlights, zonefarver</li>
+          <li>Tekstur-pipeline: billede → kvantisering → WAD3 (kun fri licens)</li>
+          <li>Claude reviewer screenshots mod stilguiden</li>
+        </ul>
+        <p class="accept"><b>Accept:</b> final compile, ingen mørke zoner, stilreview uden kritiske fund.</p>
+      </div>
+    </li>
+
+    <li class="gate">
+      <span class="gate-tag">Gate C</span>
+      <p><b>Release.</b> Playtest med rigtige spillere.</p>
+    </li>
+  </ol>
+</section>
+
+<section>
+  <span class="eyebrow">Uafklaret</span>
+  <h2>Punkter der skal verificeres</h2>
+  <div class="verify-wrap">
+    <table class="verify">
+      <thead><tr><th>Fase</th><th>Spørgsmål</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>0 / 7</td><td>Compiler-flag til fast- og final-profil</td><td>Afklaret mod SDHLT 1.3.0 <code>-help</code></td></tr>
+        <tr><td>0</td><td>Kører SDHLT's Linux-binaries i containeren?</td><td>Åben, første skridt i Docker-arbejdet</td></tr>
+        <tr><td>3</td><td>Er newbspguy's <code>exportobj</code> god nok til renders?</td><td>Åben</td></tr>
+        <tr><td>3</td><td>Hvordan placeres klientens kamera fra et script?</td><td>Åben</td></tr>
+        <tr><td>4</td><td>Kommando til automatisk YaPB-graf</td><td>Åben</td></tr>
+        <tr><td>4</td><td>Kan HLDS køre hurtigere end realtid?</td><td>Åben, antag realtid</td></tr>
+        <tr><td>4</td><td>AMXX-natives og events til tracker-plugin; YaPB-cvars</td><td>Åben</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div>

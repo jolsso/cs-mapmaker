@@ -1,0 +1,68 @@
+version: '3'
+
+# Run via `uv run task <name>` so go-task and Python come from the project venv.
+
+vars:
+  PROFILE: '{{.PROFILE | default "fast"}}'
+
+tasks:
+  setup:
+    desc: Sync Python env, fetch compilers, generate dev WAD
+    cmds:
+      - uv sync
+      - task: tools:fetch
+      - task: wad
+
+  tools:fetch:
+    desc: Download pinned map compilers into tools/
+    cmds:
+      - uv run python -m mapforge.tools.fetch
+
+  wad:
+    desc: Generate assets/wads/mapforge_dev.wad
+    cmds:
+      - uv run python -m mapforge.wad.dev_textures
+
+  compile:
+    desc: Compile a map (MAP=<name>, PROFILE=fast|final)
+    requires:
+      vars: [MAP]
+    deps: [setup]
+    cmds:
+      - uv run python -m mapforge.compile.run --map {{.MAP}} --profile {{.PROFILE}}
+
+  validate:
+    desc: Geometry, limits, leaks (Phase 1)
+    cmds:
+      - cmd: echo "not implemented (Phase 1)" && exit 1
+
+  render:
+    desc: Top-down + camera views (Phase 3)
+    cmds:
+      - cmd: echo "not implemented (Phase 3)" && exit 1
+
+  simulate:
+    desc: HLDS + YaPB, N rounds (Phase 4)
+    cmds:
+      - cmd: echo "not implemented (Phase 4)" && exit 1
+
+  analyze:
+    desc: Heatmaps + metrics (Phase 5)
+    cmds:
+      - cmd: echo "not implemented (Phase 5)" && exit 1
+
+  loop:
+    desc: Full iteration (Phase 6)
+    cmds:
+      - cmd: echo "not implemented (Phase 6)" && exit 1
+
+  test:
+    desc: Run pytest
+    cmds:
+      - uv run pytest {{.CLI_ARGS}}
+
+  lint:
+    desc: Run ruff
+    cmds:
+      - uv run ruff check .
+      - uv run ruff format --check .

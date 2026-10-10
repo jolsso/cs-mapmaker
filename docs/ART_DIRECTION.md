@@ -36,7 +36,7 @@ Kopiér til `maps/<navn>/ART_DIRECTION.md` og udfyld sammen med mennesket ved Ga
 - **Global (`light_environment`):** sol-retning, farve, intensitet, himmel
 - **Pr. zone:** varm/kold, kontrast, hovedkilder (lamper, vinduer, texlights)
 - **Læsbarhed:** spillere skal kunne ses i alle spilområder (se FITNESS.md → mørke zoner)
-- **Compile-profil final:** (bounces, `-extra`, gamma) ⚠️ VERIFICÉR VHLT-flag
+- **Compile-profil final:** (bounces, `-extra`, gamma). Flag verificeret mod SDHLT 1.3.0 `-help`: `-extra`, `-bounce #`, `-gamma #`, `-minlight #`, `-ao` findes. Se `config/pipeline.yaml`.
 
 ## 6. Detaljer og lyd
 - **Decals (`infodecal`):** skilte, graffiti, skader – hvor og hvorfor

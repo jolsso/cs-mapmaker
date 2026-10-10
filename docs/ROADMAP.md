@@ -5,10 +5,10 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 ## Fase 0 – Fundament
 **Mål:** Repo, værktøjer og et kendt testmap kan compiles.
 
-- [ ] Repo-struktur, Makefile, `config/pipeline.yaml`
-- [ ] VHLT installeret og kaldbar fra script
-- [ ] Et minimalt håndskrevet testmap (`maps/test_box/`): forseglet kasse, 1 lys, 2 spawns pr. hold
-- [ ] `make compile MAP=test_box` producerer .bsp
+- [x] Repo-struktur, Taskfile (i stedet for Makefile), `config/pipeline.yaml`
+- [x] Compilere (SDHLT, VHLT-fork) hentes pinnet og er kaldbare fra script
+- [x] Et minimalt testmap (`maps/test_box/`): forseglet kasse, 1 lys, 2 spawns pr. hold
+- [x] `uv run task compile MAP=test_box` producerer .bsp
 
 **Accept:** test_box compiler uden errors fra rent checkout via én kommando.
 

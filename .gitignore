@@ -1,9 +1,9 @@
 # Fetched third-party tools (see config/pipeline.yaml)
-tools/
+/tools/
 
 # Build and run artifacts
-build/
-runs/
+/build/
+/runs/
 *.bsp
 *.prt
 *.lin
