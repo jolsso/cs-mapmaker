@@ -258,14 +258,19 @@ def check_entities(
             buy["T"] += 1
         if team in ("0", "2"):
             buy["CT"] += 1
+    # A map with no func_buyzone at all is fine: the game creates buy zones around the
+    # spawns (de_nuke, de_cold do this). Only a map that defines them for one team but not
+    # the other is broken.
+    implicit_buy = not by_class["func_buyzone"]
     need_buy = int(rules.get("buyzones_per_team", 0))
     for team, n in buy.items():
-        if n < need_buy:
+        if not implicit_buy and n < need_buy:
             out.append(
                 Finding(
                     "buyzone_count",
                     ERROR,
-                    f"{team} has {n} func_buyzone, needs at least {need_buy}",
+                    f"{team} has {n} func_buyzone, needs at least {need_buy} (the other team "
+                    "has explicit buy zones, so the game will not create implicit ones)",
                     "bsp" if bsp else "map",
                 )
             )
@@ -292,7 +297,7 @@ def check_entities(
     stats = {
         "spawns": {t: len(e) for t, e in spawns.items()},
         "bomb_targets": len(bombs),
-        "buyzones": buy,
+        "buyzones": {**buy, "implicit": implicit_buy},
         "entities": len(entities),
     }
     return out, stats

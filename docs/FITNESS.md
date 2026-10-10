@@ -8,7 +8,7 @@ Loopet optimerer kun efter det, der står her. Tærsklerne spejles maskinlæsbar
 | Compile uden errors og uden leak | compile.json |
 | Ingen engine-limit over 90 % | validation.json |
 | Ingen off-grid vertices, alle brushes konvekse | validation.json |
-| Korrekte entities: spawns pr. hold ≥ 10, bomb targets = 2 (de_), buyzones pr. hold ≥ 1 | validation.json |
+| Korrekte entities: spawns pr. hold ≥ 10, bomb targets = 2 (de_), buyzones pr. hold ≥ 1 – eller ingen `func_buyzone` overhovedet (så laver spillet dem ved spawn); kun ét hold med buyzones er en fejl | validation.json |
 | Alle spawns kan nå begge sites (graf-sti findes) | walkable-graf fra BSP (hull 1) i Validate/Review – før simulering; YaPB-grafen tjekkes igen i smoke-kørslen |
 | Review bestået (ingen `critical`/`major` visuelle fund) | review.json – før simulering |
 

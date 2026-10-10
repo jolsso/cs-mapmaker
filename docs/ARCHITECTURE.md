@@ -90,7 +90,7 @@ Værten skal kun have Docker. Alt deterministisk kører i containere, der deler 
 | `invalid_brush`, `redundant_face`, `degenerate_face` | error | .map | brushes skal være lukkede og konvekse |
 | `off_grid`, `out_of_bounds` | error | .map | vertices på 8-grid, inden for ±4096 |
 | `limit` | error > 90 %, warning > 75 % | .bsp | HLSDK `MAX_MAP_*` + AllocBlock fra compileren |
-| `spawn_count`, `bomb_targets`, `buyzone_count` | error | .bsp (.map hvis compile fejlede) | FITNESS; per-map override i `maps/<map>/validate.yaml` |
+| `spawn_count`, `bomb_targets`, `buyzone_count` | error | .bsp (.map hvis compile fejlede) | FITNESS; ingen `func_buyzone` = implicitte buyzones (OK); per-map override i `maps/<map>/validate.yaml` |
 | `spawn_stuck` | error | .bsp | stående hull passer ikke ved spawn-origin |
 | `narrow_passage`, `low_ceiling` | warning | .bsp | gangbare celler (hull 1) med fri bredde < 64 eller loftshøjde < 96 |
 

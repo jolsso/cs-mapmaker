@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "maps" / "test_box" / "src" / "test_box.map"
 OUT = Path(__file__).resolve().parent / "maps"
 
-VALIDATE_YAML = "rules:\n  spawns_per_team: 2\n  buyzones_per_team: 0\n"
+VALIDATE_YAML = "rules:\n  spawns_per_team: 2\n"
 
 
 def box(
