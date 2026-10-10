@@ -133,9 +133,9 @@
       ]
     ],
     "id": 3,
-    "status": "open",
+    "status": "done",
     "created": "2026-10-10 21:27",
-    "resolution": null
+    "resolution": "iteration 002: area t_b_cut [-1264, -1456, -1008, -144] added with doors to t_to_b, b_tunnels"
   },
   {
     "kind": "path",
@@ -283,8 +283,8 @@
       ]
     ],
     "id": 4,
-    "status": "open",
+    "status": "done",
     "created": "2026-10-10 21:27",
-    "resolution": null
+    "resolution": "iteration 002: area b_start removed (now solid), with its doors, cover and stairs"
   }
 ]
