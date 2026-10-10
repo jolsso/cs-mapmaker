@@ -43,7 +43,7 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 **Mål:** Claude kan se mappet. Bygges og testes på referencemaps (fase 1b), før generatoren findes.
 
 - [x] Egen renderer (BSP + moderngl, Mesa/EGL headless): top-down ortografisk med teksturer og lightmaps, tage over spillerhøjde skåret væk
-- [ ] Kameraer → perspektiv-renders: automatiske (spawns, sites) + valgfri `config/cameras/<map>.yaml`
+- [x] Kameraer → perspektiv-renders: automatiske (spawns, sites) + valgfri `config/cameras/<map>.yaml`
 - [ ] Lysstyrkekort fra lighting-lump → PNG + "mørke zoner"-liste
 - [ ] Klient-screenshot-script (`+map`, kamera, `screenshot`) ⚠️ VERIFICÉR hvordan kamera positioneres scriptet – flyttet til fase 7 (art pass); egne renders har allerede lys
 - [ ] Heatmap-overlay-funktion (bruges i Fase 5)

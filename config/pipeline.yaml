@@ -113,6 +113,7 @@ reference_maps:
     - /refmaps/hl/cstrike/maps
 
 render:
+  camera_size: [1280, 720]
   # WADs for textures not embedded in the .bsp. The map's own mod dir (<bsp>/../*.wad) is
   # always searched first; then these (missing dirs are skipped).
   wad_dirs:

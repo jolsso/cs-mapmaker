@@ -12,12 +12,14 @@ import time
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 from PIL import Image
 
 from mapforge.bsp.reader import read_bsp
 from mapforge.config import Config, load_config
 from mapforge.refmaps import extract_archives, find_reference_bsp
-from mapforge.render.gl import Renderer
+from mapforge.render.cameras import auto_cameras, configured_cameras
+from mapforge.render.gl import Renderer, look_at
 from mapforge.render.mesh import build_mesh
 from mapforge.render.textures import MISSING, WadIndex, wad_search_paths
 from mapforge.render.topdown import annotate, render_topdown
@@ -66,6 +68,19 @@ def render_map(cfg: Config, map_name: str, bsp_path: Path) -> dict[str, Any]:
     ):  # fmt: skip
         annotate(img, view, bsp, f"{map_name} - {name.removesuffix('.png')}").save(out_dir / name)
         images.append({"file": name, "kind": "topdown", "purpose": purpose, "view": view.to_dict()})
+    # Perspective views: automatic presets + config/cameras/<map>.yaml.
+    cams = auto_cameras(bsp, graph) + configured_cameras(
+        cfg.root / "config" / "cameras" / f"{map_name}.yaml"
+    )
+    w, h = cfg.data["render"].get("camera_size", [1280, 720])
+    for cam in cams:
+        img = renderer.render(
+            look_at(np.array(cam.eye), np.array(cam.target), cam.fov, w, h),
+            background=(0.55, 0.62, 0.72),  # sky is not drawn; a flat sky colour reads better
+        )
+        name = f"cam_{cam.name}.png"
+        Image.fromarray(img).save(out_dir / name)
+        images.append({"file": name, "kind": "camera", "purpose": cam.purpose, **cam.to_dict()})
     # Raw (unannotated) top-down, used as the base for heatmap overlays.
     Image.fromarray(lit).save(out_dir / "topdown_raw.png")
 

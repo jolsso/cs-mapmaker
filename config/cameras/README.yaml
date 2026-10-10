@@ -1,0 +1,7 @@
+# Optional fixed cameras per map: config/cameras/<map>.yaml
+# cameras:
+#   - name: mid_doors
+#     eye: [-480, 1200, 64]
+#     target: [-480, 2000, 64]
+#     fov: 65
+#     purpose: Mid doors seen from the T side

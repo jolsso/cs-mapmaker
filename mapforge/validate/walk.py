@@ -51,6 +51,30 @@ class WalkGraph:
         """Origins of the standing nodes only (for corridor checks)."""
         return self.feet[self.stance == STAND] + [0.0, 0.0, HALF[STAND][2]]
 
+    def shortest_path(self, source: int, targets: np.ndarray) -> list[int] | None:
+        """Fewest-moves path (node ids) from source to the nearest target node, or None."""
+        n = len(self.feet)
+        is_target = np.zeros(n, dtype=bool)
+        is_target[targets] = True
+        order = np.argsort(self.edges[:, 0], kind="stable")
+        dst = self.edges[order, 1]
+        starts = np.searchsorted(self.edges[order, 0], np.arange(n + 1))
+        parent = np.full(n, -1, dtype=np.int64)
+        parent[source] = source
+        queue = deque([source])
+        while queue:
+            v = queue.popleft()
+            if is_target[v]:
+                path = [v]
+                while path[-1] != source:
+                    path.append(int(parent[path[-1]]))
+                return path[::-1]
+            for u in dst[starts[v] : starts[v + 1]]:
+                if parent[u] < 0:
+                    parent[u] = v
+                    queue.append(int(u))
+        return None
+
     def reverse_reachable(self, targets: np.ndarray) -> np.ndarray:
         """Bool mask of nodes from which any target node can be reached."""
         n = len(self.feet)

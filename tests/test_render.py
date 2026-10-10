@@ -40,7 +40,11 @@ def rendered():
 
 def test_index_lists_images_and_finds_all_textures(rendered):
     out, index = rendered
-    assert [i["file"] for i in index["images"]] == ["topdown.png", "topdown_light.png"]
+    files = [i["file"] for i in index["images"]]
+    assert files[:2] == ["topdown.png", "topdown_light.png"]
+    # test_box has no bomb sites: only the two spawn cameras
+    assert files[2:] == ["cam_spawn_t.png", "cam_spawn_ct.png"]
+    assert all((out / f).is_file() for f in files)
     assert index["missing_textures"] == []
     assert json.loads((out / "index.json").read_text())["map"] == "test_box"
 
@@ -55,3 +59,11 @@ def test_topdown_shows_the_lit_floor(rendered):
     assert centre.min() > 60 and abs(centre[0] - centre[2]) < 40
     # Outside the room (corner of the image) is background.
     assert img[2, 2].max() < 30
+
+
+def test_spawn_camera_sees_the_room(rendered):
+    out, _ = rendered
+    img = np.asarray(Image.open(out / "cam_spawn_t.png")).astype(int)
+    sky = np.array([0.55, 0.62, 0.72]) * 255
+    # A closed room: no pixel should show the sky background colour.
+    assert np.abs(img - sky).sum(axis=2).min() > 20
