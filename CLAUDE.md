@@ -58,6 +58,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf review MAP=<navn> -- --answer   # trin 2: scor svaret → build/<map>/review.json
 ./mf decide MAP=<navn> -- --emit     # ny runs/<map>/<NNN>/ med input-kontrakt + decide-prompt
 ./mf decide MAP=<navn> -- --answer   # tjek plan.json mod config/fitness.yaml → decision.json
+./mf history MAP=<navn> NOTE="…"   # gem/opdatér version i history/<map>/ (sker automatisk efter render og review)
 ./mf site                     # genbyg lokalt website build/site/ (sker også automatisk efter validate/render/review/decide)
 docker compose up -d site     # PÅ VÆRTEN: serverer websitet på http://localhost:8080 (kun 127.0.0.1)
 ./mf simulate MAP=<navn>      # HLDS + YaPB, N runder         (Fase 4)

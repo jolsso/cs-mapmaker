@@ -66,6 +66,9 @@ Værten skal kun have Docker. Alt deterministisk kører i containere, der deler 
 ## Lokalt website (`mapforge/site/`)
 `build/site/` genereres fra repoets data og viser alt ét sted: forside med projekter (ét pr. map, grupperet i egne maps og referencemaps, med status pr. fase), arkitektur og roadmap (docs/overview.html), og én side pr. map med compile, validering (fund, nåbarhed, limits), alle renders, review, og iterationer (plan, politik-tjek, NOTES.md). Genbygges automatisk efter validate/render/review/decide (`site.auto_refresh`) og med `./mf site`. Serveres lokalt med `docker compose up -d site` på `http://localhost:8080` (kun 127.0.0.1) – billeder af Valve-/community-maps forlader aldrig maskinen.
 
+## Historik (`mapforge/history.py`)
+`history/<map>/<NNN>/` (gitignored) gemmer hver version af et map: renders, `validation.json`, `review.json`, `compile.json`, `layout.yaml` og `meta.json` (dato, commit, review-status, timings, noter). En ny version oprettes, når .bsp'en ændrer sig (sha256); render/review af samme .bsp opdaterer versionen. Websitet viser versionerne som thumbnail-liste pr. map (nyeste først) med en side pr. version med alle billeder og data.
+
 ## Komponenter
 
 ### Generator (`mapforge/generator/`) – bygget

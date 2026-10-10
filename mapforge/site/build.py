@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from mapforge.config import Config, load_config
+from mapforge.history import versions
 from mapforge.runs import iterations, stage_of
 
 PHASES = [  # (key, label, built?)
@@ -272,6 +273,100 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
     return "".join(parts)
 
 
+def _version_chip(meta: dict) -> str:
+    if meta.get("review_passed") is True:
+        return "<span class='chip ok'>review bestået</span>"
+    if meta.get("review_passed") is False:
+        return "<span class='chip bad'>review fejlet</span>"
+    if meta.get("validate_ok") is False:
+        return "<span class='chip bad'>validering fejlet</span>"
+    return "<span class='chip todo'>ikke reviewet</span>"
+
+
+def history_section(cfg: Config, name: str, mdir: Path, maps: list[str]) -> str:
+    """Thumbnail list of all versions (newest first) + one page per version."""
+    vers = versions(cfg, name)
+    if not vers:
+        return ""
+    cards = []
+    for v in reversed(vers):
+        meta = _load(v / "meta.json") or {}
+        out = mdir / "history" / v.name
+        out.mkdir(parents=True, exist_ok=True)
+        index = _load(v / "renders" / "index.json") or {"images": []}
+        for im in index["images"]:
+            if (v / "renders" / im["file"]).is_file():
+                _copy(v / "renders" / im["file"], out / "img" / im["file"])
+        # version page
+        parts = [
+            f"<section><span class='eyebrow'>{e(name)} · historik</span><h1>Version {e(v.name)}</h1>"
+            f"<p class='muted'>Oprettet {e(meta.get('created', ''))} · opdateret {e(meta.get('updated', ''))}"
+            f" · commit <code>{e(str(meta.get('git_commit') or '-'))}</code></p><div class='phases'>"
+            f"{_version_chip(meta)}</div></section>"
+        ]
+        if meta.get("notes"):
+            parts.append(
+                "<section><h2>Noter</h2><ul>"
+                + "".join(f"<li>{e(n)}</li>" for n in meta["notes"])
+                + "</ul></section>"
+            )
+        if meta.get("review_summary"):
+            r = _load(v / "review.json") or {}
+            parts.append(
+                f"<section><h2>Review</h2><div class='card'>{e(meta['review_summary'])}</div>"
+                + _findings_table(r.get("findings", []), ("severity", "where", "what", "image"))
+                + "</section>"
+            )
+        vjson = _load(v / "validation.json")
+        if vjson:
+            main = [f for f in vjson["findings"] if f["severity"] in ("error", "warning")]
+            parts.append(
+                f"<section><h2>Validering</h2><p>{_chip(vjson['ok'])} {vjson['summary'].get('errors', 0)} errors · "
+                f"{vjson['summary'].get('warnings', 0)} warnings</p>"
+                + _findings_table(main, ("severity", "rule", "message", "location"))
+                + "</section>"
+            )
+        if meta.get("timings"):
+            rows = "".join(
+                f"<tr><td>site {e(str(t['site']))}</td><td class='num'>{t.get('T', {}).get('median_s')} s</td>"
+                f"<td class='num'>{t.get('CT', {}).get('median_s')} s</td><td class='num'>{t.get('ct_lead_s')} s</td></tr>"
+                for t in meta["timings"]
+            )
+            parts.append(
+                "<section><h2>Løbetider</h2><div class='table'><table><tr><th>Site</th><th>T</th><th>CT</th>"
+                f"<th>CT-forspring</th></tr>{rows}</table></div></section>"
+            )
+        if (v / "layout.yaml").is_file():
+            parts.append(
+                f"<section><h2>Layout</h2><details><summary>layout.yaml</summary><pre>{e((v / 'layout.yaml').read_text(encoding='utf-8'))}</pre></details></section>"
+            )
+        parts.append("<section><h2>Billeder</h2><div class='grid'>")
+        for im in index["images"]:
+            parts.append(
+                f"<figure><a href='{v.name}/img/{e(im['file'])}' target='_blank'><img src='{v.name}/img/{e(im['file'])}' "
+                f"loading='lazy' alt='{e(im['file'])}'></a><figcaption><b>{e(im['file'])}</b> – {e(im['purpose'])}</figcaption></figure>"
+            )
+        parts.append("</div></section>")
+        back = f"<p><a href='../index.html#history'>← tilbage til {e(name)}</a></p>"
+        (mdir / "history" / f"{v.name}.html").write_text(
+            _page(f"{name} – version {v.name}", back + "".join(parts), 3, name, maps),
+            encoding="utf-8",
+        )
+        thumb = f"history/{v.name}/img/topdown.png"
+        t = {x["site"]: x for x in meta.get("timings", [])}
+        tim = " · ".join(f"{k}: T {x.get('T', {}).get('median_s')} s" for k, x in t.items())
+        cards.append(
+            f"<figure><a href='history/{v.name}.html'><img src='{thumb}' loading='lazy' alt='version {v.name}'></a>"
+            f"<figcaption><b>Version {e(v.name)}</b> · {e(meta.get('created', ''))}<br>{_version_chip(meta)}"
+            f"{'<br>' + e(tim) if tim else ''}</figcaption></figure>"
+        )
+    return (
+        f"<section id='history'><h2>Historik</h2><p class='muted'>{len(vers)} versioner, nyeste først. "
+        "En ny version oprettes, når mappet ændrer sig; klik for alle billeder og data.</p>"
+        f"<div class='grid'>{''.join(cards)}</div></section>"
+    )
+
+
 def build_site(cfg: Config) -> Path:
     out = cfg.path("build_dir") / "site"
     out.mkdir(parents=True, exist_ok=True)
@@ -339,6 +434,10 @@ def build_site(cfg: Config) -> Path:
         mdir = out / "maps" / m
         mdir.mkdir(parents=True, exist_ok=True)
         body = map_page(cfg, m, mdir)
+        hist = history_section(cfg, m, mdir, maps)
+        if hist:  # right after the project header
+            cut = body.index("</section>") + len("</section>")
+            body = body[:cut] + hist + body[cut:]
         (mdir / "index.html").write_text(
             _page(f"MapForge – {m}", body, 2, m, maps), encoding="utf-8"
         )

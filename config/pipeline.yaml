@@ -6,6 +6,7 @@ paths:
   build_dir: build
   maps_dir: maps
   runs_dir: runs
+  history_dir: history     # one version per changed .bsp (renders, data, review)
   wad_dirs:
     - assets/wads
 

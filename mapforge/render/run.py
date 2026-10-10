@@ -134,6 +134,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no .bsp for {args.map} (compile it, or use --source reference)", file=sys.stderr)
         return 1
     index = render_map(cfg, args.map, bsp_path)
+    from mapforge.history import snapshot  # lazy: history imports nothing from render
+
+    snapshot(cfg, args.map)  # new history version if the .bsp changed, else refresh it
     print(f"rendered {len(index['images'])} images in {index['seconds']} s -> "
           f"{cfg.path('build_dir') / args.map / 'renders'}")  # fmt: skip
     if index["missing_textures"]:

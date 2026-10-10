@@ -289,6 +289,10 @@ def main(argv: list[str] | None = None) -> int:
     except (RuntimeError, OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
         print(f"review failed to run: {exc}", file=sys.stderr)
         return 2
+    if r["passed"] is not None:
+        from mapforge.history import snapshot
+
+        snapshot(cfg, args.map)  # attach the review to the history version of this .bsp
     verdict = {True: "PASS", False: "FAIL", None: "PROMPT READY"}[r["passed"]]
     print(f"review {args.map}: {verdict} ({r['stage']}, {r['seconds']} s) - {r['summary']}")
     for f in r["findings"]:
