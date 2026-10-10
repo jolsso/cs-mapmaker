@@ -49,6 +49,8 @@ Hvis en iteration forværrer scoren ud over støjniveau: gå tilbage til bedste 
 ## Låste beslutninger
 Må **ikke** ændres af loopet uden menneskelig godkendelse. Udfyldes ved Gate A/B.
 
+**Gate A godkendt 2026-10-10** for de_forge01 (layout v004): topologi og site-placeringer er låst i `config/fitness.yaml`. Tema vælges før art pass (fase 7).
+
 ```yaml
 locked:
   theme: ""              # fx "industriel havn"

@@ -2,12 +2,15 @@
 # file is: fix both. The loop optimises only what is here.
 
 # Locked decisions: never changed by the loop without human approval (filled at Gate A / B).
+# Gate A approved 2026-10-10 for de_forge01 (layout v004, history/de_forge01/004).
 locked:
-  theme: ""
+  theme: ""              # not chosen yet: decided before the art pass (phase 7)
   map_type: "de"
-  topology: ""
-  site_locations: []     # rough coordinates/zones
-  landmarks: []          # named landmarks that must survive
+  topology: "3x3 zones; three T routes (long -> A, tunnels -> B, mid -> mid_top -> short A / short B), one chokepoint each before the site; CT spawn north, towards A"
+  site_locations:
+    - "A: north-east zone (x 1280..2048, y 1280..2048), raised 32"
+    - "B: north-west zone (x -2048..-1280, y 1280..2048), indoor"
+  landmarks: []          # none yet (graybox); named at the art pass
   geometry_frozen: false # true after Gate B
 
 # Gameplay targets (bot data, >= 100 rounds per measurement).

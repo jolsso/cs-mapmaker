@@ -76,6 +76,7 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 ✅ Opfyldt 2026-10-10: `de_forge01` (23 områder, 27 døre, 143 brushes) – validering 0 errors/0 warnings, alle 24 spawns når begge sites; Review PASS i 3. runde (runde 1: én T-indgang pr. site + mid ind i CT-spawn; runde 2: lige sigtelinje ned ad long; begge rettet i layout.yaml).
 
 🚦 **Gate A – Layout:** Mennesket går rundt i blockout in-game. Er grundlayoutet sjovt og læsbart? Lås overordnet struktur i FITNESS.md.
+✅ Godkendt 2026-10-10: de_forge01 v004. Topologi og sites låst i `config/fitness.yaml`; tema vælges før fase 7.
 
 ## Fase 4 – Simulation
 **Mål:** Bots spiller mappet, og alt logges.

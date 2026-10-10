@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0, 1, 1b, 3, 3b, 2 færdig · 🚦 Gate A</b></span>
+    <span>status <b>fase 0–3b og Gate A færdig · fase 4 næste</b></span>
     <span>opdateret <b>2026-10-10</b></span>
     <span>designguide <b>docs/DESIGN_GUIDE.md</b></span>
     <span>alle outputs: <b>http://localhost:8080</b> (lokalt website)</span>
@@ -526,13 +526,13 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
 
     <li class="gate">
       <span class="gate-tag">Gate A</span>
-      <p><b>Layout.</b> Du går rundt i blockoutet in-game. Er det sjovt og læsbart? Tema, topologi og sites låses i FITNESS.md.</p>
+      <p><b>Layout.</b> ✅ Godkendt 2026-10-10: de_forge01 v004. Topologi og sites er låst; tema vælges før art pass.</p>
     </li>
 
-    <li class="phase">
+    <li class="phase next">
       <div class="phase-no"><small>Fase</small>4</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Simulation</h3><span class="chip">senere</span></div>
+        <div class="phase-head"><h3>Simulation</h3><span class="chip next">næste</span></div>
         <ul>
           <li>hlds-image: HLDS + Metamod + AMXX + YaPB, headless</li>
           <li>Automatisk YaPB-navigationsgraf pr. map</li>
