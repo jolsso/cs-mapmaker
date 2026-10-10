@@ -173,7 +173,7 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
         st_ = v.get("stats", {})
         sites = st_.get("reachability", {}).get("sites", [])
         if sites:
-            rows = "".join(f"<tr><td>site {x['site']}</td><td class='num'>{x['centre']}</td>"
+            rows = "".join(f"<tr><td>site {x.get('label', x['site'])}</td><td class='num'>{x['centre']}</td>"
                            f"<td class='num'>{x['spawns_reaching']}</td></tr>" for x in sites)  # fmt: skip
             parts.append("<h3>Nåbarhed</h3><div class='table'><table><tr><th>Site</th><th>Centrum"
                          f"</th><th>Spawns der når det</th></tr>{rows}</table></div>")  # fmt: skip

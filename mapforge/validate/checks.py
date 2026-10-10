@@ -11,7 +11,7 @@ import numpy as np
 from mapforge.bsp.reader import CONTENTS_SOLID, Bsp
 from mapforge.mapfile.geometry import brush_geometry
 from mapforge.mapfile.parser import MapFile
-from mapforge.validate.walk import WalkGraph, bomb_sites, nodes_touching
+from mapforge.validate.walk import WalkGraph, bomb_sites, nodes_touching, site_labels
 
 ERROR = "error"
 WARNING = "warning"
@@ -334,14 +334,21 @@ def check_reachability(
     """FITNESS hard requirement: every spawn can reach both bomb sites (on foot)."""
     out = []
     sites = []
+    labels = site_labels(bsp)
     for n, boxes in enumerate(bomb_sites(bsp), start=1):
         targets = np.unique(np.concatenate([nodes_touching(graph, lo, hi) for lo, hi in boxes]))
         lo = np.min([b[0] for b in boxes], axis=0)
         hi = np.max([b[1] for b in boxes], axis=0)
         can_reach = graph.reverse_reachable(targets)
         centre = (lo + hi) / 2
-        site = {"site": n, "centre": _xyz(centre), "bbox": [_xyz(lo), _xyz(hi)],
-                "standable_cells": len(targets), "spawns_reaching": {"T": 0, "CT": 0}}  # fmt: skip
+        site = {
+            "site": n,
+            "label": labels[n - 1],
+            "centre": _xyz(centre),
+            "bbox": [_xyz(lo), _xyz(hi)],
+            "standable_cells": len(targets),
+            "spawns_reaching": {"T": 0, "CT": 0},
+        }
         stuck_at: dict[str, list[list[float]]] = {"T": [], "CT": []}
         for seed, team in zip(graph.seeds, teams, strict=True):
             if seed is not None and can_reach[seed]:
@@ -354,7 +361,7 @@ def check_reachability(
                     Finding(
                         "unreachable_site",
                         ERROR,
-                        f"{len(where)} {team} spawn(s) cannot walk to bomb site {n} "
+                        f"{len(where)} {team} spawn(s) cannot walk to bomb site {labels[n - 1]} "
                         f"(centre {_xyz(centre)})",
                         "bsp",
                         location=where[0],

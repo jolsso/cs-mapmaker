@@ -341,11 +341,23 @@ def bomb_target_boxes(bsp: Bsp) -> list[tuple[np.ndarray, np.ndarray]]:
     return boxes
 
 
-def bomb_sites(bsp: Bsp, merge_gap: float = 128) -> list[list[tuple[np.ndarray, np.ndarray]]]:
-    """Group bomb target boxes into sites: boxes closer than merge_gap belong together.
+def site_labels(bsp: Bsp, merge_gap: float = 128) -> list[str]:
+    """Label per site from bomb_sites(): the letter of a "site_<X>" targetname, else its number."""
+    named = []
+    for ent in bsp.entities:
+        if ent.get("classname") in ("func_bomb_target", "info_bomb_target"):
+            tn = ent.get("targetname", "")
+            named.append(tn[5:].upper() if tn.lower().startswith("site_") and tn[5:] else None)
+    # bomb_target_boxes() walks the entities in the same order, so indices line up
+    groups = _site_groups(bsp, merge_gap)
+    out = []
+    for n, idx in enumerate(groups, start=1):
+        letters = {named[i] for i in idx if i < len(named) and named[i]}
+        out.append(letters.pop() if len(letters) == 1 else str(n))
+    return out
 
-    Maps often build one site from several func_bomb_target brushes (de_prodigy, de_torn).
-    """
+
+def _site_groups(bsp: Bsp, merge_gap: float) -> list[list[int]]:
     boxes = bomb_target_boxes(bsp)
     parent = list(range(len(boxes)))
 
@@ -361,10 +373,19 @@ def bomb_sites(bsp: Bsp, merge_gap: float = 128) -> list[list[tuple[np.ndarray, 
             gap = np.maximum(0, np.maximum(alo - bhi, blo - ahi))
             if np.all(gap <= merge_gap):
                 parent[find(i)] = find(j)
-    groups: dict[int, list[tuple[np.ndarray, np.ndarray]]] = {}
-    for i, box in enumerate(boxes):
-        groups.setdefault(find(i), []).append(box)
+    groups: dict[int, list[int]] = {}
+    for i in range(len(boxes)):
+        groups.setdefault(find(i), []).append(i)
     return list(groups.values())
+
+
+def bomb_sites(bsp: Bsp, merge_gap: float = 128) -> list[list[tuple[np.ndarray, np.ndarray]]]:
+    """Group bomb target boxes into sites: boxes closer than merge_gap belong together.
+
+    Maps often build one site from several func_bomb_target brushes (de_prodigy, de_torn).
+    """
+    boxes = bomb_target_boxes(bsp)
+    return [[boxes[i] for i in idx] for idx in _site_groups(bsp, merge_gap)]
 
 
 def nodes_touching(graph: WalkGraph, lo: np.ndarray, hi: np.ndarray) -> np.ndarray:

@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 from mapforge.bsp.reader import Bsp
 from mapforge.render.gl import Renderer, ortho_top_down
 from mapforge.validate.checks import spawn_origins
-from mapforge.validate.walk import WalkGraph, bomb_sites
+from mapforge.validate.walk import WalkGraph, bomb_sites, site_labels
 
 T_COLOR = (230, 90, 40)
 CT_COLOR = (60, 140, 235)
@@ -90,12 +90,13 @@ def annotate(img: np.ndarray, view: TopDownView, bsp: Bsp, title: str) -> Image.
     for (px, py), team in zip(view.to_px(origins[:, :2]), teams, strict=True):
         c = T_COLOR if team == "T" else CT_COLOR
         d.ellipse([px - r, py - r, px + r, py + r], fill=c, outline=(0, 0, 0))
+    labels = site_labels(bsp)
     for n, boxes in enumerate(bomb_sites(bsp), start=1):
         lo = np.min([b[0] for b in boxes], axis=0)
         hi = np.max([b[1] for b in boxes], axis=0)
         (ax, ay), (bx, by) = view.to_px(np.array([[lo[0], hi[1]], [hi[0], lo[1]]]))
         d.rectangle([ax, ay, bx, by], outline=SITE_COLOR, width=max(2, view.width // 600))
-        d.text((ax + 4, ay + 2), f"site {n}", fill=SITE_COLOR, font=font,
+        d.text((ax + 4, ay + 2), f"site {labels[n - 1]}", fill=SITE_COLOR, font=font,
                stroke_width=2, stroke_fill=(0, 0, 0))  # fmt: skip
     # scale bar (512 units) and north arrow
     bar = 512 / view.units_per_px

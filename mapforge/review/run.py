@@ -70,7 +70,8 @@ def validation_summary(v: dict[str, Any]) -> str:
     reach = v.get("stats", {}).get("reachability", {}).get("sites", [])
     for s in reach:
         lines.append(
-            f"- site {s['site']} centre {s['centre']}: spawns reaching {s['spawns_reaching']}"
+            f"- site {s.get('label', s['site'])} centre {s['centre']}: "
+            f"spawns reaching {s['spawns_reaching']}"
         )
     ents = v.get("stats", {}).get("entities", {})
     if ents:
