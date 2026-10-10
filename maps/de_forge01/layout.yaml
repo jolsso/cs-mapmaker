@@ -132,7 +132,7 @@ cover:
   - {name: mid_top_cover_2, area: mid_top, pos: [-576, 560], size: [32, 320, 128]}
   - {name: a_long_start_cover, area: a_long_start, pos: [1912, -1712], size: [272, 32, 128]}
   - {name: a_long_start_cover_2, area: a_long_start, pos: [1664, -1872], size: [32, 352, 128]}
-  - {name: a_long_cover, area: a_long, pos: [1640, -264], size: [208, 32, 96]}
+  - {name: a_long_cover, area: a_long, pos: [1760, -240], size: [128, 32, 96]}
 
 sites: {A: a_site, B: b_site}
 spawns:
