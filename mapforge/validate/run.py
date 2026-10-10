@@ -69,6 +69,8 @@ def validate_map(cfg: Config, map_name: str, reference_bsp: Path | None = None) 
             vcfg.get("compiler_table_rows", []),
             float(vcfg["limit_error_pct"]),
             float(vcfg["limit_warn_pct"]),
+            # Reference maps are known to work; headroom is our policy for our own maps.
+            policy_severity=checks.WARNING if reference_bsp is not None else ERROR,
         )
         findings += limit_findings
         stats["limits"] = usage
@@ -81,11 +83,16 @@ def validate_map(cfg: Config, map_name: str, reference_bsp: Path | None = None) 
             z_step=float(wcfg["z_step"]),
             max_step=float(wcfg["max_step"]),
             max_drop=float(wcfg["max_drop"]),
+            jump_height=float(wcfg.get("jump_height", 54)),
+            crouch=bool(wcfg.get("crouch", True)),
         )
         reach_findings, stats["reachability"] = checks.check_reachability(bsp, graph, teams)
         findings += reach_findings
         corridor_findings, stats["walkable"] = checks.check_corridors(
-            graph, bsp, {**vcfg["corridors"], "max_step": wcfg["max_step"]}
+            graph,
+            bsp,
+            {**vcfg["corridors"], "max_step": wcfg["max_step"]},
+            severity=checks.INFO if reference_bsp is not None else checks.WARNING,
         )
         findings += corridor_findings
 
@@ -102,12 +109,17 @@ def validate_map(cfg: Config, map_name: str, reference_bsp: Path | None = None) 
     findings += entity_findings
 
     errors = sum(f.severity == ERROR for f in findings)
+    warnings = sum(f.severity == checks.WARNING for f in findings)
     result = {
         "map": map_name,
         "map_type": mtype or None,
         "source": "reference" if reference_bsp is not None else "map",
         "ok": errors == 0,
-        "summary": {"errors": errors, "warnings": len(findings) - errors},
+        "summary": {
+            "errors": errors,
+            "warnings": warnings,
+            "info": len(findings) - errors - warnings,
+        },
         "findings": [f.to_dict() for f in findings],
         "stats": stats,
         "inputs": {

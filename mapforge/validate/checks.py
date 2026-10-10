@@ -11,10 +11,11 @@ import numpy as np
 from mapforge.bsp.reader import CONTENTS_SOLID, Bsp
 from mapforge.mapfile.geometry import brush_geometry
 from mapforge.mapfile.parser import MapFile
-from mapforge.validate.walk import WalkGraph, bomb_target_boxes, nodes_touching
+from mapforge.validate.walk import WalkGraph, bomb_sites, nodes_touching
 
 ERROR = "error"
 WARNING = "warning"
+INFO = "info"  # design-norm notes on reference maps; never fails, not counted
 
 T_SPAWN = "info_player_deathmatch"
 CT_SPAWN = "info_player_start"
@@ -165,7 +166,9 @@ def check_limits(
     table_rows: list[str],
     error_pct: float,
     warn_pct: float,
+    policy_severity: str = ERROR,
 ) -> tuple[list[Finding], list[dict[str, Any]]]:
+    """> 100 % exceeds the engine (error); > error_pct breaks the FITNESS headroom policy."""
     usage = []
     counts = bsp.counts()
     for name, limit in engine_limits.items():
@@ -182,17 +185,19 @@ def check_limits(
             )  # fmt: skip
     out = []
     for u in usage:
-        if u["pct"] > error_pct:
-            sev = ERROR
+        if u["pct"] > 100:
+            rule, sev, why = "limit_exceeded", ERROR, "exceeds the engine limit"
+        elif u["pct"] > error_pct:
+            rule, sev, why = "limit", policy_severity, f"above the {error_pct:g} % headroom policy"
         elif u["pct"] > warn_pct:
-            sev = WARNING
+            rule, sev, why = "limit", WARNING, f"above {warn_pct:g} %"
         else:
             continue
         out.append(
             Finding(
-                "limit",
+                rule,
                 sev,
-                f"{u['name']}: {u['used']}/{u['max']} ({u['pct']:.1f} %)",
+                f"{u['name']}: {u['used']}/{u['max']} ({u['pct']:.1f} %), {why}",
                 "bsp",
                 details=u,
             )
@@ -236,17 +241,20 @@ def check_entities(
             )
 
     bombs = [e for c in BOMB_TARGETS for e in by_class[c]]
+    # Several adjacent func_bomb_target brushes form one site (de_prodigy, de_torn).
+    n_sites = len(bomb_sites(bsp)) if bsp is not None else len(bombs)
     need_bombs = (
         int((rules.get("bomb_targets") or {}).get(mtype, 0))
         if isinstance(rules.get("bomb_targets"), dict)
         else int(rules.get("bomb_targets") or 0)
     )
-    if need_bombs and len(bombs) != need_bombs:
+    if need_bombs and n_sites != need_bombs:
         out.append(
             Finding(
                 "bomb_targets",
                 ERROR,
-                f"{len(bombs)} bomb targets, {mtype}_ maps need exactly {need_bombs}",
+                f"{n_sites} bomb sites ({len(bombs)} bomb target entities), "
+                f"{mtype}_ maps need exactly {need_bombs}",
                 "bsp" if bsp else "map",
             )
         )
@@ -298,6 +306,7 @@ def check_entities(
     stats = {
         "spawns": {t: len(e) for t, e in spawns.items()},
         "bomb_targets": len(bombs),
+        "bomb_sites": n_sites,
         "buyzones": {**buy, "implicit": implicit_buy},
         "entities": len(entities),
     }
@@ -325,8 +334,10 @@ def check_reachability(
     """FITNESS hard requirement: every spawn can reach both bomb sites (on foot)."""
     out = []
     sites = []
-    for n, (lo, hi) in enumerate(bomb_target_boxes(bsp), start=1):
-        targets = nodes_touching(graph, lo, hi)
+    for n, boxes in enumerate(bomb_sites(bsp), start=1):
+        targets = np.unique(np.concatenate([nodes_touching(graph, lo, hi) for lo, hi in boxes]))
+        lo = np.min([b[0] for b in boxes], axis=0)
+        hi = np.max([b[1] for b in boxes], axis=0)
         can_reach = graph.reverse_reachable(targets)
         centre = (lo + hi) / 2
         site = {"site": n, "centre": _xyz(centre), "bbox": [_xyz(lo), _xyz(hi)],
@@ -336,7 +347,7 @@ def check_reachability(
             if seed is not None and can_reach[seed]:
                 site["spawns_reaching"][team] += 1
             elif seed is not None:
-                stuck_at[team].append(_xyz(graph.positions[seed] - [0, 0, 36]))
+                stuck_at[team].append(_xyz(graph.feet[seed]))
         for team, where in stuck_at.items():
             if where:
                 out.append(
@@ -375,12 +386,18 @@ def check_reachability(
 
 
 def _runs(keys: dict[tuple[int, int], list[float]], axis: int, max_step: float) -> dict:
-    """Length (in cells) of the contiguous walkable run through each spot along one axis."""
+    """Per spot: (length in cells, walled) of its contiguous walkable run along one axis.
+
+    `walled` is True when the column just beyond both ends of the run has no walkable spot
+    at all (a wall or solid). A run that ends at a drop or ledge (a lower floor next to it)
+    is not walled, so ledges and catwalk edges are not mistaken for narrow corridors.
+    """
     run_of: dict[tuple[int, int, float], int] = {}
     members: dict[int, list[tuple[int, int, float]]] = defaultdict(list)
     next_id = 0
+    step = (1, 0) if axis == 0 else (0, 1)
     for ix, iy in sorted(keys, key=lambda k: (k[1 - axis], k[axis])):
-        prev = (ix - 1, iy) if axis == 0 else (ix, iy - 1)
+        prev = (ix - step[0], iy - step[1])
         for z in keys[(ix, iy)]:
             rid = None
             for pz in keys.get(prev, []):
@@ -392,20 +409,32 @@ def _runs(keys: dict[tuple[int, int], list[float]], axis: int, max_step: float) 
                 next_id += 1
             run_of[(ix, iy, z)] = rid
             members[rid].append((ix, iy, z))
-    return {k: len(members[r]) for k, r in run_of.items()}
+    walled = {}
+    for rid, cells in members.items():
+        first, last = cells[0], cells[-1]
+        before = (first[0] - step[0], first[1] - step[1])
+        after = (last[0] + step[0], last[1] + step[1])
+        walled[rid] = before not in keys and after not in keys
+    return {k: (len(members[r]), walled[r]) for k, r in run_of.items()}
 
 
 def check_corridors(
-    graph: WalkGraph, bsp: Bsp, cfg: dict[str, Any]
+    graph: WalkGraph, bsp: Bsp, cfg: dict[str, Any], severity: str = WARNING
 ) -> tuple[list[Finding], dict[str, Any]]:
-    """Narrow passages and low ceilings, only where players can actually walk (graph nodes)."""
+    """Narrow passages and low ceilings where players can actually walk (graph nodes).
+
+    These are design norms (CLAUDE.md), not validity: `severity` is a warning for our maps
+    and info for reference maps.
+    """
     cell = graph.cell
     min_w, min_h, max_step = (
         float(cfg["min_width"]),
         float(cfg["min_height"]),
         float(cfg["max_step"]),
     )
-    spots = graph.positions
+    min_cells = int(cfg.get("min_cluster_cells", 4))
+    max_reported = int(cfg.get("max_reported", 20))
+    spots = graph.standing()
     if not len(spots):
         return [Finding("no_walkable_space", ERROR, "No place where a player can stand", "bsp")], {}
 
@@ -415,8 +444,12 @@ def check_corridors(
     run_x = _runs(keys, 0, max_step)
     run_y = _runs(keys, 1, max_step)
     # Free span of hull centres is between (n-1)*cell and n*cell; the passage is that plus the
-    # 32-unit hull. Use the generous end so only clearly narrow passages are flagged.
-    width = {k: min(run_x[k], run_y[k]) * cell + 32 for k in run_x}
+    # 32-unit hull. Use the generous end so only clearly narrow passages are flagged. Only
+    # runs with a wall at both ends count as a passage width.
+    width = {}
+    for k in run_x:
+        spans = [n * cell + 32 for n, walled in (run_x[k], run_y[k]) if walled]
+        width[k] = min(spans) if spans else float("inf")
 
     head = spots + np.array([0.0, 0.0, min_h - 72])
     low = bsp.point_contents(head, hull=1) == CONTENTS_SOLID
@@ -428,11 +461,18 @@ def check_corridors(
     narrow_keys = {k for k, w in width.items() if w < min_w}
 
     findings = []
+    stats: dict[str, Any] = {
+        "reachable_cells": len(spots),
+        "walkable_area_units2": int(len(spots) * cell * cell),
+    }
     for rule, cells, text in (
         ("narrow_passage", narrow_keys, f"narrower than {min_w:g} units"),
         ("low_ceiling", low_keys, f"lower than {min_h:g} units"),
     ):
-        for cluster in _clusters(cells, max_step)[:20]:
+        clusters = [c for c in _clusters(cells, max_step) if len(c) >= min_cells]
+        stats[f"{rule}_cells"] = sum(len(c) for c in clusters)
+        stats[f"{rule}_clusters"] = len(clusters)
+        for cluster in clusters[:max_reported]:
             pts = np.array([(ix * cell, iy * cell, z - 36) for ix, iy, z in cluster])
             centre = pts[np.argmin(np.linalg.norm(pts - pts.mean(axis=0), axis=1))]
             details = {
@@ -444,19 +484,13 @@ def check_corridors(
             findings.append(
                 Finding(
                     rule,
-                    WARNING,
+                    severity,
                     f"Passage {text} around {_xyz(centre)} (feet height)",
                     "bsp",
                     location=_xyz(centre),
                     details=details,
                 )
             )
-    stats = {
-        "reachable_cells": len(spots),
-        "walkable_area_units2": int(len(spots) * cell * cell),
-        "narrow_cells": len(narrow_keys),
-        "low_ceiling_cells": len(low_keys),
-    }
     return findings, stats
 
 

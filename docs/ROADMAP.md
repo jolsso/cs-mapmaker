@@ -34,9 +34,10 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 - [x] BSP-tilstand i Validate: `./mf validate MAP=de_dust2 SOURCE=reference` (ingen .map, ingen compile)
 - [x] Buyzones: implicitte buyzones tæller (ingen `func_buyzone` overhovedet = CS laver dem ved spawn); fejl kun hvis kun ét hold har
 - [x] Nåbarhed: flood-fill fra spawns på walkable-grafen (hull 1); hver spawn skal nå begge bomb targets (`unreachable_site`); korridor-warnings kun i nåbart område
-- [ ] Kalibrering på alle officielle de_-maps; tærskler justeres og begrundes
+- [x] Kalibrering på alle officielle de_-maps; tærskler justeres og begrundes (`docs/CALIBRATION.md`, `./mf validate:refs`)
 
 **Accept:** Alle officielle de_-maps i installationen validerer med 0 errors, og de resterende warnings er gennemgået og giver mening.
+✅ Opfyldt 2026-10-10: 17 de_-maps (15 officielle + de_cold, de_mon) med 0 errors; alle spawns når begge sites; resterende warnings er kun headroom-politik (> 90 % planes) på 4 store officielle maps. Se `docs/CALIBRATION.md`.
 
 ## Fase 3 – Render
 **Mål:** Claude kan se mappet. Bygges og testes på referencemaps (fase 1b), før generatoren findes.

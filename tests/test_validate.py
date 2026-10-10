@@ -76,7 +76,7 @@ def test_test_box_is_valid():
     cfg = load_config()
     result = _compile_and_validate(cfg, "test_box")
     assert result["ok"], result["findings"]
-    assert result["summary"] == {"errors": 0, "warnings": 0}
+    assert result["summary"] == {"errors": 0, "warnings": 0, "info": 0}
     walk = result["stats"]["walkable"]
     assert walk["walkable_area_units2"] == (1024 - 32) ** 2  # room minus half a hull per side
 

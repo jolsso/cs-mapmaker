@@ -1,11 +1,18 @@
-"""Walkable graph of a BSP: where a standing player can go from the spawns.
+"""Walkable graph of a BSP: where a player can go from the spawns.
 
-Nodes are standing positions (hull 1 origins, 36 above the feet) on an x/y grid of `cell`
-units; z is on an absolute `z_step` grid so the same floor always gets the same z. Edges are
-moves to a 4-neighbour: step up to `max_step`, walk/step down, or fall (one-way) up to
-`max_drop`. Ladders (func_ladder) connect their bottom to their top.
+Nodes are player positions on an x/y grid of `cell` units, in one of two stances: standing
+(clip hull 1, 32x32x72) or crouching (hull 3, 32x32x36). Positions are stored as feet height
+on an absolute `z_step` grid so the same floor always gets the same z.
 
-Not modelled (so the graph is conservative): jumping, crouch-only passages, swimming up.
+Moves to each of the 4 neighbours, tried in order (the first that fits is used):
+  1. walk, stepping up at most `max_step` (or level, if there is no head room for the step)
+  2. jump onto something up to `jump_height` high (duck-jump)
+  3. crouch under something
+  4. duck-jump into a crouch-height opening (vents)
+Walking off an edge is a (one-way) fall of up to `max_drop`. Ladders (func_ladder) connect
+their bottom to their top. A crouching node stands up as soon as the standing hull fits.
+
+Not modelled: horizontal jumps across gaps, swimming up, strafe/bunny tricks.
 func_wall/func_wall_toggle brushes are solid; doors and breakables are passable.
 """
 
@@ -20,30 +27,41 @@ from mapforge.bsp.reader import CONTENTS_SOLID, HULL_SIZES, Bsp
 
 SOLID_BRUSH_ENTITIES = ("func_wall", "func_wall_toggle")
 DIRECTIONS = np.array([(1, 0), (-1, 0), (0, 1), (0, -1)])
-HALF = np.array(HULL_SIZES[1][1], dtype=np.float64)  # (16, 16, 36)
+STAND, CROUCH = 0, 1
+HULL_OF = {STAND: 1, CROUCH: 3}
+HALF = {s: np.array(HULL_SIZES[h][1], dtype=np.float64) for s, h in HULL_OF.items()}
 
 
 @dataclass
 class WalkGraph:
-    positions: np.ndarray  # (n, 3) hull-1 origins
-    keys: dict[tuple[int, int, int], int]  # (ix, iy, iz) -> node id
+    feet: np.ndarray  # (n, 3) feet positions
+    stance: np.ndarray  # (n,) STAND / CROUCH
     edges: np.ndarray  # (m, 2) src, dst
     seeds: list[int | None]  # node id per seed position (None = could not be placed)
     cell: float
     z_step: float
 
+    @property
+    def positions(self) -> np.ndarray:
+        """Hull origins (feet + half height) of all nodes."""
+        half_z = np.where(self.stance == STAND, HALF[STAND][2], HALF[CROUCH][2])
+        return self.feet + np.column_stack([np.zeros((len(self.feet), 2)), half_z])
+
+    def standing(self) -> np.ndarray:
+        """Origins of the standing nodes only (for corridor checks)."""
+        return self.feet[self.stance == STAND] + [0.0, 0.0, HALF[STAND][2]]
+
     def reverse_reachable(self, targets: np.ndarray) -> np.ndarray:
         """Bool mask of nodes from which any target node can be reached."""
-        n = len(self.positions)
+        n = len(self.feet)
         mask = np.zeros(n, dtype=bool)
+        mask[targets] = True
         if not len(self.edges) or not len(targets):
-            mask[targets] = True
             return mask
         order = np.argsort(self.edges[:, 1], kind="stable")
         src = self.edges[order, 0]
         starts = np.searchsorted(self.edges[order, 1], np.arange(n + 1))
         queue = deque(int(t) for t in targets)
-        mask[targets] = True
         while queue:
             v = queue.popleft()
             for u in src[starts[v] : starts[v + 1]]:
@@ -54,10 +72,12 @@ class WalkGraph:
 
 
 class _Solid:
-    """Hull-1 solidity: world model plus solid brush entities (with their own clip hulls)."""
+    """Solidity of a clip hull: world model plus solid brush entities."""
 
-    def __init__(self, bsp: Bsp) -> None:
+    def __init__(self, bsp: Bsp, stance: int) -> None:
         self.bsp = bsp
+        self.hull = HULL_OF[stance]
+        half = HALF[stance]
         self.extra: list[tuple[int, np.ndarray, np.ndarray, np.ndarray]] = []
         for ent in bsp.entities:
             model = ent.get("model", "")
@@ -65,38 +85,34 @@ class _Solid:
                 i = int(model[1:])
                 origin = np.array([float(v) for v in ent.get("origin", "0 0 0").split()])
                 m = bsp.models[i]
-                lo = m["mins"].astype(np.float64) + origin - HALF
-                hi = m["maxs"].astype(np.float64) + origin + HALF
+                lo = m["mins"].astype(np.float64) + origin - half
+                hi = m["maxs"].astype(np.float64) + origin + half
                 self.extra.append((i, origin, lo, hi))
 
     def __call__(self, pts: np.ndarray) -> np.ndarray:
-        solid = self.bsp.point_contents(pts, hull=1) == CONTENTS_SOLID
+        if not len(pts):
+            return np.zeros(0, dtype=bool)
+        solid = self.bsp.point_contents(pts, hull=self.hull) == CONTENTS_SOLID
         for i, origin, lo, hi in self.extra:
             near = np.all((pts >= lo) & (pts <= hi), axis=1) & ~solid
             if near.any():
-                c = self.bsp.point_contents(pts[near] - origin, hull=1, model=i)
+                c = self.bsp.point_contents(pts[near] - origin, hull=self.hull, model=i)
                 solid[np.flatnonzero(near)[c == CONTENTS_SOLID]] = True
         return solid
 
 
 def _settle(solid: _Solid, xy: np.ndarray, ztop: np.ndarray, depth: float, zs: float) -> np.ndarray:
-    """Standing z below each (x, y, ztop), searching down `depth` units; nan if none.
-
-    Samples lie on the absolute z grid, so the result is the lowest empty grid z above solid.
-    """
+    """Lowest free origin z on the z grid above solid, searching down from ztop; nan if none."""
     out = np.full(len(xy), np.nan)
     if not len(xy):
         return out
     top = np.floor(ztop / zs) * zs
     k = int(np.ceil(depth / zs)) + 1
-    zs_grid = top[:, None] - np.arange(k)[None, :] * zs
-    pts = np.column_stack([np.repeat(xy, k, axis=0), zs_grid.ravel()])
-    s = solid(pts).reshape(len(xy), k)
-    ok = ~s[:, 0]  # the start point itself must be free
-    first = np.argmax(s, axis=1)  # first solid sample (0 if none)
-    found = ok & s.any(axis=1) & (first > 0)
-    rows = np.flatnonzero(found)
-    out[rows] = zs_grid[rows, first[rows] - 1]
+    grid = top[:, None] - np.arange(k)[None, :] * zs
+    s = solid(np.column_stack([np.repeat(xy, k, axis=0), grid.ravel()])).reshape(len(xy), k)
+    first = np.argmax(s, axis=1)
+    rows = np.flatnonzero(~s[:, 0] & s.any(axis=1) & (first > 0))
+    out[rows] = grid[rows, first[rows] - 1]
     return out
 
 
@@ -110,6 +126,57 @@ def _ladders(bsp: Bsp) -> list[tuple[np.ndarray, np.ndarray]]:
     return out
 
 
+class _Builder:
+    def __init__(self, bsp: Bsp, cell: float, z_step: float) -> None:
+        self.solid = {s: _Solid(bsp, s) for s in (STAND, CROUCH)}
+        self.cell, self.z_step = cell, z_step
+        self.keys: dict[tuple[int, int, int, int], int] = {}
+        self.feet: list[tuple[float, float, float]] = []
+        self.stance: list[int] = []
+        self.edges: list[np.ndarray] = []
+
+    def add(self, xy: np.ndarray, feet_z: np.ndarray, stance: int) -> tuple[np.ndarray, np.ndarray]:
+        """Node ids for positions (appending new ones) and a mask of the new ones."""
+        ix = np.round(xy[:, 0] / self.cell).astype(np.int64)
+        iy = np.round(xy[:, 1] / self.cell).astype(np.int64)
+        iz = np.round(feet_z / self.z_step).astype(np.int64)
+        ids = np.empty(len(ix), dtype=np.int64)
+        new = np.zeros(len(ix), dtype=bool)
+        for j, key in enumerate(zip(ix.tolist(), iy.tolist(), iz.tolist(), strict=True)):
+            k = (*key, stance)
+            nid = self.keys.get(k)
+            if nid is None:
+                nid = len(self.feet)
+                self.keys[k] = nid
+                self.feet.append((key[0] * self.cell, key[1] * self.cell, key[2] * self.z_step))
+                self.stance.append(stance)
+                new[j] = True
+            ids[j] = nid
+        return ids, new
+
+    def link(self, src: np.ndarray, dst: np.ndarray) -> None:
+        keep = src != dst
+        if keep.any():
+            self.edges.append(np.column_stack([src[keep], dst[keep]]))
+
+    def land(
+        self, src: np.ndarray, xy: np.ndarray, ztop: np.ndarray, stance: int, window: float,
+        max_drop: float,
+    ) -> tuple[np.ndarray, np.ndarray]:  # fmt: skip
+        """Settle hulls released at (xy, ztop) onto the ground; link and return new node ids."""
+        solid = self.solid[stance]
+        z = _settle(solid, xy, ztop, window, self.z_step)
+        fall = np.isnan(z)
+        if fall.any():
+            z[fall] = _settle(solid, xy[fall], ztop[fall], max_drop, self.z_step)
+        ok = ~np.isnan(z)
+        if not ok.any():
+            return np.zeros(0, dtype=np.int64), ok
+        dst, new = self.add(xy[ok], z[ok] - HALF[stance][2], stance)
+        self.link(src[ok], dst)
+        return dst[new], ok
+
+
 def build_walk_graph(
     bsp: Bsp,
     seeds: np.ndarray,
@@ -117,92 +184,114 @@ def build_walk_graph(
     z_step: float = 4,
     max_step: float = 18,
     max_drop: float = 1024,
-    max_nodes: int = 2_000_000,
+    jump_height: float = 54,
+    crouch: bool = True,
+    max_nodes: int = 3_000_000,
 ) -> WalkGraph:
-    """Flood-fill from seed positions (e.g. spawn origins) over standing positions."""
-    solid = _Solid(bsp)
+    """Flood-fill from seed positions (e.g. spawn origins, standing hull origins)."""
+    b = _Builder(bsp, cell, z_step)
+    stand, duck = b.solid[STAND], b.solid[CROUCH]
+    hz = {s: HALF[s][2] for s in (STAND, CROUCH)}
     ladders = _ladders(bsp)
-    keys: dict[tuple[int, int, int], int] = {}
-    positions: list[np.ndarray] = []
-    edges: list[np.ndarray] = []
+    nd = len(DIRECTIONS)
 
-    def add(ix: np.ndarray, iy: np.ndarray, z: np.ndarray) -> np.ndarray:
-        """Node ids for (ix, iy, z); new nodes are appended. Returns ids and new mask."""
-        iz = np.round(z / z_step).astype(np.int64)
-        ids = np.empty(len(ix), dtype=np.int64)
-        new = np.zeros(len(ix), dtype=bool)
-        for j, key in enumerate(zip(ix.tolist(), iy.tolist(), iz.tolist(), strict=True)):
-            nid = keys.get(key)
-            if nid is None:
-                nid = len(keys)
-                keys[key] = nid
-                positions.append(np.array([key[0] * cell, key[1] * cell, key[2] * z_step]))
-                new[j] = True
-            ids[j] = nid
-        return ids, new
-
-    # Seeds: snap to the grid and settle onto the ground just below.
     seeds = np.asarray(seeds, dtype=np.float64).reshape(-1, 3)
-    sx = np.round(seeds[:, 0] / cell).astype(np.int64)
-    sy = np.round(seeds[:, 1] / cell).astype(np.int64)
-    sxy = np.column_stack([sx * cell, sy * cell]).astype(np.float64)
-    sz = _settle(solid, sxy, seeds[:, 2] + max_step, max_step + max_drop, z_step)
+    # Snap each seed to the nearest grid point where it can stand; a spawn close to a wall
+    # (de_prodigy has one 4 units off) may need the grid point on its other side.
+    sxy = np.round(seeds[:, :2] / cell) * cell
+    sz = np.full(len(seeds), np.nan)
+    corners = [(fx, fy) for fx in (np.floor, np.ceil) for fy in (np.floor, np.ceil)]
+    cands = [np.round(seeds[:, :2] / cell) * cell] + [
+        np.column_stack([fx(seeds[:, 0] / cell), fy(seeds[:, 1] / cell)]) * cell
+        for fx, fy in corners
+    ]
+    for cand in cands:  # rounding first, then the four surrounding grid corners
+        todo = np.isnan(sz)
+        if not todo.any():
+            break
+        z = _settle(stand, cand[todo], seeds[todo, 2] + max_step, max_step + max_drop, z_step)
+        hit = np.flatnonzero(todo)[~np.isnan(z)]
+        sz[hit] = z[~np.isnan(z)]
+        sxy[hit] = cand[hit]
     seed_ids: list[int | None] = [None] * len(seeds)
     placed = np.flatnonzero(~np.isnan(sz))
     frontier = np.zeros(0, dtype=np.int64)
     if len(placed):
-        ids, new = add(sx[placed], sy[placed], sz[placed])
+        ids, _ = b.add(sxy[placed], sz[placed] - hz[STAND], STAND)
         for j, nid in zip(placed, ids, strict=True):
             seed_ids[int(j)] = int(nid)
         frontier = np.unique(ids)
 
-    while len(frontier) and len(keys) < max_nodes:
-        pos = np.array([positions[i] for i in frontier])
-        # Candidate moves: 4 neighbours, plus ladder tops for nodes standing at a ladder.
-        src = np.repeat(frontier, len(DIRECTIONS))
-        nxy = np.repeat(pos[:, :2], len(DIRECTIONS), axis=0) + np.tile(
-            DIRECTIONS * cell, (len(pos), 1)
-        )
-        base_z = np.repeat(pos[:, 2], len(DIRECTIONS))
-        # Step up only if there is head room above the current spot; else stay level.
-        up_ok = ~solid(np.column_stack([pos[:, :2], pos[:, 2] + max_step]))
-        ztop = base_z + np.where(np.repeat(up_ok, len(DIRECTIONS)), max_step, 0.0)
-        for lo, hi in ladders:
-            at = (
-                np.all((pos[:, :2] >= lo[:2] - 32) & (pos[:, :2] <= hi[:2] + 32), axis=1)
-                & (pos[:, 2] >= lo[2] - 72)
-                & (pos[:, 2] <= hi[2] + 36)
-            )
-            if at.any():
-                f = frontier[at]
-                lp = pos[at]
+    while len(frontier) and len(b.feet) < max_nodes:
+        st = np.array(b.stance)[frontier]
+        feet_all = np.array(b.feet)[frontier]
+        new_ids = []
+        for s in (STAND, CROUCH):
+            f_ids = frontier[st == s]
+            if not len(f_ids):
+                continue
+            feet = feet_all[st == s]
+            if s == CROUCH:
+                # Stand up where the standing hull fits; such nodes are expanded standing.
+                fits = ~stand(feet + [0, 0, hz[STAND]])
+                if fits.any():
+                    up, new = b.add(feet[fits, :2], feet[fits, 2], STAND)
+                    b.link(f_ids[fits], up)
+                    new_ids.append(up[new])
+                f_ids, feet = f_ids[~fits], feet[~fits]
+                if not len(f_ids):
+                    continue
+            solid, h = b.solid[s], hz[s]
+            origin = feet + [0, 0, h]
+            src = np.repeat(f_ids, nd)
+            nxy = np.repeat(origin[:, :2], nd, axis=0) + np.tile(DIRECTIONS * cell, (len(f_ids), 1))
+            oz = np.repeat(origin[:, 2], nd)
+            # 1. walk (step up if there is head room for it)
+            step_ok = np.repeat(~solid(origin + [0, 0, max_step]), nd)
+            ztop = oz + np.where(step_ok, max_step, 0.0)
+            free = ~solid(np.column_stack([nxy, ztop]))
+            got, _ = b.land(src[free], nxy[free], ztop[free], s, 2 * max_step + 36, max_drop)
+            new_ids.append(got)
+            blocked = ~free
+            if s == STAND and jump_height > 0 and blocked.any():
+                # 2. jump onto something (needs head room above the start)
+                jump_ok = np.repeat(~stand(origin + [0, 0, jump_height]), nd) & blocked
+                jz = oz + jump_height
+                fj = jump_ok & ~stand(np.column_stack([nxy, jz]))
+                got, _ = b.land(src[fj], nxy[fj], jz[fj], STAND, jump_height + 36, max_drop)
+                new_ids.append(got)
+                blocked &= ~fj
+            if s == STAND and crouch and blocked.any():
+                # 3. crouch under something, 4. duck-jump into a crouch-height opening
+                cz = feet[:, 2].repeat(nd) + hz[CROUCH]
+                for lift in (max_step, jump_height):
+                    if not blocked.any():
+                        break
+                    z = cz + lift
+                    fc = blocked & ~duck(np.column_stack([nxy, z]))
+                    got, _ = b.land(src[fc], nxy[fc], z[fc], CROUCH, lift + 36, max_drop)
+                    new_ids.append(got)
+                    blocked &= ~fc
+            for lo, hi in ladders:
+                at = (
+                    np.all((origin[:, :2] >= lo[:2] - 32) & (origin[:, :2] <= hi[:2] + 32), axis=1)
+                    & (feet[:, 2] >= lo[2] - 36)
+                    & (feet[:, 2] <= hi[2])
+                )
+                if not at.any():
+                    continue
                 for d in np.vstack([[0, 0], DIRECTIONS]):
-                    src = np.append(src, f)
-                    nxy = np.vstack([nxy, lp[:, :2] + d * cell])
-                    ztop = np.append(ztop, np.full(len(f), hi[2] + 37))
-                    base_z = np.append(base_z, np.full(len(f), hi[2] + 37))
+                    lxy = origin[at, :2] + d * cell
+                    top = np.full(int(at.sum()), hi[2] + hz[STAND] + 1)
+                    got, _ = b.land(f_ids[at], lxy, top, STAND, hz[STAND] + 36, max_drop)
+                    new_ids.append(got)
+        frontier = np.unique(np.concatenate(new_ids)) if new_ids else np.zeros(0, dtype=np.int64)
 
-        # The move happens at ztop: the target column must be free there.
-        free = ~solid(np.column_stack([nxy, ztop]))
-        src, nxy, ztop = src[free], nxy[free], ztop[free]
-        z = _settle(solid, nxy, ztop, 2 * max_step + 36, z_step)
-        fall = np.isnan(z)
-        if fall.any():
-            z[fall] = _settle(solid, nxy[fall], ztop[fall], max_drop, z_step)
-        ok = ~np.isnan(z)
-        src, nxy, z = src[ok], nxy[ok], z[ok]
-        ix = np.round(nxy[:, 0] / cell).astype(np.int64)
-        iy = np.round(nxy[:, 1] / cell).astype(np.int64)
-        dst, new = add(ix, iy, z)
-        keep = dst != src
-        edges.append(np.column_stack([src[keep], dst[keep]]))
-        frontier = np.unique(dst[new])
-
-    e = np.unique(np.vstack(edges), axis=0) if edges else np.zeros((0, 2), dtype=np.int64)
+    edges = np.unique(np.vstack(b.edges), axis=0) if b.edges else np.zeros((0, 2), dtype=np.int64)
     return WalkGraph(
-        positions=np.array(positions) if positions else np.zeros((0, 3)),
-        keys=keys,
-        edges=e,
+        feet=np.array(b.feet) if b.feet else np.zeros((0, 3)),
+        stance=np.array(b.stance, dtype=np.int64),
+        edges=edges,
         seeds=seed_ids,
         cell=cell,
         z_step=z_step,
@@ -210,7 +299,7 @@ def build_walk_graph(
 
 
 def bomb_target_boxes(bsp: Bsp) -> list[tuple[np.ndarray, np.ndarray]]:
-    """(mins, maxs) per bomb target: brush bbox for func_bomb_target, ±64 for info_ ones."""
+    """(mins, maxs) per bomb target entity: brush bbox for func_bomb_target, ±64 for info_."""
     boxes = []
     for ent in bsp.entities:
         cls = ent.get("classname")
@@ -224,10 +313,41 @@ def bomb_target_boxes(bsp: Bsp) -> list[tuple[np.ndarray, np.ndarray]]:
     return boxes
 
 
+def bomb_sites(bsp: Bsp, merge_gap: float = 128) -> list[list[tuple[np.ndarray, np.ndarray]]]:
+    """Group bomb target boxes into sites: boxes closer than merge_gap belong together.
+
+    Maps often build one site from several func_bomb_target brushes (de_prodigy, de_torn).
+    """
+    boxes = bomb_target_boxes(bsp)
+    parent = list(range(len(boxes)))
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i in range(len(boxes)):
+        for j in range(i + 1, len(boxes)):
+            (alo, ahi), (blo, bhi) = boxes[i], boxes[j]
+            gap = np.maximum(0, np.maximum(alo - bhi, blo - ahi))
+            if np.all(gap <= merge_gap):
+                parent[find(i)] = find(j)
+    groups: dict[int, list[tuple[np.ndarray, np.ndarray]]] = {}
+    for i, box in enumerate(boxes):
+        groups.setdefault(find(i), []).append(box)
+    return list(groups.values())
+
+
 def nodes_touching(graph: WalkGraph, lo: np.ndarray, hi: np.ndarray) -> np.ndarray:
-    """Node ids whose standing player box overlaps the box (lo, hi)."""
-    p = graph.positions
-    if not len(p):
+    """Node ids whose player box (either stance) overlaps the box (lo, hi)."""
+    if not len(graph.feet):
         return np.zeros(0, dtype=np.int64)
-    hit = np.all((p + HALF >= lo) & (p - HALF <= hi), axis=1)
+    height = np.where(graph.stance == STAND, 72.0, 36.0)
+    p = graph.feet
+    hit = (
+        np.all((p[:, :2] + 16 >= lo[:2]) & (p[:, :2] - 16 <= hi[:2]), axis=1)
+        & (p[:, 2] + height >= lo[2])
+        & (p[:, 2] <= hi[2])
+    )
     return np.flatnonzero(hit)

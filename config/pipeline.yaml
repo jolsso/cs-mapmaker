@@ -56,14 +56,19 @@ validate:
   world_bounds: 4096      # |coordinate| limit for brush vertices
   limit_error_pct: 90     # FITNESS.md hard requirement: no engine limit above 90 %
   limit_warn_pct: 75
-  # Engine limits from HLSDK utils/common/bspfile.h (MAX_MAP_*). Stricter than SDHLT's own
-  # table in places (e.g. models 400 vs 512), so these are what we check against.
+  # Engine limits. Started from HLSDK utils/common/bspfile.h (MAX_MAP_*), then corrected
+  # where shipped official maps prove the engine accepts more (phase 1b calibration):
+  #   texinfo 8192 -> 32767 (dface_t.texinfo is a short; de_torn has 11067)
+  #   models 400 -> 512 (engine MAX_MODELS; HLSDK's 400 is the old compile-tool cap)
+  #   lighting 2 MB -> compiler cap (de_chateau has 2.29 MB); real cap is AllocBlock (below)
+  # > 100 % = exceeds the engine (always an error); > limit_error_pct = FITNESS headroom
+  # policy (error for our maps, warning for reference maps).
   engine_limits:
-    models: 400
+    models: 512
     planes: 32767
     vertexes: 65535
     nodes: 32767
-    texinfo: 8192
+    texinfo: 32767
     faces: 65535
     clipnodes: 32767
     visleafs: 8192
@@ -73,8 +78,8 @@ validate:
     textures: 512
     entities: 1024
     entdata_bytes: 131072
-    lighting_bytes: 2097152
-    visibility_bytes: 2097152
+    lighting_bytes: 50331648   # SDHLT -lightdata default
+    visibility_bytes: 8388608  # SDHLT visdata cap
   # Rows of the compiler's own limit table that have no BSP-count equivalent above.
   compiler_table_rows: [AllocBlock]
   # Entity rules (FITNESS.md). Per-map overrides: maps/<map>/validate.yaml (key `rules`).
@@ -88,10 +93,14 @@ validate:
     z_step: 4             # vertical grid (units)
     max_step: 18          # max step up between neighbouring cells (GoldSrc stepsize)
     max_drop: 1024        # longest fall still counted as a (one-way) move
+    jump_height: 54       # duck-jump onto objects (0 = no jumping)
+    crouch: true          # crouch-only passages (vents) count as walkable
   # Checked only on reachable cells of the walkable graph.
   corridors:
     min_width: 64         # CLAUDE.md: corridors/doors min. 64 wide
     min_height: 96        # CLAUDE.md: 96-128 high (rule of thumb)
+    min_cluster_cells: 4  # ignore narrow/low spots smaller than this (cells of 8x8)
+    max_reported: 20      # findings per rule; totals are in stats
 
 reference_maps:
   # Third-party maps used only to test/calibrate the pipeline; never committed.

@@ -90,17 +90,19 @@ Værten skal kun have Docker. Alt deterministisk kører i containere, der deler 
 | `leak`, `compile_failed` | error | compile.json | FITNESS hårdt krav |
 | `invalid_brush`, `redundant_face`, `degenerate_face` | error | .map | brushes skal være lukkede og konvekse |
 | `off_grid`, `out_of_bounds` | error | .map | vertices på 8-grid, inden for ±4096 |
-| `limit` | error > 90 %, warning > 75 % | .bsp | HLSDK `MAX_MAP_*` + AllocBlock fra compileren |
+| `limit_exceeded` | error | .bsp | over engine-limit (100 %) |
+| `limit` | error > 90 % (egne maps) / warning (referencemaps), warning > 75 % | .bsp | FITNESS headroom-politik. Limits: HLSDK `MAX_MAP_*`, korrigeret efter officielle maps (se `config/pipeline.yaml`) + AllocBlock fra compileren |
 | `spawn_count`, `bomb_targets`, `buyzone_count` | error | .bsp (.map hvis compile fejlede) | FITNESS; ingen `func_buyzone` = implicitte buyzones (OK); per-map override i `maps/<map>/validate.yaml` |
 | `spawn_stuck` | error | .bsp | stående hull passer ikke ved spawn-origin |
 | `unreachable_site`, `site_not_standable` | error | .bsp | FITNESS: hver spawn skal kunne gå til begge bomb targets (walkable-graf) |
 | `spawn_unplaced` | warning | .bsp | ingen jord under spawn inden for max fald |
-| `narrow_passage`, `low_ceiling` | warning | .bsp | nåbare celler med fri bredde < 64 eller loftshøjde < 96 |
+| `narrow_passage`, `low_ceiling` | warning (egne maps) / info (referencemaps) | .bsp | design-norm: nåbare passager med væg på begge sider og fri bredde < 64, eller loft < 96; clusters < 4 celler ignoreres |
 
-**Walkable-graf** (`mapforge/validate/walk.py`): flood-fill fra alle spawns på et 8-units grid med stående hull (hull 1). Træk: trin op ≤ 18, gå/træd ned, fald (envejs) ≤ 1024, stiger (`func_ladder`) fra bund til top. `func_wall` er solid; døre og breakables er passable. Nåbarhed: omvendt søgning fra hvert bomb target, så envejsfald tæller rigtigt. de_dust2: 116k celler på ~3 s.
+**Walkable-graf** (`mapforge/validate/walk.py`): flood-fill fra alle spawns på et 8-units grid, i to stillinger: stående (hull 1) og crouch (hull 3). Træk til hver nabo, i rækkefølge: gå (trin op ≤ 18), hop op på noget (duck-jump ≤ 54), crouch ind under noget, duck-jump ind i en crouch-åbning (vents). Fald (envejs) ≤ 1024, stiger (`func_ladder`) fra bund til top; crouch-celler rejser sig, så snart der er plads. `func_wall` er solid; døre og breakables er passable. **Sites:** `func_bomb_target`-brushes inden for 128 units af hinanden er ét site (prodigy/torn bygger et site af flere). Nåbarhed: omvendt søgning fra hvert site, så envejsfald tæller rigtigt.
 
 Begrænsninger:
-- Hop, crouch-only-passager (fx vents) og at svømme opad modelleres ikke – grafen er konservativ (kan underestimere, aldrig overestimere nåbarhed).
+- Hop på tværs af huller, at svømme opad og bunny-hop-tricks modelleres ikke – grafen er konservativ (kan underestimere, ikke overestimere nåbarhed).
+- Tid: dust2 ~12 s, store udendørsmaps (de_mon) ~5 min. Kan optimeres (grovere grid til nåbarhed), hvis det bliver flaskehalsen i det hurtige loop.
 - Korridorbredde måles langs x- og y-aksen, så diagonale gange vurderes for bredt (lempeligt, aldrig falsk alarm).
 - Lysstyrkekort (mørke zoner) bygger på `Bsp.face_lightmap` og kommer i fase 3.
 

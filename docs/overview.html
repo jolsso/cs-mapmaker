@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0–1 færdig · fase 1b i gang</b></span>
+    <span>status <b>fase 0, 1, 1b færdig · fase 3 næste</b></span>
     <span>opdateret <b>2026-10-10</b></span>
   </div>
   <div class="facts">
@@ -462,25 +462,25 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       </div>
     </li>
 
-    <li class="phase next">
+    <li class="phase done">
       <div class="phase-no"><small>Fase</small>1b</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Referencemaps og kalibrering</h3><span class="chip next">i gang</span></div>
+        <div class="phase-head"><h3>Referencemaps og kalibrering</h3><span class="chip done">færdig</span></div>
         <ul>
           <li class="ok">Officielle maps fra din CS-installation og community-maps i <code>test_maps/</code>, mountet read-only, aldrig i repoet (33 maps fundet)</li>
           <li class="ok">BSP-tilstand: <code>./mf validate MAP=de_dust2 SOURCE=reference</code></li>
           <li class="ok">Implicitte buyzones tæller (CS laver dem selv ved spawn)</li>
           <li class="ok">Nåbarhed: flood-fill fra spawns (dust2: 116k celler på ~3 s); hver spawn skal nå begge bomb targets; korridor-checks kun i nåbart område</li>
-          <li>Kalibrering af tærskler på alle referencemaps</li>
+          <li class="ok">Kalibrering på 17 de_-maps: hop og crouch i walk-grafen, sites af flere brushes, limits korrigeret, korridor-normer kræver væg på begge sider</li>
         </ul>
-        <p class="accept"><b>Accept:</b> alle referencemaps validerer med 0 errors, og de resterende warnings er gennemgået og giver mening.</p>
+        <p class="accept"><b>Accept:</b> alle referencemaps validerer med 0 errors, og de resterende warnings er gennemgået og giver mening. Opfyldt: 17/17 de_-maps med 0 errors, og alle spawns når begge sites.</p>
       </div>
     </li>
 
-    <li class="phase">
+    <li class="phase next">
       <div class="phase-no"><small>Fase</small>3</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Render</h3><span class="chip">senere</span></div>
+        <div class="phase-head"><h3>Render</h3><span class="chip next">næste</span></div>
         <ul>
           <li>newbspguy → OBJ → Blender headless: top-down og kamera-presets</li>
           <li>Lysstyrkekort fra lighting-lump, liste over mørke zoner</li>
@@ -601,6 +601,8 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       <tbody>
         <tr><td>0 / 7</td><td>Compiler-flag til fast- og final-profil</td><td>Afklaret mod SDHLT 1.3.0 <code>-help</code></td></tr>
         <tr><td>0</td><td>Kører SDHLT's Linux-binaries i containeren?</td><td>Afklaret: kræver glibc ≥ 2.38, derfor Debian trixie</td></tr>
+        <tr><td>1b</td><td>Engine-limits: er HLSDK's <code>MAX_MAP_*</code> de rigtige?</td><td>Afklaret: nej, officielle maps overskrider texinfo og lightmaps; korrigeret</td></tr>
+        <tr><td>1b</td><td>Design-normerne (min. 64 bred, 96 høj) er strengere end Valves egne maps (typisk 40–56 brede passager). Sænke eller beholde?</td><td>Din beslutning</td></tr>
         <tr><td>3</td><td>Er newbspguy's <code>exportobj</code> god nok til renders?</td><td>Åben</td></tr>
         <tr><td>3</td><td>Hvordan placeres klientens kamera fra et script?</td><td>Åben</td></tr>
         <tr><td>4</td><td>Kommando til automatisk YaPB-graf</td><td>Åben</td></tr>

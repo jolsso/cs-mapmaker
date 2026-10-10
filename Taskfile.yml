@@ -40,6 +40,11 @@ tasks:
     cmds:
       - uv run python -m mapforge.validate.run --map {{.MAP}} --profile {{.PROFILE}} --source {{.SOURCE | default "map"}}
 
+  validate:refs:
+    desc: Validate all reference maps with a prefix (PREFIX=de_) -> build/reference_report.json
+    cmds:
+      - uv run python -m mapforge.validate.reference_report --prefix {{.PREFIX | default "de_"}}
+
   refmaps:
     desc: Unpack test_maps/ archives and list reference maps (official + community)
     cmds:
