@@ -12,7 +12,7 @@ Mennesket har tegnet disse ønsker på mappet (verdenskoordinater; "rammer" = la
 {annotations}
 
 ## Strukturelle design-regler (validatoren)
-Ud over bot-tallene tæller validatorens advarsler (fx `no_close_quarters`, `territory_t_heavy`, `four_way_junction`, `rotation_time`) i loopets score, og "mål ramt" kræver et map uden advarsler. Prioritér at rette dem med små ændringer (fx cover, der bryder lange sigtelinjer og skaber nærkampssteder; spawn-forskydning for territorium; en forbindelse mindre ved et 4-vejskryds) – uden at bryde de låste beslutninger.
+Ud over bot-tallene tæller validatorens advarsler (fx `no_close_quarters`, `territory_t_heavy`, `four_way_junction`, `rotation_time`) i loopets score, og "mål ramt" kræver et map uden advarsler. Prioritér at rette dem med små ændringer (fx cover, der bryder lange sigtelinjer og skaber nærkampssteder; spawn-forskydning for territorium; en forbindelse mindre ved et 4-vejskryds) – uden at bryde de låste beslutninger. Kan en advarsel kun rettes ved at bryde en låst beslutning eller uden for værktøjskassen, så læg den i `structural_needs_human` (`[{{"rule": "<rule>", "reason": "…"}}]`): den tæller stadig i scoren, men mennesket afgør den ved Gate B. Brug det kun, når du har prøvet eller begrundet, hvorfor ingen tilladt ændring virker.
 
 ## Loopet
 {loop}

@@ -230,9 +230,17 @@ class Loop:
         # the score, and "targets met" needs a map without warnings
         v = _load(self.it_dir / "validation.json") or {}
         warns = int(v.get("summary", {}).get("warnings", 0))
+        # warnings Decide handed to the human (plan.structural_needs_human) still cost score, but
+        # do not block reaching Gate B: the human decides them there
+        human = set(self.state.get("structural_needs_human", {}))
+        blocking = sum(
+            1
+            for f in v.get("findings", [])
+            if f.get("severity") == "warning" and f.get("rule") not in human
+        )
         penalty = float(self.fitness.get("design_warning_penalty", 0.15))
         score = None if bot_score is None else round(bot_score + penalty * warns, 4)
-        met = bool(m.get("targets_met")) and warns == 0
+        met = bool(m.get("targets_met")) and blocking == 0
         c["targets_met"] = c["targets_met"] + 1 if met else 0
         improved = best is None or (
             score is not None and score < best["score"] and verdict != "værre"
@@ -291,6 +299,12 @@ class Loop:
         decision = answer(self.cfg, d, float(self.cfg.data.get("decide", {}).get("phase", 6)))
         from mapforge import annotations
 
+        plan_now = _load(self.it_dir / "plan.json") or {}
+        for item in plan_now.get("structural_needs_human", []) or []:
+            if isinstance(item, dict) and item.get("rule"):
+                self.state.setdefault("structural_needs_human", {})[str(item["rule"])] = str(
+                    item.get("reason", "")
+                )
         for item in self._plan_needs_human():
             annotations.mark_needs_human(self.cfg.path("maps_dir"), self.map, self.state["iteration"],
                                          int(item["annotation"]), str(item.get("reason", "")))  # fmt: skip
@@ -417,6 +431,7 @@ class Loop:
 
     def report(self) -> str:
         s = self.state
+        human = s.get("structural_needs_human") or {}
         best = s.get("best")
         lines = [f"# Loop – {s.get('map')}", "",
                  f"Status: **{s.get('status')}**" + (f" – {s.get('stop_reason')}" if s.get("stop_reason") else ""),
@@ -428,6 +443,9 @@ class Loop:
             lines.append(f"| {h['iteration']} | {h.get('reached')} | {h.get('review', '–')} | {h.get('score', '–')} | "
                          f"{h.get('t_winrate', '–')} | {h.get('site_split_a', '–')} | {h.get('verdict') or '–'} | "
                          f"{'; '.join(h.get('applied', [])) or '–'} |")  # fmt: skip
+        if human:
+            lines += ["", "## Strukturelle punkter til mennesket (Gate B)"]
+            lines += [f"- `{k}`: {v}" for k, v in human.items()]
         if s.get("awaiting"):
             a = s["awaiting"]
             lines += ["", f"Venter på **{a['step']}**: læs `{a['prompt']}`, skriv `{a['answer']}`."]

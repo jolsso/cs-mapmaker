@@ -35,6 +35,14 @@ PLAN_SCHEMA = {
         "expected_effect": {"type": "string"},
         "risk": {"type": "string"},
         "escalate": {"type": "boolean"},
+        "structural_needs_human": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {"rule": {"type": "string"}, "reason": {"type": "string"}},
+                "required": ["rule", "reason"],
+            },
+        },
         "needs_human": {
             "type": "array",
             "items": {

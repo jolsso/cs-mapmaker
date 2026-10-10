@@ -155,7 +155,9 @@ def resolve(
     return changed
 
 
-def mark_needs_human(maps_dir: Path, map_name: str, iteration: str, ann_id: int, reason: str) -> bool:
+def mark_needs_human(
+    maps_dir: Path, map_name: str, iteration: str, ann_id: int, reason: str
+) -> bool:
     """Decide could not fulfil a wish (outside the toolbox / against a locked decision)."""
     items = load(maps_dir, map_name)
     for a in items:
