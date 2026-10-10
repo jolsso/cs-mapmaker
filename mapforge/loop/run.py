@@ -242,10 +242,12 @@ class Loop:
         score = None if bot_score is None else round(bot_score + penalty * warns, 4)
         met = bool(m.get("targets_met")) and blocking == 0
         c["targets_met"] = c["targets_met"] + 1 if met else 0
-        improved = best is None or (
-            score is not None and score < best["score"] and verdict != "værre"
-        )
-        self.state["rollback"] = bool(best) and verdict == "værre"
+        # judged on the combined score (bot score + design warnings): a bot metric that got worse
+        # beyond the noise only causes a rollback if the combined score got worse too
+        improved = best is None or (score is not None and score < best["score"]
+                                    and (verdict != "værre" or score < best["score"] - 0.05))  # fmt: skip
+        self.state["rollback"] = bool(best) and not improved and verdict == "værre" and (
+            score is None or score > best["score"])  # fmt: skip
         if improved:
             self.state["best"] = {"iteration": self.state["iteration"], "score": score}
             c["since_best"] = 0
