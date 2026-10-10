@@ -165,6 +165,10 @@ simulate:
   timescale: 4              # game seconds per real second (ReHLDS sys_timescale) ⚠️ calibrated in phase 4
   watch_timescale: 1        # --watch: real time, for joining as spectator
   smoke_rounds: 3
+  # YaPB node distances tried in order until the smoke run reaches both bomb sites: the
+  # analyser can leave whole areas unmapped (64 hits the node cap; 96 missed half of one
+  # map where 80 and 112 worked; CALIBRATION.md)
+  graph_distances: [96, 80, 112, 128]
   smoke_extra_rounds: 6      # if a bomb site was not reached in the smoke rounds, play this many more
   batch_rounds: 20          # rounds per batch, split over the servers
   max_rounds: 100           # stop after this many valid rounds (FITNESS min_rounds)
@@ -173,6 +177,10 @@ simulate:
   startup_timeout_s: 600    # map load + YaPB graph analysis on a new map
   demo: first_server        # HLTV demo: none | first_server | all
   bots_per_team: 5
+  # Live stream to the dashboard (`docker compose up -d live`): used when that container runs.
+  live:
+    host: mapforge-live       # collector container name = DNS name on the network
+    network: mapforge-sim
   # Game rules (mapforge.cfg, exec'd by the tracker plugin). Competitive-style CS 1.6 values.
   cvars:
     mp_freezetime: 3
@@ -191,6 +199,7 @@ simulate:
     sv_lan: 1
     sv_password: ""
     mf_sample_interval: 0.5
+    mf_live_interval: 0.5     # game seconds between live updates (0.125 s real at timescale 4)
   # YaPB 4.4.957 cvars (appended to its yapb.cfg); names checked against the shipped yapb.cfg.
   yapb:
     yb_difficulty: 3
@@ -204,7 +213,6 @@ simulate:
     yb_graph_auto_collect_db: 0
     yb_graph_analyze_auto_start: 1
     yb_graph_analyze_auto_save: 1
-    yb_graph_analyze_distance: 96   # default 64 hits YaPB's node cap on our ~4000-unit maps (a whole site was missing)
     yb_display_welcome_text: 0
 
 analyze:

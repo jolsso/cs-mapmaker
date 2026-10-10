@@ -68,6 +68,19 @@ AMX Mod X-plugin (`server/plugins/mapforge_tracker.sma`) der logger spillerposit
 
 `plant_site`: bogstavet fra `targetname` `site_<X>` på det bomb target, planteren står i; ellers tomt, og runneren udfylder det ud fra BSP'ens bomb sites (samme gruppering som validate). En runde tæller til metrikker, når den har en vinder, `humans_on_team == 0` og begge hold var fulde (`mapforge.simulate.records.valid_round`).
 
+## Live-stream (valgfri)
+Er `mf_live_host` sat (runneren gør det, når live-collectoren kører), sendes også UDP-datagrammer til `mf_live_host:mf_live_port` (standard 27500) hvert `mf_live_interval` spilsekund. Én besked pr. datagram, felter adskilt af `|`:
+
+| Type | Felter |
+|---|---|
+| `P` | run, map, round, t, tWins, ctWins, live (0/1), derefter `id,team,alive,x,y,yaw;` pr. bot |
+| `K` | run, map, round, t, killerTeam, victimTeam, x, y (offerets position), weapon |
+| `B` | run, map, round, t, site, x, y |
+| `R` | run, map, round, winner, reason, site, tWins, ctWins |
+| `Q` | run, map, `done` |
+
+Modul: sockets (AMXX 1.10, `socket_open(..., SOCKET_UDP)` + `socket_send`). Kan collectoren ikke nås, logges det, og pluginet fortsætter uden stream.
+
 ## Runner-integration
 1. Runneren (`mapforge.simulate`) skriver `cstrike/mapforge.cfg` (cvars fra `config/pipeline.yaml` → `simulate.cvars` + `mf_run_id`, `mf_max_rounds`, `sys_timescale`); pluginet exec'er den i `plugin_cfg`, så dets egne cvars findes.
 2. Server kører; plugin flusher pr. runde.

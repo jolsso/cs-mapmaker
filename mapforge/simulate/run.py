@@ -53,12 +53,13 @@ def resolve_bsp(cfg: Config, map_name: str, source: str) -> Path | None:
 
 
 def graph_cache(cfg: Config, map_name: str, bsp_sha: str) -> Path:
-    """YaPB graph made for this exact .bsp and these analyser settings (reuse it)."""
-    analyser = {
-        k: v for k, v in cfg.data["simulate"]["yapb"].items() if k.startswith("yb_graph_analyze")
-    }
-    key = hashlib.sha256((bsp_sha + json.dumps(analyser, sort_keys=True)).encode()).hexdigest()
-    return cfg.path("build_dir") / map_name / "yapb" / f"{key[:16]}.graph"
+    """YaPB graph for this exact .bsp (+ <name>.json: analyser distance, verified by smoke)."""
+    return cfg.path("build_dir") / map_name / "yapb" / f"{bsp_sha[:16]}.graph"
+
+
+def graph_meta(graph: Path) -> dict[str, Any]:
+    p = graph.with_suffix(".json")
+    return json.loads(p.read_text(encoding="utf-8")) if p.is_file() else {}
 
 
 def load_dir(sim_dir: Path) -> tuple[dict[str, list[dict]], list[str]]:
@@ -129,6 +130,10 @@ class Simulation:
         self.build_info = build_info(self.client, self.tag)
         self.bsp_sha = _sha(bsp)
         self.graph = graph_cache(cfg, map_name, self.bsp_sha)
+        # YaPB's analyser misses whole areas at some node distances (CALIBRATION.md): try these
+        # in order until the smoke run reaches both sites
+        self.distances = [int(d) for d in self.sim.get("graph_distances", [64])]
+        self.distance = int(graph_meta(self.graph).get("distance") or self.distances[0])
         from mapforge.bsp.reader import read_bsp
 
         self.bsp_data = read_bsp(bsp)
@@ -137,6 +142,7 @@ class Simulation:
         print(msg, flush=True)
 
     def _job(self, group: str, index: int, rounds: int, demo: bool | None = None) -> ServerJob:
+        dist = graph_meta(self.graph).get("distance") or self.distance
         demo_mode = self.sim.get("demo", "none")
         run_id = f"{group}s{index}"
         return ServerJob(
@@ -150,7 +156,9 @@ class Simulation:
             demo=(demo_mode == "all" or (demo_mode == "first_server" and index == 0))
             if demo is None
             else demo,
-            timescale=self.timescale,
+            # the YaPB map analyser runs in real time: sped up it can finish with parts unmapped
+            timescale=1.0 if group.startswith("graph") else self.timescale,
+            yapb={"yb_graph_analyze_distance": dist},
         )
 
     def run_group(
@@ -173,7 +181,10 @@ class Simulation:
             if made.is_file():
                 self.graph.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(made, self.graph)
-                self.log(f"  YaPB graph cached: {self.graph}")
+                self.graph.with_suffix(".json").write_text(
+                    json.dumps({"distance": self.distance, "verified": False}), encoding="utf-8"
+                )
+                self.log(f"  YaPB graph cached ({self.distance} units between nodes): {self.graph}")
                 return
 
     def data(self, groups: list[str]) -> tuple[dict[str, list[dict]], list[str]]:
@@ -187,6 +198,30 @@ class Simulation:
         names = self.cfg.data.get("analyze", {}).get("site_names", {}).get(self.map_name)
         assign_plant_sites(merged, self.bsp_data, names)
         return merged, errors
+
+    def smoke(self, tag: str) -> tuple[dict[str, Any], list[dict]]:
+        n = int(self.sim["smoke_rounds"])
+        self.log(f"smoke: {n} rounds on 1 server (timescale {self.timescale}) ...")
+        statuses = self.run_group("smoke" + tag, n, 1)
+        groups = ["smoke" + tag]
+        data, errors = self.data(groups)
+        smoke = smoke_checks(data, self.bsp_data, n, self.per_team)
+        extra = int(self.sim.get("smoke_extra_rounds", 0))
+        others = [k for k, c in smoke["checks"].items() if k != "sites_reached" and not c["ok"]]
+        if not smoke["checks"]["sites_reached"]["ok"] and not others and extra:
+            # bots often pick the same site 3 rounds running (p ~ 1/4 at 50/50): play on
+            # before calling a site unreachable
+            self.log(f"smoke: a site not reached yet, {extra} more rounds ...")
+            statuses += self.run_group("smoke2" + tag, extra, 1)
+            groups.append("smoke2" + tag)
+            data, errors = self.data(groups)
+            smoke = smoke_checks(data, self.bsp_data, n, self.per_team)
+            smoke["extended"] = extra
+        smoke["schema_errors"] = errors
+        smoke["ok"] = smoke["ok"] and not errors and all(s.get("done") for s in statuses)
+        smoke["servers"] = statuses
+        smoke["graph_distance"] = self.distance
+        return smoke, statuses
 
     def run(self, smoke_only: bool, no_smoke: bool) -> dict[str, Any]:
         t0 = time.time()
@@ -207,37 +242,44 @@ class Simulation:
             "groups": [],
         }
         ok = True
-        if not self.graph.is_file():
-            # YaPB analyses a new map on first start, and then re-adds only quota - 1 bots
-            # (seen 2026-10-10). Make the graph in a throwaway run; every counted run loads it.
-            self.log("graph: no YaPB graph for this .bsp yet, analysing in a 1-round run ...")
-            statuses = self.run_group("graph", 1, 1, demo=False)
-            report["groups"].append({"name": "graph", "servers": statuses})
+        report["graph_attempts"] = []
+        tried: list[int] = []
+        while True:
+            tag = f"_d{self.distance}"
             if not self.graph.is_file():
-                ok = False
-        if ok and not no_smoke:
-            n = int(self.sim["smoke_rounds"])
-            self.log(f"smoke: {n} rounds on 1 server (timescale {self.timescale}) ...")
-            statuses = self.run_group("smoke", n, 1)
-            data, errors = self.data(["smoke"])
-            smoke = smoke_checks(data, self.bsp_data, n, self.per_team)
-            extra = int(self.sim.get("smoke_extra_rounds", 0))
-            others = [k for k, c in smoke["checks"].items() if k != "sites_reached" and not c["ok"]]
-            if not smoke["checks"]["sites_reached"]["ok"] and not others and extra:
-                # bots often pick the same site 3 rounds running (p ~ 1/4 at 50/50): play on
-                # before calling a site unreachable
-                self.log(f"smoke: a site not reached yet, {extra} more rounds ...")
-                statuses += self.run_group("smoke2", extra, 1)
-                data, errors = self.data(["smoke", "smoke2"])
-                smoke = smoke_checks(data, self.bsp_data, n, self.per_team)
-                smoke["extended"] = extra
-            smoke["schema_errors"] = errors
-            smoke["ok"] = smoke["ok"] and not errors and all(s.get("done") for s in statuses)
-            smoke["servers"] = statuses
+                # YaPB analyses a new map on first start and then re-adds only quota - 1 bots
+                # (seen 2026-10-10): make the graph in a throwaway run; counted runs load it
+                self.log(f"graph: analysing the map ({self.distance} units between nodes) ...")
+                statuses = self.run_group("graph" + tag, 1, 1, demo=False)
+                report["groups"].append({"name": "graph" + tag, "servers": statuses})
+                if not self.graph.is_file():
+                    ok = False
+                    break
+            if no_smoke:
+                break
+            smoke, statuses = self.smoke(tag)
             report["smoke"] = smoke
-            report["groups"].append({"name": "smoke", "servers": statuses})
+            report["groups"].append({"name": "smoke" + tag, "servers": statuses})
+            reached = smoke["checks"]["sites_reached"]["samples_per_site"]
+            report["graph_attempts"].append(
+                {"distance": self.distance, "smoke_ok": smoke["ok"], "samples_per_site": reached}
+            )
             self.log(f"smoke: {'OK' if smoke['ok'] else 'FAILED'} {json.dumps(smoke['checks'])}")
-            ok = smoke["ok"]
+            if smoke["ok"]:
+                meta = graph_meta(self.graph) | {"verified": True}
+                self.graph.with_suffix(".json").write_text(json.dumps(meta), encoding="utf-8")
+                break
+            only_sites = all(c["ok"] for k, c in smoke["checks"].items() if k != "sites_reached")
+            tried.append(self.distance)
+            left = [d for d in self.distances if d not in tried]
+            if not (only_sites and left and not graph_meta(self.graph).get("verified")):
+                ok = False
+                break
+            # a site no bot ever reaches: most likely the graph, not the map -> re-analyse
+            self.log(f"graph: a bomb site was never reached; re-analysing with {left[0]} units ...")
+            self.graph.unlink()
+            self.graph.with_suffix(".json").unlink(missing_ok=True)
+            self.distance = left[0]
         report["graph"] = str(self.graph) if self.graph.is_file() else None
         groups: list[str] = []
         if not ok:

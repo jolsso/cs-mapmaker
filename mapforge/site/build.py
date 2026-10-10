@@ -63,9 +63,10 @@ def _md(text: str) -> str:
 def _page(title: str, body: str, depth: int, active: str, maps: list[str]) -> str:
     up = "../" * depth
     links = [f"<a href='{up}index.html' class='{'on' if active == 'home' else ''}'>Projekter</a>",
+             f"<a href='{up}live.html' class='{'on' if active == 'live' else ''}'>● Live</a>",
              f"<a href='{up}architecture.html' class='{'on' if active == 'arch' else ''}'>"
              "Arkitektur &amp; roadmap</a>"]  # fmt: skip
-    if active not in ("home", "arch"):
+    if active not in ("home", "arch", "live"):
         links.append(f"<span class='crumb'>›</span><a class='on'>{e(active)}</a>")
     return (
         f"<!doctype html><html lang='da'><head><meta charset='utf-8'>"
@@ -370,6 +371,32 @@ def loop_section(cfg: Config, name: str) -> str:
             + (f"<div class='chartbox'><h3>Score pr. iteration</h3>{trend}</div>" if trend else "")
             + "<div class='table'><table><tr><th>iteration</th><th>nåede</th><th>review</th><th>score</th><th>T-winrate</th>"
             f"<th>A-plants</th><th>ift. bedste</th><th>anvendte ændringer</th></tr>{rows}</table></div></section>")  # fmt: skip
+
+
+def live_page(cfg: Config, maps: list[str], out: Path) -> str:
+    """Live view of running simulations: SSE from the live collector, drawn by live.js."""
+    views = {}
+    for m in maps:
+        index = _load(cfg.path("build_dir") / m / "renders" / "index.json")
+        top = next(
+            (im for im in (index or {}).get("images", []) if im["file"] == "topdown.png"), None
+        )
+        if top and "view" in top:
+            _copy(
+                cfg.path("build_dir") / m / "renders" / "topdown.png",
+                out / "maps" / m / "img" / "topdown.png",
+            )
+            views[m] = {
+                "img": f"maps/{m}/img/topdown.png",
+                "rect": top["view"]["world_rect"],
+                "size": top["view"]["size"],
+            }
+    return ("<section><span class='eyebrow'>Simulering</span><h1>Live</h1><p class='muted'>Bots i alle kørende "
+            "simuleringer, streamet fra tracker-pluginet (UDP) via live-collectoren (<code>docker compose up -d live</code>, "
+            "Server-Sent Events på localhost:8090). Orange = T, blå = CT, grå = død, rødt kryds = kill i runden; streg = sigteretning. "
+            "Spiltiden kører hurtigere end realtid (timescale).</p><p id='status' class='muted'>forbinder …</p>"
+            "<div id='totals' class='kpis'></div></section><div id='runs' class='livegrid'></div>"
+            f"<script>const MAPS = {json.dumps(views)};</script><script src='live.js?v={CSS_VERSION}'></script>")  # fmt: skip
 
 
 def _copy(src: Path, dst: Path) -> None:
@@ -730,7 +757,7 @@ def build_site(cfg: Config) -> Path:
     # Architecture & roadmap: the overview page (it carries its own styles).
     overview = (cfg.root / "docs" / "overview.html").read_text(encoding="utf-8")
     topbar = ("<header class='topbar'><div class='in'><a class='brand' href='index.html'><span class='mark'>MF</span>"
-              "MapForge</a><nav><a href='index.html'>Projekter</a><a class='on' href='architecture.html'>"
+              "MapForge</a><nav><a href='index.html'>Projekter</a><a href='live.html'>● Live</a><a class='on' href='architecture.html'>"
               "Arkitektur &amp; roadmap</a></nav></div></header>")  # fmt: skip
     marker = '<div class="wrap">'
     page = overview.replace(marker, topbar + marker, 1) if marker in overview else topbar + overview
@@ -789,6 +816,10 @@ def build_site(cfg: Config) -> Path:
             "projekt pr. map. Bjælken viser pipelinens faser: grøn = kørt og bestået, rød = kørt og "
             "fejlet, stiplet = ikke kørt. <a href='architecture.html'>Arkitektur og roadmap</a>.</p></section>"
             f"{''.join(rows)}")  # fmt: skip
+    (out / "live.html").write_text(
+        _page("MapForge – live", live_page(cfg, maps, out), 0, "live", maps), encoding="utf-8"
+    )
+    shutil.copy2(Path(__file__).with_name("live.js"), out / "live.js")
     (out / "index.html").write_text(_page("MapForge – projekter", home, 0, "home", maps),
                                     encoding="utf-8")  # fmt: skip
     for m in maps:

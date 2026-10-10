@@ -29,6 +29,7 @@ class ServerJob:
     demo: bool = False
     timescale: float = 1.0
     extra_cvars: dict[str, Any] = field(default_factory=dict)
+    yapb: dict[str, Any] = field(default_factory=dict)  # per-job YaPB overrides
 
 
 def _cvar(value: Any) -> str:
@@ -46,8 +47,9 @@ def server_cfg(sim: dict[str, Any], job: ServerJob) -> str:
     return "\n".join(lines) + "\n"
 
 
-def yapb_cfg(sim: dict[str, Any]) -> str:
-    cvars = {**sim["yapb"], "yb_quota": 2 * int(sim["bots_per_team"]), "yb_quota_mode": "normal"}
+def yapb_cfg(sim: dict[str, Any], overrides: dict[str, Any] | None = None) -> str:
+    cvars = {**sim["yapb"], **(overrides or {})}
+    cvars.update(yb_quota=2 * int(sim["bots_per_team"]), yb_quota_mode="normal")
     lines = ["// mapforge.simulate overrides (appended to yapb.cfg)"]
     lines += [f"{k} {_cvar(v)}" for k, v in cvars.items()]
     return "\n".join(lines) + "\n"
@@ -87,15 +89,31 @@ def _fetch(container: Any, path: str, dest: Path, suffixes: tuple[str, ...] = ()
     return out
 
 
+def live_network(client: Any, sim: dict[str, Any]) -> str | None:
+    """The docker network of the live collector, if it is running (else None: no live stream)."""
+    import docker.errors
+
+    lcfg = sim.get("live", {})
+    try:
+        c = client.containers.get(lcfg.get("host", "mapforge-live"))
+    except docker.errors.NotFound:
+        return None
+    net = lcfg.get("network", "mapforge-sim")
+    return net if c.status == "running" and net in c.attrs["NetworkSettings"]["Networks"] else None
+
+
 def run_server(
     client: Any, tag: str, sim: dict[str, Any], job: ServerJob, log=print
 ) -> dict[str, Any]:
     """Run one server to completion. Results land in job.out_dir; returns a status dict."""
     import requests.exceptions
 
+    if live_network(client, sim):  # collector up: stream positions/kills/rounds (Live page)
+        host = sim.get("live", {}).get("host", "mapforge-live")
+        job.extra_cvars = {**job.extra_cvars, "mf_live_host": host}
     files = {
         "mapforge.cfg": server_cfg(sim, job).encode(),
-        "addons/yapb/conf/mapforge_yapb.cfg": yapb_cfg(sim).encode(),
+        "addons/yapb/conf/mapforge_yapb.cfg": yapb_cfg(sim, job.yapb).encode(),
     }
     if job.bsp is not None:
         files[f"maps/{job.map_name}.bsp"] = job.bsp.read_bytes()
@@ -113,7 +131,10 @@ def run_server(
     name = f"mapforge-{job.map_name}-{job.run_id}"
     for old in client.containers.list(all=True, filters={"name": f"^{name}$"}):
         old.remove(force=True)  # left over from an interrupted run
-    container = client.containers.create(tag, environment=env, ports=ports, name=name, detach=True)
+    network = live_network(client, sim)
+    container = client.containers.create(
+        tag, environment=env, ports=ports, name=name, detach=True, network=network
+    )
     status: dict[str, Any] = {"run_id": job.run_id, "port": job.port, "rounds_wanted": job.rounds}
     start = time.time()
     try:

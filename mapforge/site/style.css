@@ -178,3 +178,20 @@ footer { color: var(--muted); font-size: 12px; text-align: center; padding-top: 
 .applied { background: var(--ok-soft); border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
 .applied ul { margin: 4px 0 0; padding-left: 18px; } .applied li.bad { color: var(--bad); }
 @media (max-width: 900px) { .iter-body { grid-template-columns: 1fr; } }
+
+/* live page */
+.livegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; }
+.livecard { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; box-shadow: var(--shadow); }
+.livecard.off { opacity: .55; }
+.livecard header { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.livecard .run { font: 600 15px var(--head); }
+.livecard canvas { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; }
+.livecard .score { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; font: 600 15px var(--head); }
+.livecard .score .t { color: var(--t); } .livecard .score .ct { color: var(--ct); }
+.livecard .bar { height: 8px; border-radius: 4px; background: var(--ct); overflow: hidden; }
+.livecard .bar i { display: block; height: 100%; background: var(--t); transition: width .3s; }
+.livecard .strip { display: flex; flex-wrap: wrap; gap: 2px; min-height: 10px; }
+.livecard .strip i { width: 9px; height: 9px; border-radius: 2px; background: var(--line2); }
+.livecard .strip i.t { background: var(--t); } .livecard .strip i.ct { background: var(--ct); }
+.livecard .feed { margin: 0; padding-left: 16px; min-height: 4.5em; }
+.tt { color: var(--t); font-weight: 600; } .ctt { color: var(--ct); font-weight: 600; }

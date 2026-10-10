@@ -61,6 +61,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf history MAP=<navn> NOTE="…"   # gem/opdatér version i history/<map>/ (sker automatisk efter render og review)
 ./mf site                     # genbyg lokalt website build/site/ (sker også automatisk efter validate/render/review/decide)
 docker compose up -d site     # PÅ VÆRTEN: serverer websitet på http://localhost:8080 (kun 127.0.0.1)
+docker compose up -d live     # PÅ VÆRTEN: live-collector (UDP fra serverne → SSE på localhost:8090), websitets "Live"-side
 ./mf simulate MAP=<navn>      # HLDS + YaPB-bots: smoke + batches → build/<map>/simulation.json (-- --smoke-only | --watch | --rounds N; SOURCE=reference)
 ./mf analyze MAP=<navn>       # simulation → build/<map>/analysis/ (metrics.json, report.md, heatmaps, delta) (-- --baseline FILE)
 ./mf loop MAP=<navn> -- --init [--force-sim]   # start det autonome loop (runs/<map>/loop.json)

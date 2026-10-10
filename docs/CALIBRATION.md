@@ -88,6 +88,7 @@ Konsekvenser:
 - `simulate.yapb.yb_graph_analyze_distance: 96`; graf-cachen afhænger nu af analyse-indstillingerne.
 - **Målingerne af de_forge01 fra fase 4/5 (T-winrate 0,46) blev lavet med en afkortet graf og er ikke retvisende.** Med rigtig graf vinder T 80 % på de_tilt01 med CT-døren genskabt, altså samme layout som de_forge01 bortset fra dørbredden. de_forge01 skal måles igen.
 - de_dust2 brugte YaPB's medfølgende graf og er ikke påvirket.
+- **Opfølgning samme dag:** 96 var heller ikke sikker. På iteration 003 af de_tilt01 (kun en kasse fjernet) efterlod 96 hele vestsiden umappet, mens 80 og 112 dækkede begge sites. Analysen er deterministisk pr. .bsp + afstand, men følsom over for små geometriændringer. Løsning: smoke verificerer grafen, og ved et site uden besøg laves grafen om med næste afstand (`graph_distances: [96, 80, 112, 128]`).
 - Smoke: 3 runder er for få til "begge sites nået", fordi bots ofte vælger samme site flere runder i træk. Smoke spiller nu op til 6 runder mere, før et site erklæres unået (`smoke_extra_rounds`).
 
 ## Åbne punkter til mennesket

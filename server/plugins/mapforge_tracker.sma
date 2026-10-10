@@ -3,14 +3,24 @@
  * Only bots on T/CT are logged; a round with a human on T/CT gets humans_on_team > 0 and is
  * left out by the analysis. Files: logs/mapforge/<map>_<run_id>/{positions,events,rounds}.csv
  * (relative to cstrike/). After mf_max_rounds finished rounds it writes DONE and quits.
+ * Live stream (optional): with mf_live_host set, positions, kills, plants and round results are
+ * also sent as small UDP datagrams to the live collector (mapforge.live.collector), which feeds
+ * the dashboard's live page. Text format, one message per datagram, fields split by '|':
+ *   P|run|map|round|t|tWins|ctWins|live|id,team,alive,x,y,yaw;...   positions (every interval)
+ *   K|run|map|round|t|killerTeam|victimTeam|x|y|weapon                kill (victim position)
+ *   B|run|map|round|t|site|x|y                                         bomb planted
+ *   R|run|map|round|winner|reason|site|tWins|ctWins                    round end
+ *   Q|run|map|done                                                     run finished
  * Natives checked against the AMX Mod X 1.10 (git5486) includes.
  */
 #include <amxmodx>
 #include <csx>
 #include <fakemeta>
+#include <sockets>
 
 #define TASK_SAMPLE 4711
 #define TASK_QUIT 4712
+#define TASK_LIVE 4713
 
 new const BOMB_TARGETS[][] = {"func_bomb_target", "info_bomb_target"}
 
@@ -26,6 +36,10 @@ new Float:g_roundStart
 new g_humans             // max humans on T/CT seen this round
 new g_tStart, g_ctStart
 new g_plantSite[8]
+new g_pLiveHost, g_pLivePort, g_pLiveInterval
+new g_sock, bool:g_sockOk
+new g_map[64]
+new g_tWins, g_ctWins
 
 public plugin_init()
 {
@@ -34,6 +48,9 @@ public plugin_init()
     g_pInterval = create_cvar("mf_sample_interval", "0.5", _, "Seconds between position samples")
     g_pRunId = create_cvar("mf_run_id", "", _, "Run id (set by the runner)")
     g_pMaxRounds = create_cvar("mf_max_rounds", "0", _, "Quit after N finished rounds (0 = never)")
+    g_pLiveHost = create_cvar("mf_live_host", "", _, "Live collector host (empty = no live stream)")
+    g_pLivePort = create_cvar("mf_live_port", "27500", _, "Live collector UDP port")
+    g_pLiveInterval = create_cvar("mf_live_interval", "0.5", _, "Seconds (game time) between live position updates")
 
     register_logevent("ev_round_start", 2, "1=Round_Start")
     register_logevent("ev_restart", 2, "1&Restart_Round_")
@@ -61,6 +78,49 @@ public plugin_cfg()
     g_fEv = open_csv("events.csv", "run_id,round,t,type,actor_id,actor_team,target_id,target_team,ax,ay,az,tx,ty,tz,weapon,extra")
     g_fRnd = open_csv("rounds.csv", "run_id,round,start_time,end_time,winner,reason,plant_site,t_alive_end,ct_alive_end,humans_on_team,t_players,ct_players")
     log_amx("[mapforge] logging to %s", g_dir)
+    copy(g_map, charsmax(g_map), map)
+    live_open()
+}
+
+live_open()
+{
+    new host[64], err
+    get_pcvar_string(g_pLiveHost, host, charsmax(host))
+    if (!host[0])
+        return
+    g_sock = socket_open(host, get_pcvar_num(g_pLivePort), SOCKET_UDP, err)
+    if (err != SOCK_ERROR_OK)
+    {
+        log_amx("[mapforge] live stream off: cannot reach %s (error %d)", host, err)
+        return
+    }
+    g_sockOk = true
+    set_task(get_pcvar_float(g_pLiveInterval), "live_tick", TASK_LIVE, _, _, "b")
+    log_amx("[mapforge] live stream to %s:%d", host, get_pcvar_num(g_pLivePort))
+}
+
+live_send(const msg[])
+{
+    if (g_sockOk)
+        socket_send(g_sock, msg, strlen(msg))
+}
+
+public live_tick()
+{
+    new msg[1400], part[64], team[4], Float:o[3], Float:a[3]
+    formatex(msg, charsmax(msg), "P|%s|%s|%d|%.1f|%d|%d|%d|", g_runId, g_map, g_round,
+        g_live ? round_time() : 0.0, g_tWins, g_ctWins, g_live)
+    for (new id = 1; id <= MaxClients; id++)
+    {
+        if (!tracked(id))
+            continue
+        team_name(id, team, charsmax(team))
+        pev(id, pev_origin, o)
+        pev(id, pev_v_angle, a)
+        formatex(part, charsmax(part), "%d,%s,%d,%.0f,%.0f,%.0f;", id, team, is_user_alive(id), o[0], o[1], a[1])
+        add(msg, charsmax(msg), part)
+    }
+    live_send(msg)
 }
 
 open_csv(const name[], const header[])
@@ -74,6 +134,14 @@ open_csv(const name[], const header[])
 
 public plugin_end()
 {
+    if (g_sockOk)
+    {
+        new msg[160]
+        formatex(msg, charsmax(msg), "Q|%s|%s|done", g_runId, g_map)
+        live_send(msg)
+        socket_close(g_sock)
+        g_sockOk = false
+    }
     if (g_fPos) fclose(g_fPos)
     if (g_fEv) fclose(g_fEv)
     if (g_fRnd) fclose(g_fRnd)
@@ -241,6 +309,17 @@ public client_death(killer, victim, wpnindex, hitplace, TK)
     formatex(extra, charsmax(extra), "^"{^"^"headshot^"^":%d,^"^"teamkill^"^":%d}^"",
         hitplace == HIT_HEAD, TK)
     write_event("kill", killer, victim, weapon, extra)
+    if (g_sockOk)
+    {
+        new msg[200], kt[4], vt[4], Float:o[3]
+        if (killer > 0 && killer <= MaxClients && is_user_connected(killer))
+            team_name(killer, kt, charsmax(kt))
+        team_name(victim, vt, charsmax(vt))
+        pev(victim, pev_origin, o)
+        formatex(msg, charsmax(msg), "K|%s|%s|%d|%.1f|%s|%s|%.0f|%.0f|%s", g_runId, g_map, g_round,
+            round_time(), kt, vt, o[0], o[1], weapon)
+        live_send(msg)
+    }
 }
 
 // Site of a bomb target the planter stands in: letter of a "site_<X>" targetname, else empty
@@ -288,6 +367,14 @@ public bomb_planted(planter)
     new extra[64]
     formatex(extra, charsmax(extra), "^"{^"^"site^"^":^"^"%s^"^"}^"", g_plantSite)
     write_event("bomb_plant", planter, 0, "c4", extra)
+    if (g_sockOk)
+    {
+        new msg[160], Float:o[3]
+        pev(planter, pev_origin, o)
+        formatex(msg, charsmax(msg), "B|%s|%s|%d|%.1f|%s|%.0f|%.0f", g_runId, g_map, g_round,
+            round_time(), g_plantSite, o[0], o[1])
+        live_send(msg)
+    }
 }
 
 public bomb_defused(defuser)
@@ -337,6 +424,17 @@ end_round(const winner[], const reason[])
     fflush(g_fRnd)
     if (winner[0])
         g_done++
+    if (equal(winner, "T"))
+        g_tWins++
+    else if (equal(winner, "CT"))
+        g_ctWins++
+    if (g_sockOk)
+    {
+        new msg[200]
+        formatex(msg, charsmax(msg), "R|%s|%s|%d|%s|%s|%s|%d|%d", g_runId, g_map, g_round, winner,
+            reason, g_plantSite, g_tWins, g_ctWins)
+        live_send(msg)
+    }
     new maxRounds = get_pcvar_num(g_pMaxRounds)
     if (maxRounds > 0 && g_done >= maxRounds)
     {

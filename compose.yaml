@@ -25,3 +25,22 @@ services:
       - "127.0.0.1:8080:8080"
     command: ["python", "-m", "http.server", "8080", "--directory", "/work/build/site"]
     restart: unless-stopped
+
+  # Live collector for running simulations: the tracker plugins send UDP datagrams over the
+  # mapforge-sim network; browsers get a Server-Sent Events stream on http://localhost:8090.
+  # `docker compose up -d live` (the dashboard's Live page uses it). 127.0.0.1 only.
+  live:
+    image: mapforge/forge:dev
+    container_name: mapforge-live
+    working_dir: /work
+    volumes:
+      - .:/work:ro
+    ports:
+      - "127.0.0.1:8090:8090"
+    networks: [default, sim]
+    command: ["python", "-m", "mapforge.live.collector"]
+    restart: unless-stopped
+
+networks:
+  sim:
+    name: mapforge-sim
