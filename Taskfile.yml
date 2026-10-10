@@ -64,6 +64,13 @@ tasks:
     cmds:
       - uv run python -m mapforge.review.run --map {{.MAP}} {{.CLI_ARGS}}
 
+  decide:
+    desc: Decide step -> runs/<map>/<NNN>/ (MAP=<name>; -- --emit | --answer)
+    requires:
+      vars: [MAP]
+    cmds:
+      - uv run python -m mapforge.decide.run --map {{.MAP}} {{.CLI_ARGS}}
+
   simulate:
     desc: HLDS + YaPB, N rounds (Phase 4)
     cmds:

@@ -5,6 +5,7 @@ paths:
   tools_dir: tools
   build_dir: build
   maps_dir: maps
+  runs_dir: runs
   wad_dirs:
     - assets/wads
 
@@ -137,3 +138,7 @@ review:
   # login: use the claude.ai login (an ANTHROPIC_API_KEY in the environment is ignored for
   # this call); api_key: use ANTHROPIC_API_KEY as is.
   auth: login
+
+decide:
+  # Roadmap phase the plan is checked for (lighting changes need >= 7).
+  phase: 3

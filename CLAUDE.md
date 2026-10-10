@@ -51,6 +51,8 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf render MAP=<navn>        # top-down (lys + kun lys) → build/<map>/renders/ + index.json (SOURCE=reference for referencemaps)
 ./mf review MAP=<navn>        # pre-sim-gate, trin 1: skriv review-prompt (+ skema)
 ./mf review MAP=<navn> -- --answer   # trin 2: scor svaret → build/<map>/review.json
+./mf decide MAP=<navn> -- --emit     # ny runs/<map>/<NNN>/ med input-kontrakt + decide-prompt
+./mf decide MAP=<navn> -- --answer   # tjek plan.json mod config/fitness.yaml → decision.json
 ./mf simulate MAP=<navn>      # HLDS + YaPB, N runder         (Fase 4)
 ./mf analyze MAP=<navn>       # heatmaps + metrikker          (Fase 5)
 ./mf loop MAP=<navn>          # fuld iteration                (Fase 6)
@@ -66,6 +68,7 @@ Den visuelle vurdering laves **i Claude Code-sessionen**, ikke af et separat API
 1. `./mf review MAP=<navn>` skriver `build/<map>/review_prompt.md` og `review_schema.json` (stop, hvis validering har errors – så er review.json allerede FAIL).
 2. Start en **subagent** (frisk kontekst, kun Read/Write) med prompt-filen; den læser alle billeder og skriver `build/<map>/review_answer.json` efter skemaet.
 3. `./mf review MAP=<navn> -- --answer` validerer svaret og afgør pass/fail (ingen `critical`/`major`). Pass-reglen ligger i koden, ikke i modellen.
+Decide følger samme mønster: `./mf decide -- --emit` → en subagent læser `runs/<map>/<NNN>/decide_prompt.md` og skriver `plan.json` + `NOTES.md` → `./mf decide -- --answer`.
 Ubemandede kørsler (uden åben session) kan bruge `uv run task review MAP=<navn> -- --headless` på værten (`claude -p`, samme prompt/skema/regel).
 
 ## Compiler

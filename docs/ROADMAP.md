@@ -56,7 +56,7 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 ## Fase 3b – Decide (tørkørsel)
 **Mål:** Decide-trinnet virker på rigtige input, før der findes en generator at anvende planen på.
 
-- [ ] Input-kontrakt (ARCHITECTURE.md → 8 Decide) samles i `runs/<map>/<iteration>/` + `stage.json`
+- [x] Input-kontrakt (ARCHITECTURE.md → 8 Decide) samles i `runs/<map>/<iteration>/` + `stage.json` (`mapforge/runs.py`, `./mf decide MAP=… -- --emit`)
 - [x] `plan.json`-skema; orchestrator-validering afviser ikke-tilladte ændringstyper og låste beslutninger (`config/fitness.yaml`, `mapforge/decide/policy.py`)
 - [ ] Claude Code headless (`claude -p`) får input og returnerer `plan.json` + `NOTES.md`
 

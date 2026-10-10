@@ -500,7 +500,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       <div class="phase-body">
         <div class="phase-head"><h3>Decide (tørkørsel)</h3><span class="chip next">i gang</span></div>
         <ul>
-          <li>Input-kontrakt samles i <code>runs/&lt;map&gt;/&lt;iteration&gt;/</code> + <code>stage.json</code></li>
+          <li class="ok">Input-kontrakt samles i <code>runs/&lt;map&gt;/&lt;NNN&gt;/</code> (validation, review, renders, layout, .map + diff) + <code>stage.json</code> (hvor iterationen stoppede, hvad der er næste); <code>./mf decide</code> skriver prompten, <code>--answer</code> tjekker planen</li>
           <li class="ok"><code>plan.json</code>-skema og politik: kun typer fra værktøjskassen (<code>config/fitness.yaml</code>), grænser (fx ±256 units), max én forbindelse pr. iteration, låste landmarks/sites og frossen geometri afvises; ellers eskalering</li>
           <li>Claude headless returnerer plan + NOTES.md for dust2 og et ødelagt referencemap</li>
         </ul>
