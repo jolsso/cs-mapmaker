@@ -53,8 +53,12 @@ def resolve_bsp(cfg: Config, map_name: str, source: str) -> Path | None:
 
 
 def graph_cache(cfg: Config, map_name: str, bsp_sha: str) -> Path:
-    """YaPB graph made for this exact .bsp (the analysis takes minutes; reuse it)."""
-    return cfg.path("build_dir") / map_name / "yapb" / f"{bsp_sha[:16]}.graph"
+    """YaPB graph made for this exact .bsp and these analyser settings (reuse it)."""
+    analyser = {
+        k: v for k, v in cfg.data["simulate"]["yapb"].items() if k.startswith("yb_graph_analyze")
+    }
+    key = hashlib.sha256((bsp_sha + json.dumps(analyser, sort_keys=True)).encode()).hexdigest()
+    return cfg.path("build_dir") / map_name / "yapb" / f"{key[:16]}.graph"
 
 
 def load_dir(sim_dir: Path) -> tuple[dict[str, list[dict]], list[str]]:
@@ -217,6 +221,16 @@ class Simulation:
             statuses = self.run_group("smoke", n, 1)
             data, errors = self.data(["smoke"])
             smoke = smoke_checks(data, self.bsp_data, n, self.per_team)
+            extra = int(self.sim.get("smoke_extra_rounds", 0))
+            others = [k for k, c in smoke["checks"].items() if k != "sites_reached" and not c["ok"]]
+            if not smoke["checks"]["sites_reached"]["ok"] and not others and extra:
+                # bots often pick the same site 3 rounds running (p ~ 1/4 at 50/50): play on
+                # before calling a site unreachable
+                self.log(f"smoke: a site not reached yet, {extra} more rounds ...")
+                statuses += self.run_group("smoke2", extra, 1)
+                data, errors = self.data(["smoke", "smoke2"])
+                smoke = smoke_checks(data, self.bsp_data, n, self.per_team)
+                smoke["extended"] = extra
             smoke["schema_errors"] = errors
             smoke["ok"] = smoke["ok"] and not errors and all(s.get("done") for s in statuses)
             smoke["servers"] = statuses

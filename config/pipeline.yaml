@@ -165,6 +165,7 @@ simulate:
   timescale: 4              # game seconds per real second (ReHLDS sys_timescale) ⚠️ calibrated in phase 4
   watch_timescale: 1        # --watch: real time, for joining as spectator
   smoke_rounds: 3
+  smoke_extra_rounds: 6      # if a bomb site was not reached in the smoke rounds, play this many more
   batch_rounds: 20          # rounds per batch, split over the servers
   max_rounds: 100           # stop after this many valid rounds (FITNESS min_rounds)
   confidence: 0.95          # Wilson interval for the early stop on t_winrate / site_split_a
@@ -203,6 +204,7 @@ simulate:
     yb_graph_auto_collect_db: 0
     yb_graph_analyze_auto_start: 1
     yb_graph_analyze_auto_save: 1
+    yb_graph_analyze_distance: 96   # default 64 hits YaPB's node cap on our ~4000-unit maps (a whole site was missing)
     yb_display_welcome_text: 0
 
 analyze:

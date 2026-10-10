@@ -76,6 +76,20 @@ Tallene for dust2 er plausible (T ≈ halvdelen, bots foretrækker B på dust2, 
 
 dust2's bomb targets har ingen navne, og det første i entity-listen er B. Navnene står i `config/pipeline.yaml` → `analyze.site_names`.
 
+## YaPB-grafen (fase 6)
+
+Fundet 2026-10-10 under loop-testen på de_tilt01: med YaPB's standard `yb_graph_analyze_distance 64` stoppede den automatiske analyse ved et node-loft (graferne var ~52 KB på både de_forge01 og de_tilt01), og **et helt bomb site manglede i bots' navigation**: i 9 smoke-runder var ingen bot – heller ikke CT, der spawner ved siden af – inde på A. Med 96 units mellem noderne (24 KB-graf) bruges begge sites (A 309, B 196 samples på 3 runder).
+
+| | distance 64 | distance 96 |
+|---|---|---|
+| de_tilt01 (med CT-dør til B) | A 0 / B 659 samples (9 runder) | A 309 / B 196 (3 runder) |
+
+Konsekvenser:
+- `simulate.yapb.yb_graph_analyze_distance: 96`; graf-cachen afhænger nu af analyse-indstillingerne.
+- **Målingerne af de_forge01 fra fase 4/5 (T-winrate 0,46) blev lavet med en afkortet graf og er ikke retvisende.** Med rigtig graf vinder T 80 % på de_tilt01 med CT-døren genskabt, altså samme layout som de_forge01 bortset fra dørbredden. de_forge01 skal måles igen.
+- de_dust2 brugte YaPB's medfølgende graf og er ikke påvirket.
+- Smoke: 3 runder er for få til "begge sites nået", fordi bots ofte vælger samme site flere runder i træk. Smoke spiller nu op til 6 runder mere, før et site erklæres unået (`smoke_extra_rounds`).
+
 ## Åbne punkter til mennesket
 
 - **Design-normerne er strengere end Valves egne maps.** Officielle maps har typisk passager på 40–56 units og mange lofter under 96. **Besluttet 2026-10-10: behold 64 / 96** for vores egne maps – bevidst lidt strengere end Valve (luft til bots og læsbarhed); det er warnings, så smalle steder kan stadig vælges bevidst.
