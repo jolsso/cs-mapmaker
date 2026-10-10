@@ -495,39 +495,130 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
     parts.append(analyze_section(b, out))
     parts.append(loop_section(cfg, name))
 
-    parts.append(
-        "<section id='decide' class='panel'><h2><span class='no'>8</span>Decide – iterationer</h2>"
-    )
+    parts.append(iterations_section(cfg, name, out))
+    return "".join(parts)
+
+
+def iterations_section(cfg: Config, name: str, out: Path) -> str:
+    """Timeline of all iterations (runs/<map>/<NNN>/), newest first: what was measured, what
+    Decide saw and why it changed what it changed, and what was actually applied."""
+    from mapforge.runs import runs_root
+
     runs = iterations(cfg, name)
+    parts = [
+        "<section id='decide' class='panel'><h2><span class='no'>8</span>Iterationer – målinger, beslutninger og rationaler</h2>"
+    ]
     if not runs:
-        parts.append("<p class='muted'>Ingen iterationer endnu.</p>")
+        parts.append("<p class='muted'>Ingen iterationer endnu.</p></section>")
+        return "".join(parts)
+    loop = _load(runs_root(cfg, name) / "loop.json") or {}
+    hist = {h["iteration"]: h for h in loop.get("history", [])}
+    best = (loop.get("best") or {}).get("iteration")
+    parts.append("<p class='muted'>Nyeste først. Hver iteration: billedet og målingen, Decides plan med begrundelse "
+                 "(hvilke fund den adresserer, forventet effekt, risiko) og hvad loopet faktisk ændrede.</p><div class='timeline'>")  # fmt: skip
     for run in reversed(runs):
-        stage, plan, dec = (_load(run / "stage.json") or {}), _load(run / "plan.json"), _load(
-            run / "decision.json")  # fmt: skip
-        head = f"<h3>Iteration {run.name}</h3><p class='muted'>Stoppede ved: {e(str(stage.get('reached')))}"
-        head += f" – {e(str(stage.get('why')))} · næste: {e(str(stage.get('next')))}</p>"
-        parts.append(f"<div class='card'>{head}")
+        h = hist.get(run.name, {})
+        plan, dec, applied = (
+            _load(run / "plan.json"),
+            _load(run / "decision.json"),
+            _load(run / "applied.json"),
+        )
+        review, m = _load(run / "review.json"), _load(run / "analysis" / "metrics.json")
+        base = _load(run / "baseline_analysis" / "metrics.json")
+        img_dir = out / "img" / "runs" / run.name
+        thumbs = []
+        for src, label in ((run / "renders" / "topdown.png", "top-down"),
+                           (run / "analysis" / "heatmaps" / "traffic_t.png", "trafik T"),
+                           (run / "analysis" / "heatmaps" / "traffic_ct.png", "trafik CT"),
+                           (run / "analysis" / "heatmaps" / "kills.png", "kills")):  # fmt: skip
+            if src.is_file():
+                _copy(src, img_dir / src.name)
+                f = f"img/runs/{run.name}/{src.name}"
+                thumbs.append(
+                    f"<a href='{f}' target='_blank' title='{e(label)}'><img src='{f}' loading='lazy' alt='{e(label)}'><span>{e(label)}</span></a>"
+                )
+        # status chips
+        chips = []
+        if review:
+            chips.append(_chip(review.get("passed"), "review bestået", "review fejlet"))
+        elif h.get("reached") in ("generate", "validate"):
+            chips.append("<span class='chip bad'>hårde krav fejlede</span>")
+        if h.get("reached") == "smoke":
+            chips.append("<span class='chip bad'>smoke fejlede</span>")
+        if run.name == best:
+            chips.append("<span class='chip ok'>★ bedste</span>")
+        if h.get("rollback"):
+            chips.append("<span class='chip bad'>rollback</span>")
+        if h.get("verdict"):
+            chips.append(f"<span class='chip'>ift. bedste: {e(h['verdict'])}</span>")
+        # measurement
+        meas = ""
+        for title, mm in (("Måling", m), ("Baseline-måling (ubalanceret udgangspunkt)", base)):
+            if not mm:
+                continue
+            met = mm.get("metrics", {})
+
+            def val(k, pct=True, met=met):
+                v = met.get(k, {}).get("value")
+                d = met.get(k, {}).get("distance")
+                txt = "–" if v is None else (f"{v:.0%}" if pct else f"{v:.0f} s")
+                cls = "" if d is None else "ok" if d == 0 else "bad"
+                return f"<span class='kv {cls}'><b>{txt}</b>{e(ANALYZE_NAMES.get(k, k))}</span>"
+
+            meas += (f"<div class='meas'><h4>{e(title)} · {mm.get('rounds')} runder · score <b>{mm.get('score')}</b></h4>"
+                     f"{val('t_winrate')}{val('site_split_a')}{val('first_contact_s', False)}{val('round_length_median_s', False)}"
+                     f"{val('dead_zone_share')}{val('max_kill_cell_share')}</div>")  # fmt: skip
+        if review and review.get("findings"):
+            sev = [f for f in review["findings"] if f["severity"] in ("critical", "major")]
+            if sev:
+                meas += (
+                    "<div class='meas'><h4>Review-fund der blokerede</h4><ul>"
+                    + "".join(
+                        f"<li><span class='sev-{e(f['severity'])}'>{e(f['severity'])}</span> {e(f['what'])}</li>"
+                        for f in sev
+                    )
+                    + "</ul></div>"
+                )
+        if h.get("note"):
+            meas += f"<p class='muted small'>Note: {e(h['note'])}</p>"
+        # decision
+        decision = ""
         if plan:
-            esc = (f"<p><span class='chip bad'>eskaleret</span> {e(plan.get('escalation_reason', ''))}</p>"
-                   if plan.get("escalate") else "")  # fmt: skip
-            parts.append(f"<p><b>Plan:</b> {e(plan.get('summary', ''))}</p>{esc}")
-            if plan.get("changes"):
-                rows = "".join(f"<tr><td><code>{e(c.get('type', ''))}</code></td><td>"
-                               f"{e(json.dumps(c.get('params', {}), ensure_ascii=False))}</td><td>"
-                               f"{e(c.get('rationale', ''))}</td></tr>" for c in plan["changes"])  # fmt: skip
-                parts.append("<div class='table'><table><tr><th>Ændring</th><th>Params</th><th>"
-                             f"Hvorfor</th></tr>{rows}</table></div>")  # fmt: skip
-        if dec:
-            parts.append(f"<p>Politik-tjek: {_chip(dec.get('ok'), 'accepteret', 'afvist')} "
-                         f"{len(dec.get('accepted', []))} accepteret, {len(dec.get('rejected', []))} "
-                         f"afvist · anvendt: {'ja' if dec.get('applied') else 'nej (tørkørsel)'}</p>")  # fmt: skip
-        if (run / "NOTES.md").is_file():
-            notes = _md((run / "NOTES.md").read_text(encoding="utf-8"))
-            parts.append(
-                f"<details><summary>NOTES.md</summary><div class='notes'>{notes}</div></details>"
+            if plan.get("escalate"):
+                decision += f"<p><span class='chip bad'>eskaleret</span> {e(plan.get('escalation_reason', ''))}</p>"
+            decision += f"<p class='plan'><b>Beslutning:</b> {e(plan.get('summary', ''))}</p>"
+            for c in plan.get("changes", []):
+                addr = "".join(f"<span class='chip'>{e(a)}</span>" for a in c.get("addresses", []))
+                decision += (f"<div class='change'><div><code>{e(c.get('type', ''))}</code> "
+                             f"<span class='muted small'>{e(json.dumps(c.get('params', {}), ensure_ascii=False))}</span></div>"
+                             f"<p><b>Hvorfor:</b> {e(c.get('rationale', ''))}</p>"
+                             + (f"<div class='phases'><span class='muted small'>adresserer:</span>{addr}</div>" if addr else "")
+                             + "</div>")  # fmt: skip
+            decision += (f"<p class='small'><b>Forventet effekt:</b> {e(plan.get('expected_effect', ''))}</p>"
+                         f"<p class='small muted'><b>Risiko:</b> {e(plan.get('risk', ''))}</p>")  # fmt: skip
+        if applied:
+            done = "".join(
+                f"<li class='ok'>{e(a['effect'])}</li>" for a in applied.get("applied", [])
             )
-        parts.append("</div>")
-    parts.append("</section>")
+            skipped = "".join(f"<li class='bad'>{e(f.get('type', ''))}: {e(f['reason'])}</li>"
+                              for f in applied.get("failed", []) + applied.get("rejected_by_policy", []))  # fmt: skip
+            decision += (f"<div class='applied'><b>Anvendt af loopet</b> <span class='muted small'>(på {e(applied.get('base', ''))})</span>"
+                         f"<ul>{done}{skipped or ''}</ul></div>")  # fmt: skip
+        elif dec:
+            decision += f"<p class='small'>Politik-tjek: {_chip(dec.get('ok'), 'accepteret', 'afvist')} · anvendt: {'ja' if dec.get('applied') else 'nej (tørkørsel)'}</p>"
+        if not plan:
+            step = loop.get("step") if loop.get("iteration") == run.name else None
+            decision += (
+                f"<p class='muted'>{'I gang: ' + e(step) if step else 'Ingen plan endnu.'}</p>"
+            )
+        notes = ""
+        if (run / "NOTES.md").is_file():
+            notes = f"<details open><summary>NOTES.md – Decides noter</summary><div class='notes'>{_md((run / 'NOTES.md').read_text(encoding='utf-8'))}</div></details>"
+        parts.append(f"<article class='iter' id='it{run.name}'><div class='iter-head'><h3>Iteration {e(run.name)}</h3>"
+                     f"<div class='phases'>{''.join(chips)}</div></div>"
+                     f"<div class='iter-body'><div class='thumbs'>{''.join(thumbs)}</div><div class='iter-text'>"
+                     f"{meas}{decision}{notes}</div></div></article>")  # fmt: skip
+    parts.append("</div></section>")
     return "".join(parts)
 
 

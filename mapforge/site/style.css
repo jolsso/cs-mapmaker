@@ -154,3 +154,27 @@ footer { color: var(--muted); font-size: 12px; text-align: center; padding-top: 
 @media (max-width: 900px) { .hero { grid-template-columns: 1fr; } .charts { grid-template-columns: 1fr; }
   .stepper { grid-template-columns: repeat(4, 1fr); } }
 @media (max-width: 560px) { .grid, .cards { grid-template-columns: 1fr; } h1 { font-size: 26px; } }
+
+/* iteration timeline */
+.timeline { display: grid; gap: 14px; border-left: 2px solid var(--line2); padding-left: 18px; }
+.iter { position: relative; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 10px; scroll-margin-top: 70px; }
+.iter::before { content: ""; position: absolute; left: -26px; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.iter-head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.iter-body { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; }
+.thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.thumbs a:first-child { grid-column: 1 / -1; }
+.thumbs a { position: relative; display: block; text-decoration: none !important; }
+.thumbs img { width: 100%; display: block; border-radius: 6px; border: 1px solid var(--line); }
+.thumbs span { position: absolute; left: 6px; bottom: 6px; font: 600 10px var(--mono); background: rgba(0, 0, 0, .7); color: var(--ink); padding: 1px 6px; border-radius: 4px; }
+.iter-text { display: grid; gap: 10px; min-width: 0; }
+.iter-text p { margin: 0; }
+.meas { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; }
+.meas h4 { margin: 0 0 2px; width: 100%; font: 600 12px var(--mono); color: var(--muted); letter-spacing: .04em; }
+.meas ul { margin: 0; padding-left: 18px; width: 100%; }
+.kv { display: grid; font-size: 11px; color: var(--muted); }
+.kv b { font: 600 18px var(--head); color: var(--ink); } .kv.ok b { color: var(--ok); } .kv.bad b { color: var(--bad); }
+.plan { font-size: 15px; }
+.change { border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; display: grid; gap: 6px; }
+.applied { background: var(--ok-soft); border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+.applied ul { margin: 4px 0 0; padding-left: 18px; } .applied li.bad { color: var(--bad); }
+@media (max-width: 900px) { .iter-body { grid-template-columns: 1fr; } }
