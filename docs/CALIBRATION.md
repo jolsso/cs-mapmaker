@@ -40,6 +40,24 @@ de_queens_v1 (custom map i installationen, 0 bomb targets, 2 spawns pr. hold) er
 | Korridor-checket fandt 20+ "smalle passager" på alle maps – mest kanter og catwalks | En passage skal have væg på begge sider; kant mod et fald tæller ikke. Clusters < 4 celler ignoreres. På referencemaps er normerne info. |
 | Tæt scanning af hele world-bounds: ~1,9 mia. opslag på de_mon | Erstattet af flood-fill fra spawns (kun nåbart område). |
 
+## Mørke zoner (fase 3)
+
+Lightmap-luma (0–255) af gulvet under hver gangbar celle (16×16 units), clusters ≥ 16 celler (64×64 units):
+
+| Map | luma < 8 | < 12 | < 16 | < 20 | < 30 |
+|---|---:|---:|---:|---:|---:|
+| de_dust2 | 2 | 5 | 6 | 9 | 12 |
+| de_nuke | 2 | 4 | 10 | 20 | 34 |
+| de_inferno | 0 | 1 | 1 | 1 | 1 |
+| de_aztec | 0 | 0 | 0 | 0 | 4 |
+| de_cbble | 1 | 2 | 3 | 3 | 8 |
+| de_train | 0 | 1 | 2 | 4 | 13 |
+| de_dust | 0 | 2 | 6 | 7 | 6 |
+| de_vertigo | 2 | 2 | 10 | 19 | 31 |
+| de_cold | 6 | 6 | 7 | 7 | 9 |
+
+Valgt: **luma < 10**. På dust2 giver det 4 zoner – B-tunnellerne, trappen ved B, under taget ved CT-dør og en passage på T-siden – dvs. Valves bevidst mørke steder. Officielle maps har altså 0–6 mørke zoner; FITNESS' mål om 0 gælder vores egne maps i art pass (fase 7).
+
 ## Åbne punkter til mennesket
 
 - **Design-normerne er strengere end Valves egne maps.** Officielle maps har typisk passager på 40–56 units og mange lofter under 96. **Besluttet 2026-10-10: behold 64 / 96** for vores egne maps – bevidst lidt strengere end Valve (luft til bots og læsbarhed); det er warnings, så smalle steder kan stadig vælges bevidst.

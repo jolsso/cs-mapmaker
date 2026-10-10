@@ -18,11 +18,12 @@ from PIL import Image
 from mapforge.bsp.reader import read_bsp
 from mapforge.config import Config, load_config
 from mapforge.refmaps import extract_archives, find_reference_bsp
+from mapforge.render.brightness import dark_zones, floor_brightness
 from mapforge.render.cameras import auto_cameras, configured_cameras
 from mapforge.render.gl import Renderer, look_at
 from mapforge.render.mesh import build_mesh
 from mapforge.render.textures import MISSING, WadIndex, wad_search_paths
-from mapforge.render.topdown import annotate, render_topdown
+from mapforge.render.topdown import annotate, draw_zones, render_topdown
 from mapforge.validate.checks import spawn_origins
 from mapforge.validate.walk import build_walk_graph
 
@@ -68,6 +69,26 @@ def render_map(cfg: Config, map_name: str, bsp_path: Path) -> dict[str, Any]:
     ):  # fmt: skip
         annotate(img, view, bsp, f"{map_name} - {name.removesuffix('.png')}").save(out_dir / name)
         images.append({"file": name, "kind": "topdown", "purpose": purpose, "view": view.to_dict()})
+    # Brightness where players stand (compiled lightmap of the floor) and dark zones.
+    bcfg = cfg.data["render"]["brightness"]
+    bright = floor_brightness(bsp, graph)
+    zones = dark_zones(bright, float(bcfg["dark_luma"]), graph.cell, int(bcfg["min_zone_cells"]))
+    dark_img = draw_zones(annotate(lit, view, bsp, f"{map_name} - dark zones"), view, zones)
+    dark_img.save(out_dir / "topdown_dark.png")
+    images.append({
+        "file": "topdown_dark.png", "kind": "topdown", "view": view.to_dict(),
+        "purpose": f"Dark zones (red): walkable floor with lightmap luma < {bcfg['dark_luma']} "
+                   f"over at least {int(bcfg['min_zone_cells'])} cells.",
+    })  # fmt: skip
+    q = np.percentile(bright.luma, [5, 25, 50]) if len(bright.luma) else [0, 0, 0]
+    brightness = {
+        "dark_luma": bcfg["dark_luma"],
+        "floor_cells": int(len(bright.luma)),
+        "unknown_cells": bright.unknown,
+        "luma_p5_p25_p50": [round(float(v), 1) for v in q],
+        "dark_zones": zones,
+    }
+
     # Perspective views: automatic presets + config/cameras/<map>.yaml.
     cams = auto_cameras(bsp, graph) + configured_cameras(
         cfg.root / "config" / "cameras" / f"{map_name}.yaml"
@@ -91,6 +112,7 @@ def render_map(cfg: Config, map_name: str, bsp_path: Path) -> dict[str, Any]:
         "images": images,
         "base_for_overlays": {"file": "topdown_raw.png", "view": view.to_dict()},
         "missing_textures": missing,
+        "brightness": brightness,
         "seconds": round(time.monotonic() - t0, 1),
     }
     (out_dir / "index.json").write_text(json.dumps(index, indent=2), encoding="utf-8")

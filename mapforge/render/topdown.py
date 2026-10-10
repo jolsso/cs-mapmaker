@@ -109,6 +109,19 @@ def annotate(img: np.ndarray, view: TopDownView, bsp: Bsp, title: str) -> Image.
     return im
 
 
+def draw_zones(im: Image.Image, view: TopDownView, zones: list[dict]) -> Image.Image:
+    """Red outlines + area labels for zones from brightness.dark_zones()."""
+    d = ImageDraw.Draw(im)
+    font = _font(max(11, view.width // 120))
+    for n, z in enumerate(zones, start=1):
+        (lo, hi) = z["bbox"]
+        (ax, ay), (bx, by) = view.to_px(np.array([[lo[0] - 8, hi[1] + 8], [hi[0] + 8, lo[1] - 8]]))
+        d.rectangle([ax, ay, bx, by], outline=(235, 40, 40), width=max(2, view.width // 700))
+        d.text((ax + 3, ay + 2), f"dark {n}", fill=(255, 90, 90), font=font, stroke_width=2,
+               stroke_fill=(0, 0, 0))  # fmt: skip
+    return im
+
+
 def render_topdown(renderer: Renderer, bsp: Bsp, graph: WalkGraph, z_range: tuple[float, float],
                    max_px: int = 2048) -> tuple[np.ndarray, np.ndarray, TopDownView]:  # fmt: skip
     """(textured+lit image, light-only image, view) seen from straight above."""

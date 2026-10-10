@@ -483,9 +483,9 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
         <div class="phase-head"><h3>Render</h3><span class="chip next">i gang</span></div>
         <ul>
           <li class="ok">Egen renderer (BSP + moderngl, headless i containeren): top-down med teksturer og rigtigt kompileret lys, tage over spillerhøjde skåret væk, spawns og sites tegnet på (dust2: 5 s)</li>
+          <li class="ok">Lysstyrke: lightmap under hver gangbar celle; mørke zoner (luma &lt; 10, ≥ 64×64 units) som rød kontur. dust2 har 4 (tunneller, CT-dør)</li>
           <li class="ok">Kameraer: perspektiv fra hver spawn og angribernes view ind på hvert site (korteste gåsti fra T-spawn); egne kameraer i <code>config/cameras/&lt;map&gt;.yaml</code></li>
-          <li>Lysstyrkekort fra lighting-lump, liste over mørke zoner</li>
-          <li>Klient-screenshots flyttet til fase 7 (egne renders har allerede lys)</li>
+                    <li>Klient-screenshots flyttet til fase 7 (egne renders har allerede lys)</li>
           <li>Review-trin: Claude ser billederne mod tjeklisten (og layout-spec'en, når mappet har en) før simulering; fejl går direkte til Decide</li>
         </ul>
         <p class="accept"><b>Accept:</b> <code>./mf render</code> laver alle billeder for de_dust2 på under 5 min, Review består på dust2, og et bevidst ødelagt referencemap fanges uden simulering. Efter fase 2 gentages testen på et genereret blockout.</p>

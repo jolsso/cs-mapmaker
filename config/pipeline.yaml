@@ -114,6 +114,12 @@ reference_maps:
 
 render:
   camera_size: [1280, 720]
+  # Dark zones: walkable floor whose compiled lightmap luma (0-255) is below dark_luma, in
+  # clusters of >= min_zone_cells walk cells (16x16 units). Calibrated on official maps
+  # (docs/CALIBRATION.md): 0-6 such zones per map there; FITNESS wants 0 for our maps (phase 7).
+  brightness:
+    dark_luma: 10
+    min_zone_cells: 16
   # WADs for textures not embedded in the .bsp. The map's own mod dir (<bsp>/../*.wad) is
   # always searched first; then these (missing dirs are skipped).
   wad_dirs:

@@ -167,6 +167,22 @@ class Bsp:
 
     # --- collision ------------------------------------------------------------------------
 
+    def point_leaf(self, points: np.ndarray) -> np.ndarray:
+        """Hull-0 leaf index of each point (n, 3) in the world model."""
+        pts = np.asarray(points, dtype=np.float64).reshape(-1, 3)
+        normals = self.planes["normal"].astype(np.float64)
+        dists = self.planes["dist"].astype(np.float64)
+        children = self.nodes["children"].astype(np.int64)
+        idx = np.full(len(pts), int(self.models[0]["headnode"][0]), dtype=np.int64)
+        active = idx >= 0
+        while active.any():
+            n = idx[active]
+            p = self.nodes["planenum"][n]
+            d = np.einsum("ij,ij->i", pts[active], normals[p]) - dists[p]
+            idx[active] = children[n, (d < 0).astype(np.int64)]
+            active = idx >= 0
+        return -(idx + 1)
+
     def point_contents(self, points: np.ndarray, hull: int = 0, model: int = 0) -> np.ndarray:
         """CONTENTS_* value for each point (n, 3) in a hull of a model (vectorised descent)."""
         pts = np.asarray(points, dtype=np.float64).reshape(-1, 3)
