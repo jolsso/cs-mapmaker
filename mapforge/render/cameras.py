@@ -39,6 +39,13 @@ def free_distance(bsp: Bsp, eye: np.ndarray, dirs: np.ndarray, max_dist: float =
     return np.where(hit, ts[np.argmax(solid, axis=1)], max_dist)
 
 
+def line_of_sight(bsp: Bsp, a: np.ndarray, b: np.ndarray, step: float = 16) -> bool:
+    """True if the segment a-b crosses no solid (hull 0)."""
+    n = max(2, int(np.linalg.norm(b - a) / step))
+    pts = a[None, :] + (b - a)[None, :] * np.linspace(0, 1, n)[:, None]
+    return not np.any(bsp.point_contents(pts) == CONTENTS_SOLID)
+
+
 def best_view(bsp: Bsp, eye: np.ndarray, prefer: np.ndarray, n: int = 24) -> np.ndarray:
     """Target point in the horizontal direction with the longest free sight line from eye;
     near-ties go to the direction closest to `prefer`."""
@@ -90,15 +97,22 @@ def auto_cameras(
         path = graph.shortest_path(t_seeds[0], targets)
         if not path:
             continue
-        # Walk back from the site entry until we are `approach` units (straight line) away.
+        # Walk back from the site entry; take the farthest point within `approach` units that
+        # still sees the site centre (hull-0 line of sight), so the camera never faces a wall.
         entry = feet[path[-1]]
+        target = np.r_[site_centre[:2], entry[2] + 32]
         pick = path[0]
+        best = -1.0
         for node in reversed(path):
-            if np.linalg.norm(feet[node, :2] - entry[:2]) >= approach:
-                pick = node
+            d = float(np.linalg.norm(feet[node, :2] - entry[:2]))
+            if d > approach * 1.5:
+                break
+            eye = feet[node] + [0, 0, EYE]
+            if d >= approach / 2 and d > best and line_of_sight(bsp, eye, target):
+                best, pick = d, node
+            if d >= approach and best >= 0:
                 break
         eye = feet[pick] + [0, 0, EYE]
-        target = np.r_[site_centre[:2], entry[2] + 32]
         cams.append(CameraSpec(f"site{n}_approach", _t(eye), _t(target), fov,
                                f"Attacker's view onto bomb site {n} from ~{approach:g} units "
                                "along the shortest walk from T spawn"))  # fmt: skip
