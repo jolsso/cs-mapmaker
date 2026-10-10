@@ -5,6 +5,7 @@ import pytest
 
 from mapforge.config import Config, load_config
 from mapforge.decide import run as decide
+from mapforge.review.run import input_hashes
 from mapforge.runs import iterations, stage_of
 
 VALID = {"ok": True, "summary": {}, "findings": [], "stats": {}}
@@ -21,7 +22,9 @@ def cfg(tmp_path) -> Config:
     (build / "renders" / "index.json").write_text("{}")
     (build / "renders" / "topdown.png").write_bytes(b"png")
     (build / "validation.json").write_text(json.dumps(VALID))
-    (build / "review.json").write_text(json.dumps({"passed": False, "findings": []}))
+    (build / "review.json").write_text(
+        json.dumps({"passed": False, "findings": [], "inputs": input_hashes(build)})
+    )
     return Config(root=base.root, data=data)
 
 
@@ -37,9 +40,23 @@ def cfg(tmp_path) -> Config:
 )
 def test_stage(tmp_path, files, reached, nxt):
     for name, body in files.items():
+        if name == "review.json":
+            (tmp_path / "validation.json").write_text(json.dumps(files["validation.json"]))
+            body = {**body, "inputs": input_hashes(tmp_path)}
         (tmp_path / name).write_text(json.dumps(body))
     s = stage_of(tmp_path)
     assert (s["reached"], s["next"]) == (reached, nxt)
+
+
+def test_stale_review_is_not_trusted(tmp_path):
+    (tmp_path / "validation.json").write_text(json.dumps({"ok": True}))
+    (tmp_path / "review.json").write_text(
+        json.dumps({"passed": True, "inputs": input_hashes(tmp_path)})
+    )
+    assert stage_of(tmp_path)["next"] == "simulate"
+    (tmp_path / "validation.json").write_text(json.dumps({"ok": True, "changed": 1}))
+    s = stage_of(tmp_path)
+    assert s["next"] == "review" and "stale" in s["why"] and s["review_passed"] is None
 
 
 def test_emit_collects_the_contract_and_numbers_runs(cfg):

@@ -15,6 +15,7 @@ Exit 0 = pass (or prompt emitted), 1 = fail, 2 = could not review.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -143,6 +144,18 @@ def call_claude(
             ("model", "total_cost_usd", "duration_ms", "num_turns", "session_id")}}  # fmt: skip
 
 
+REVIEW_INPUTS = ("validation.json", "renders/index.json")
+
+
+def input_hashes(build: Path) -> dict[str, str | None]:
+    """sha256 of the files a review was made from; a later mismatch means the review is stale."""
+    out: dict[str, str | None] = {}
+    for name in REVIEW_INPUTS:
+        p = build / name
+        out[name] = hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else None
+    return out
+
+
 def check_answer(answer: Any) -> dict[str, Any]:
     """Validate a review answer against SCHEMA (by hand: no jsonschema dependency)."""
     if not isinstance(answer, dict) or not isinstance(answer.get("summary"), str):
@@ -229,6 +242,7 @@ def review_map(
                 findings=findings,
             )
     result["seconds"] = round(time.monotonic() - t0, 1)
+    result["inputs"] = input_hashes(build)
     if result["passed"] is not None:
         (build / "review.json").write_text(
             json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"

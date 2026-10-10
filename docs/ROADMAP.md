@@ -58,9 +58,11 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 
 - [x] Input-kontrakt (ARCHITECTURE.md → 8 Decide) samles i `runs/<map>/<iteration>/` + `stage.json` (`mapforge/runs.py`, `./mf decide MAP=… -- --emit`)
 - [x] `plan.json`-skema; orchestrator-validering afviser ikke-tilladte ændringstyper og låste beslutninger (`config/fitness.yaml`, `mapforge/decide/policy.py`)
-- [ ] Claude Code headless (`claude -p`) får input og returnerer `plan.json` + `NOTES.md`
+- [x] Claude (session-subagent; `claude -p` muligt) får input og returnerer `plan.json` + `NOTES.md`
+- [x] Forældede reviews opdages: `review.json` gemmer hash af sine inputs; `stage.json` kræver nyt review, hvis renders/validering er ændret
 
 **Accept:** For dust2 og et bevidst ødelagt referencemap returnerer Decide en skema-gyldig plan, der adresserer de faktiske fund. Planen anvendes ikke endnu.
+✅ Opfyldt 2026-10-10: dust2 → 0 ændringer (review bestået; kun mørke zoner, som kun `lighting` kan rette, og den er først tilladt i fase 7) → næste trin simulering. de_dust2_sitemoved → eskalering: at flytte et bomb site ligger uden for værktøjskassen; subagenten afviste selv at dække over det med `move_spawn` og stillede mennesket to konkrete spørgsmål. Begge planer bestod politik-tjekket.
 
 ## Fase 2 – Generator + blockout
 **Mål:** Fra YAML-layout til spilbart graybox-map.

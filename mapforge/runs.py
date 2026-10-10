@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from mapforge.config import Config
+from mapforge.review.run import input_hashes
 
 
 def runs_root(cfg: Config, map_name: str) -> Path:
@@ -58,6 +59,9 @@ def stage_of(build: Path) -> dict[str, Any]:
         stage.update(reached="validate", why="hard requirements fail", next="fix")
     elif review is None:
         stage.update(reached="validate", why="not reviewed", next="review")
+    elif review.get("inputs") != input_hashes(build):
+        stale = "review is stale: renders or validation changed since"
+        stage.update(review_passed=None, reached="validate", why=stale, next="review")
     elif not review.get("passed"):
         stage.update(reached="review", why="review found critical/major problems", next="fix")
     elif metrics is None:

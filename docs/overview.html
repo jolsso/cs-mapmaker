@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0, 1, 1b, 3 færdig · fase 3b i gang</b></span>
+    <span>status <b>fase 0, 1, 1b, 3, 3b færdig · fase 2 næste</b></span>
     <span>opdateret <b>2026-10-10</b></span>
   </div>
   <div class="facts">
@@ -231,7 +231,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
             <rect x="620" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
             <rect x="770" y="50" width="128" height="96" rx="4"/>
             <rect x="920" y="50" width="128" height="96" rx="4"/>
-            <rect x="440" y="270" width="190" height="66" rx="4"/>
+            <rect x="440" y="270" width="190" height="66" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
           </g>
           <g font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">
             <text x="32" y="76">1 Generate</text>
@@ -495,23 +495,24 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       </div>
     </li>
 
-    <li class="phase next">
+    <li class="phase done">
       <div class="phase-no"><small>Fase</small>3b</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Decide (tørkørsel)</h3><span class="chip next">i gang</span></div>
+        <div class="phase-head"><h3>Decide (tørkørsel)</h3><span class="chip done">færdig</span></div>
         <ul>
           <li class="ok">Input-kontrakt samles i <code>runs/&lt;map&gt;/&lt;NNN&gt;/</code> (validation, review, renders, layout, .map + diff) + <code>stage.json</code> (hvor iterationen stoppede, hvad der er næste); <code>./mf decide</code> skriver prompten, <code>--answer</code> tjekker planen</li>
           <li class="ok"><code>plan.json</code>-skema og politik: kun typer fra værktøjskassen (<code>config/fitness.yaml</code>), grænser (fx ±256 units), max én forbindelse pr. iteration, låste landmarks/sites og frossen geometri afvises; ellers eskalering</li>
-          <li>Claude headless returnerer plan + NOTES.md for dust2 og et ødelagt referencemap</li>
+          <li class="ok">En subagent skriver plan + NOTES.md: dust2 → ingen ændringer, næste trin simulering; site-i-CT-spawn → eskalering (fixet ligger uden for værktøjskassen)</li>
+          <li class="ok">Forældede reviews opdages via hash af inputs</li>
         </ul>
         <p class="accept"><b>Accept:</b> skema-gyldig plan, der adresserer de faktiske fund. Anvendes ikke før generatoren findes.</p>
       </div>
     </li>
 
-    <li class="phase">
+    <li class="phase next">
       <div class="phase-no"><small>Fase</small>2</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Generator + blockout</h3><span class="chip">senere</span></div>
+        <div class="phase-head"><h3>Generator + blockout</h3><span class="chip next">næste</span></div>
         <ul>
           <li>Layout-spec i YAML: rum, korridorer, trapper, sites, spawns</li>
           <li>Generator med forseglet ydre skal; round-trip læs → ændr → skriv</li>
