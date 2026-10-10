@@ -85,3 +85,30 @@ def test_stop_reasons(tmp_path):
     assert "hårde krav" in loop.stop_reason(changed=True)
     loop.state["counters"].update(hard_fail=0, measured=6, since_best=5)
     assert "plateau" in loop.stop_reason(changed=True)
+
+
+def test_add_area_needs_a_shared_wall_and_no_overlap():
+    room = {"name": "test_room", "rect": [-1520, 400, -976, 912], "height": 160,
+            "doors": [{"to": "b_tunnel_n", "width": 128}, {"to": "mid_top", "width": 128}]}  # fmt: skip
+    new, applied, failed = apply_plan(LAYOUT, [{"type": "add_area", "params": room}])
+    assert len(applied) == 1 and not failed
+    assert any(a["name"] == "test_room" for a in yaml.safe_load(new)["areas"])
+    far = {**room, "rect": [-1264, 400, -976, 912]}  # not one wall from b_tunnel_n
+    over = {**room, "rect": [-1600, 400, -976, 912]}  # overlaps b_tunnel_n
+    _, applied, failed = apply_plan(
+        LAYOUT, [{"type": "add_area", "params": far}, {"type": "add_area", "params": over}]
+    )
+    assert (
+        not applied and "share a wall" in failed[0]["reason"] and "overlaps" in failed[1]["reason"]
+    )
+
+
+def test_policy_allows_area_changes_only_on_a_human_wish():
+    from mapforge.decide.policy import check_plan, load_fitness
+
+    plan = {"summary": "s", "expected_effect": "e", "risk": "r", "escalate": False,
+            "changes": [{"type": "remove_area", "params": {"target": "mid_to_b"}, "rationale": "x"},
+                        {"type": "remove_area", "params": {"target": "mid_to_b"}, "rationale": "x",
+                         "addresses": ["annotation:4"]}]}  # fmt: skip
+    v = check_plan(plan, load_fitness(), 6)
+    assert len(v.rejected) == 1 and "human" in v.rejected[0]["reason"] and len(v.accepted) == 1

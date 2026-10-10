@@ -173,6 +173,43 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
             raise ValueError(f"door {door['name']!r} is protected (locked topology)")
         lay["doors"].remove(door)
         return f"door {door['name']} between {a} and {b} removed"
+    if t == "add_area":
+        name = str(p["name"])
+        if any(x["name"] == name for x in lay["areas"]):
+            raise ValueError(f"an area named {name!r} exists already")
+        x0, y0, x1, y1 = _vec(p["rect"], 4, grid, "rect")
+        if not (x0 < x1 and y0 < y1):
+            raise ValueError("rect must be [x0, y0, x1, y1] with x0 < x1, y0 < y1")
+        for other in lay["areas"]:
+            ox0, oy0, ox1, oy1 = other["rect"]
+            if x0 < ox1 and ox0 < x1 and y0 < oy1 and oy0 < y1:
+                raise ValueError(f"rect overlaps area {other['name']!r} (areas are one wall apart)")
+        (h,) = _vec(p.get("height", 160), 1, grid, "height")
+        area = {"name": name, "rect": _flow([x0, y0, x1, y1]), "height": h,
+                "role": str(p.get("role", "corridor"))}  # fmt: skip
+        if p.get("floor"):
+            area["floor"] = _vec(p["floor"], 1, grid, "floor")[0]
+        if p.get("outdoor"):
+            area["outdoor"] = True
+        lay["areas"].append(_flow_map(area))
+        doors = p.get("doors") or []
+        if not doors:
+            raise ValueError("add_area needs doors: [{to, width}] (a closed room is unreachable)")
+        names = {d["name"] for d in lay["doors"]}
+        for d in doors:
+            to = str(d["to"])
+            _find(lay["areas"], to, "area")
+            w = _vec(d.get("width", 128), 1, grid, "width")[0]
+            dn, k = f"d_{name}_{to}", 2
+            while dn in names:
+                dn, k = f"d_{name}_{to}_{k}", k + 1
+            names.add(dn)
+            door = {"name": dn, "between": _flow([name, to]), "width": w}
+            if d.get("offset"):
+                door["offset"] = _vec(d["offset"], 1, 8, "offset")[0]
+            lay["doors"].append(_flow_map(door))
+        to = ", ".join(str(d["to"]) for d in doors)
+        return f"area {name} {[x0, y0, x1, y1]} added with doors to {to}"
     if t == "remove_area":
         area = _find(lay["areas"], str(p["target"]), "area")
         _guard_area(area, lay)

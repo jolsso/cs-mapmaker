@@ -223,10 +223,17 @@ class Loop:
     def _evaluate(self, m: dict[str, Any], sim_s: float) -> None:
         c = self.state["counters"]
         c["measured"] += 1
-        score, delta = m.get("score"), m.get("delta") or {}
+        bot_score, delta = m.get("score"), m.get("delta") or {}
         verdict = delta.get("verdict")
         best = self.state.get("best")
-        c["targets_met"] = c["targets_met"] + 1 if m.get("targets_met") else 0
+        # the structural design rules count too (DESIGN_GUIDE §9): each validator warning adds to
+        # the score, and "targets met" needs a map without warnings
+        v = _load(self.it_dir / "validation.json") or {}
+        warns = int(v.get("summary", {}).get("warnings", 0))
+        penalty = float(self.fitness.get("design_warning_penalty", 0.15))
+        score = None if bot_score is None else round(bot_score + penalty * warns, 4)
+        met = bool(m.get("targets_met")) and warns == 0
+        c["targets_met"] = c["targets_met"] + 1 if met else 0
         improved = best is None or (
             score is not None and score < best["score"] and verdict != "værre"
         )
@@ -237,7 +244,7 @@ class Loop:
         else:
             c["since_best"] += 1
         t = m.get("metrics", {})
-        self.record(reached="simulate", score=score, rounds=m.get("rounds"), verdict=verdict,
+        self.record(reached="simulate", score=score, bot_score=bot_score, design_warnings=warns, rounds=m.get("rounds"), verdict=verdict,
                     targets_met=m.get("targets_met"), sim_s=sim_s,
                     t_winrate=t.get("t_winrate", {}).get("value"),
                     site_split_a=t.get("site_split_a", {}).get("value"),
@@ -282,6 +289,11 @@ class Loop:
 
         d = self.it_dir
         decision = answer(self.cfg, d, float(self.cfg.data.get("decide", {}).get("phase", 6)))
+        from mapforge import annotations
+
+        for item in self._plan_needs_human():
+            annotations.mark_needs_human(self.cfg.path("maps_dir"), self.map, self.state["iteration"],
+                                         int(item["annotation"]), str(item.get("reason", "")))  # fmt: skip
         if decision.get("escalate"):
             from mapforge import annotations
 
@@ -325,6 +337,16 @@ class Loop:
         self.it_dir.mkdir(parents=True, exist_ok=True)
         self.save()
         return -1  # go on
+
+    def _plan_needs_human(self) -> list[dict[str, Any]]:
+        """Wishes Decide could not fulfil (plan.needs_human): marked, the loop goes on."""
+        plan = _load(self.it_dir / "plan.json") or {}
+        out = []
+        for item in plan.get("needs_human", []) or []:
+            ref = str(item.get("annotation", "")).removeprefix("annotation:")
+            if ref.isdigit():
+                out.append({**item, "annotation": ref})
+        return out
 
     def stop_reason(self, changed: bool) -> str | None:
         stop, budget = self.fitness.get("stop", {}), self.fitness.get("budget", {})

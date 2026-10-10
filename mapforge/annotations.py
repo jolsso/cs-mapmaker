@@ -153,3 +153,14 @@ def resolve(
     if changed:
         save(maps_dir, map_name, items)
     return changed
+
+
+def mark_needs_human(maps_dir: Path, map_name: str, iteration: str, ann_id: int, reason: str) -> bool:
+    """Decide could not fulfil a wish (outside the toolbox / against a locked decision)."""
+    items = load(maps_dir, map_name)
+    for a in items:
+        if a["id"] == ann_id and a["status"] == "open":
+            a.update(status="needs_human", resolution=f"iteration {iteration}: {reason[:300]}")
+            save(maps_dir, map_name, items)
+            return True
+    return False

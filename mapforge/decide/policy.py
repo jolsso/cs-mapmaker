@@ -35,6 +35,14 @@ PLAN_SCHEMA = {
         "expected_effect": {"type": "string"},
         "risk": {"type": "string"},
         "escalate": {"type": "boolean"},
+        "needs_human": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {"annotation": {"type": "string"}, "reason": {"type": "string"}},
+                "required": ["annotation", "reason"],
+            },
+        },
         "escalation_reason": {"type": "string"},
     },
     "required": ["summary", "changes", "expected_effect", "risk", "escalate"],

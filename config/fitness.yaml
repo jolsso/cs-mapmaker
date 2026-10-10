@@ -35,6 +35,10 @@ weights:
   max_kill_cell_share: 0.2
   round_length_median_s: 0.2
 
+# Each validator warning (structural design rules, timings) adds this to the loop's score, and
+# "targets met" needs zero warnings: the loop optimises structure, not only bot numbers.
+design_warning_penalty: 0.15
+
 budget:
   max_iterations: 20
   max_wall_clock_h: 12
@@ -79,6 +83,11 @@ allowed_changes:
     params: [from, to]
     before_gate_b_only: true
     max_per_iteration: 1
+  add_area:
+    description: Add an area (corridor/room) one wall from its neighbours, with doors to them
+    params: [name, rect, doors]      # rect [x0,y0,x1,y1] on the grid; doors [{to, width, offset?}]
+    before_gate_b_only: true
+    requires_annotation: true        # only when a human annotation asks for it
   remove_area:
     description: Remove an area (corridor/room) and its doors/cover/stairs; the space becomes solid
     params: [target]
