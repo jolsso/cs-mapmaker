@@ -183,7 +183,7 @@ simulate:
   # YaPB node distances tried in order until the smoke run reaches both bomb sites: the
   # analyser can leave whole areas unmapped (64 hits the node cap; 96 missed half of one
   # map where 80 and 112 worked; CALIBRATION.md)
-  graph_distances: [96, 80, 112, 128]
+  graph_distances: [80, 96, 112, 128]   # 80 first: 96 failed on 3 of 4 de_forge01 builds (2026-10-11)
   smoke_extra_rounds: 6      # if a bomb site was not reached in the smoke rounds, play this many more
   batch_rounds: 20          # rounds per batch, split over the servers
   max_rounds: 100           # stop after this many valid rounds (FITNESS min_rounds)
