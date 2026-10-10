@@ -602,12 +602,15 @@ def build_site(cfg: Config) -> Path:
 
     # Architecture & roadmap: the overview page (it carries its own styles).
     overview = (cfg.root / "docs" / "overview.html").read_text(encoding="utf-8")
-    nav = "".join(f"<a href='maps/{m}/index.html'>{e(m)}</a> " for m in maps)
-    banner = ("<div style='padding:10px 20px;font:14px system-ui;background:#24272b;color:#e4e2dd'>"
-              "<b>MapForge</b> · <a style='color:#f0904a' href='index.html'>Projekter</a> · "
-              f"{nav}</div>")  # fmt: skip
+    topbar = ("<header class='topbar'><div class='in'><a class='brand' href='index.html'><span class='mark'>MF</span>"
+              "MapForge</a><nav><a href='index.html'>Projekter</a><a class='on' href='architecture.html'>"
+              "Arkitektur &amp; roadmap</a></nav></div></header>")  # fmt: skip
+    marker = '<div class="wrap">'
+    page = overview.replace(marker, topbar + marker, 1) if marker in overview else topbar + overview
     (out / "architecture.html").write_text(
-        "<!doctype html><meta charset='utf-8'>" + banner + overview, encoding="utf-8"
+        "<!doctype html><html lang='da'><head><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width, initial-scale=1'>" + page,
+        encoding="utf-8",
     )
 
     def progress(m: str) -> int:
