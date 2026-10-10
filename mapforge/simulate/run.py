@@ -11,6 +11,10 @@ Output: <out>/{smoke,b01,b02,...}/<run_id>/ (CSV, server.log, demos) and <out>/s
 the loop (phase 6) passes runs/<map>/<NNN>/sim.
 
 Usage: python -m mapforge.simulate.run --map de_forge01 [--rounds N] [--smoke-only] [--watch]
+       [--bsp build/_final/de_forge01/de_forge01.bsp]   # same file as the CS client has
+
+A spectator (or `playdemo`) needs the exact .bsp the server ran: the client refuses a map that
+differs ("map differs from the server's").
 """
 
 from __future__ import annotations
@@ -262,6 +266,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--rounds", type=int, default=None, help="max valid rounds")
     parser.add_argument("--servers", type=int, default=None)
     parser.add_argument("--out", type=Path, default=None)
+    parser.add_argument(
+        "--bsp",
+        type=Path,
+        default=None,
+        help="this .bsp instead of the build (e.g. the final compile)",
+    )
     parser.add_argument("--smoke-only", action="store_true")
     parser.add_argument("--no-smoke", action="store_true")
     parser.add_argument(
@@ -269,8 +279,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     cfg = load_config()
-    bsp = resolve_bsp(cfg, args.map, args.source)
-    if bsp is None:
+    bsp = args.bsp if args.bsp else resolve_bsp(cfg, args.map, args.source)
+    if bsp is None or not bsp.is_file():
         print(f"no .bsp for {args.map} (compile it, or use --source reference)", file=sys.stderr)
         return 1
     out = args.out or cfg.path("build_dir") / args.map / "sim"
