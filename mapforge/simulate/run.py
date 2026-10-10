@@ -86,7 +86,8 @@ def smoke_checks(data: dict[str, list[dict]], bsp: Any, rounds: int, per_team: i
                 (p["x"], p["y"], p["z"])
             )
     moved = int(sum(np.ptp(np.array(v), axis=0)[:2].max() > 128 for v in tracks.values()))
-    pts = np.array([(p["x"], p["y"], p["z"]) for p in data["positions"] if p["alive"]])
+    # the attackers must reach both sites (CT spawn next to a site proves nothing about the graph)
+    pts = np.array([(p["x"], p["y"], p["z"]) for p in data["positions"] if p["alive"] and p["team"] == "T"])
     reached: dict[str, int] = {}
     for boxes, label in zip(bomb_sites(bsp), site_labels(bsp), strict=True):
         n = 0
