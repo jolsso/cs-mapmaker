@@ -128,7 +128,10 @@ render:
     - /refmaps/hl/valve
 
 review:
-  # Runs on the host (`claude` CLI + your login). null = Claude Code's default model.
+  # session: the Claude Code session (or a subagent) answers the emitted prompt (default);
+  # headless: `claude -p` on the host (unattended runs). Same prompt, schema, pass rule.
+  executor: session
+  # headless only: null = Claude Code's default model.
   model: null
   timeout_s: 600
   # login: use the claude.ai login (an ANTHROPIC_API_KEY in the environment is ignored for

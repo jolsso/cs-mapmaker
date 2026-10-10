@@ -58,7 +58,7 @@ tasks:
       - uv run python -m mapforge.render.run --map {{.MAP}} --source {{.SOURCE | default "map"}}
 
   review:
-    desc: Review gate (HOST ONLY, needs `claude`) -> build/<map>/review.json (MAP=<name>)
+    desc: Review gate -> build/<map>/review.json (MAP=<name>; -- --emit|--answer|--headless)
     requires:
       vars: [MAP]
     cmds:

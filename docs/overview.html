@@ -488,6 +488,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <li class="ok">Kameraer: perspektiv fra hver spawn og angribernes view ind på hvert site (korteste gåsti fra T-spawn); egne kameraer i <code>config/cameras/&lt;map&gt;.yaml</code></li>
                     <li>Klient-screenshots flyttet til fase 7 (egne renders har allerede lys)</li>
           <li class="ok">Review-trin: errors i validering stopper uden Claude-kald; ellers ser Claude billederne mod tjeklisten (og layout-spec'en). dust2 bestod på 23 s og fandt selv en fejl i T-spawn-kameraet, som er rettet</li>
+          <li class="ok">Review kører i Claude Code-sessionen: <code>./mf review</code> skriver prompten, en subagent svarer, <code>--answer</code> afgør pass. <code>claude -p</code> beholdes til ubemandede kørsler</li>
           <li class="ok">To ødelagte dust2-varianter (T-spawns oven i CT; site 2 flyttet ind i CT-spawn) består validering, men fanges begge som critical af Review</li>
         </ul>
         <p class="accept"><b>Accept:</b> <code>./mf render</code> laver alle billeder for de_dust2 på under 5 min, Review består på dust2, og et bevidst ødelagt referencemap fanges uden simulering. Efter fase 2 gentages testen på et genereret blockout.</p>

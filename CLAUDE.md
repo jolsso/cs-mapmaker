@@ -49,7 +49,8 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf validate MAP=de_dust2 SOURCE=reference   # kun .bsp fra referencemaps (ingen compile/.map)
 ./mf refmaps                  # pak test_maps/*.rar ud og list referencemaps
 ./mf render MAP=<navn>        # top-down (lys + kun lys) → build/<map>/renders/ + index.json (SOURCE=reference for referencemaps)
-uv run task review MAP=<navn> # PÅ VÆRTEN (kræver `claude`): pre-sim-gate → build/<map>/review.json
+./mf review MAP=<navn>        # pre-sim-gate, trin 1: skriv review-prompt (+ skema)
+./mf review MAP=<navn> -- --answer   # trin 2: scor svaret → build/<map>/review.json
 ./mf simulate MAP=<navn>      # HLDS + YaPB, N runder         (Fase 4)
 ./mf analyze MAP=<navn>       # heatmaps + metrikker          (Fase 5)
 ./mf loop MAP=<navn>          # fuld iteration                (Fase 6)
@@ -59,6 +60,13 @@ Fallback til debugging på værten: `uv run task <navn>` (samme tasks, Windows-b
 - Compilerne bages ind i imaget under `/opt/tools` (`MAPFORGE_TOOLS_DIR`), venv ligger i `/opt/venv` – intet i containeren skriver til repoets `.venv` eller `tools/`.
 - **Referencemaps** (officielle fra din Half-Life-installation via `HL_DIR` i `.env`, community-maps i `test_maps/`) bruges kun til test og kalibrering. De er ophavsretsbeskyttede/ukendt licens: mountes read-only, pakkes ud i `build/refmaps/`, og intet fra dem må committes.
 - Projektet er ikke en installeret pakke (`[tool.uv] package = false`); moduler køres fra repo-roden.
+
+## Review og Decide i sessionen (standard)
+Den visuelle vurdering laves **i Claude Code-sessionen**, ikke af et separat API-kald (`review.executor: session`):
+1. `./mf review MAP=<navn>` skriver `build/<map>/review_prompt.md` og `review_schema.json` (stop, hvis validering har errors – så er review.json allerede FAIL).
+2. Start en **subagent** (frisk kontekst, kun Read/Write) med prompt-filen; den læser alle billeder og skriver `build/<map>/review_answer.json` efter skemaet.
+3. `./mf review MAP=<navn> -- --answer` validerer svaret og afgør pass/fail (ingen `critical`/`major`). Pass-reglen ligger i koden, ikke i modellen.
+Ubemandede kørsler (uden åben session) kan bruge `uv run task review MAP=<navn> -- --headless` på værten (`claude -p`, samme prompt/skema/regel).
 
 ## Compiler
 Vi bruger **SDHLT** (github.com/seedee/SDHLT), den vedligeholdte fork af Vluzacn's ZHLT v34 (VHLT). Version, URL, SHA256 og flag pr. profil står i `config/pipeline.yaml`; maskinspecifikke overrides i `config/pipeline.local.yaml` (gitignored).

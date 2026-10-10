@@ -1,10 +1,15 @@
-"""Review (pre-sim gate): deterministic checks, then Claude looks at the renders.
+"""Review (pre-sim gate): deterministic checks, then a visual review of the renders by Claude.
 
-Usage (on the host, where `claude` is installed and logged in):
-    uv run python -m mapforge.review.run --map de_dust2 [--model sonnet] [--dry-run]
+Three ways to run the visual part; all use the same prompt, schema and pass rule:
+  --emit             write build/<map>/review_prompt.md + review_schema.json and stop. The
+                     Claude Code session (or a subagent it starts) reads the prompt and the
+                     images and writes its JSON answer to build/<map>/review_answer.json.
+  --answer [FILE]    read that answer, check it against the schema, decide pass/fail.
+  --headless         call `claude -p` (unattended runs; needs `claude` on this machine).
+Default (no flag) = review.executor in config (session -> --emit).
 
-Reads build/<map>/validation.json and build/<map>/renders/index.json; writes
-build/<map>/review.json. Exit 0 = pass, 1 = fail, 2 = could not review.
+Reads build/<map>/validation.json and renders/index.json; writes build/<map>/review.json.
+Exit 0 = pass (or prompt emitted), 1 = fail, 2 = could not review.
 """
 
 from __future__ import annotations
@@ -46,6 +51,14 @@ SCHEMA = {
 }
 
 
+def _shown(path: Path, root: Path) -> str:
+    """Path relative to the repo root when inside it (works from host and container)."""
+    try:
+        return path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return path.resolve().as_posix()
+
+
 def validation_summary(v: dict[str, Any]) -> str:
     """Compact, model-readable digest of validation.json (no huge arrays)."""
     lines = [f"ok={v['ok']} summary={v['summary']}"]
@@ -71,7 +84,7 @@ def build_prompt(cfg: Config, map_name: str, validation: dict, index: dict, rend
     template = (rcfg / "prompt.md").read_text(encoding="utf-8")
     checklist = (rcfg / "checklist.md").read_text(encoding="utf-8")
     images = "\n".join(
-        f"- {(renders / i['file']).resolve().as_posix()} — {i['purpose']}" for i in index["images"]
+        f"- {_shown(renders / i['file'], cfg.root)} — {i['purpose']}" for i in index["images"]
     )
     layout_path = cfg.path("maps_dir") / map_name / "layout.yaml"
     layout = (
@@ -113,7 +126,7 @@ def call_claude(
         env.pop("ANTHROPIC_API_KEY", None)
     proc = subprocess.run(
         cmd, input=prompt, capture_output=True, text=True, encoding="utf-8", timeout=timeout,
-        env=env,
+        env=env, cwd=add_dir,
     )  # fmt: skip
     try:
         envelope = json.loads(proc.stdout)
@@ -130,7 +143,31 @@ def call_claude(
             ("model", "total_cost_usd", "duration_ms", "num_turns", "session_id")}}  # fmt: skip
 
 
-def review_map(cfg: Config, map_name: str, model: str | None, dry_run: bool) -> dict[str, Any]:
+def check_answer(answer: Any) -> dict[str, Any]:
+    """Validate a review answer against SCHEMA (by hand: no jsonschema dependency)."""
+    if not isinstance(answer, dict) or not isinstance(answer.get("summary"), str):
+        raise RuntimeError("answer must be an object with a string 'summary'")
+    findings = answer.get("findings")
+    if not isinstance(findings, list):
+        raise RuntimeError("answer.findings must be a list")
+    for i, f in enumerate(findings):
+        keys = ("severity", "where", "what", "image")
+        missing = [k for k in keys if not isinstance(f.get(k), str)]
+        if missing:
+            raise RuntimeError(f"finding {i} lacks string field(s): {missing}")
+        if f["severity"] not in SEVERITIES:
+            raise RuntimeError(f"finding {i}: severity must be one of {SEVERITIES}")
+    return answer
+
+
+def review_map(
+    cfg: Config,
+    map_name: str,
+    mode: str = "emit",
+    model: str | None = None,
+    answer_path: Path | None = None,
+) -> dict[str, Any]:
+    """mode: 'emit' (write prompt), 'answer' (score an answer file) or 'headless' (claude -p)."""
     build = cfg.path("build_dir") / map_name
     renders = build / "renders"
     vpath, ipath = build / "validation.json", renders / "index.json"
@@ -140,7 +177,7 @@ def review_map(cfg: Config, map_name: str, model: str | None, dry_run: bool) -> 
     validation = json.loads(vpath.read_text(encoding="utf-8"))
     index = json.loads(ipath.read_text(encoding="utf-8"))
     t0 = time.monotonic()
-    result: dict[str, Any] = {"map": map_name, "stage": "deterministic"}
+    result: dict[str, Any] = {"map": map_name, "stage": "deterministic", "executor": None}
 
     if not validation["ok"]:
         errors = [f for f in validation["findings"] if f["severity"] == "error"]
@@ -155,48 +192,84 @@ def review_map(cfg: Config, map_name: str, model: str | None, dry_run: bool) -> 
                     "image": "validation.json",
                 }
                 for f in errors
-            ],  # fmt: skip
+            ],
         )
     else:
+        result["stage"] = "visual"
         prompt = build_prompt(cfg, map_name, validation, index, renders)
         (build / "review_prompt.md").write_text(prompt, encoding="utf-8")
-        result["stage"] = "visual"
-        if dry_run:
-            result.update(passed=None, summary="dry run: prompt written, Claude not called",
-                          findings=[])  # fmt: skip
+        (build / "review_schema.json").write_text(json.dumps(SCHEMA, indent=2), encoding="utf-8")
+        if mode == "emit":
+            answer_at = _shown(build / "review_answer.json", cfg.root)
+            result.update(
+                passed=None,
+                executor="session",
+                summary=f"prompt written; answer to {answer_at}, then --answer",
+                findings=[],
+            )
         else:
-            timeout = int(cfg.data.get("review", {}).get("timeout_s", 600))
-            auth = cfg.data.get("review", {}).get("auth", "login")
-            got = call_claude(prompt, renders.resolve(), model, timeout, auth)
-            answer = got["answer"]
-            findings = [f for f in answer.get("findings", []) if f.get("severity") in SEVERITIES]
+            if mode == "answer":
+                path = answer_path or build / "review_answer.json"
+                answer = check_answer(json.loads(path.read_text(encoding="utf-8")))
+                result["executor"] = "session"
+            elif mode == "headless":
+                rcfg = cfg.data.get("review", {})
+                got = call_claude(
+                    prompt, cfg.root, model, int(rcfg.get("timeout_s", 600)),
+                    rcfg.get("auth", "login"),
+                )  # fmt: skip
+                answer = check_answer(got["answer"])
+                result.update(executor="headless", claude=got["envelope"])
+            else:
+                raise RuntimeError(f"unknown review mode {mode!r}")
+            findings = answer["findings"]
             result.update(
                 passed=not any(f["severity"] in BLOCKING for f in findings),
-                summary=answer.get("summary", ""),
+                summary=answer["summary"],
                 findings=findings,
-                claude=got["envelope"],
             )
     result["seconds"] = round(time.monotonic() - t0, 1)
-    (build / "review.json").write_text(json.dumps(result, indent=2, ensure_ascii=False),
-                                       encoding="utf-8")  # fmt: skip
+    if result["passed"] is not None:
+        (build / "review.json").write_text(
+            json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
     return result
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
+    )
     parser.add_argument("--map", required=True)
-    parser.add_argument("--model", default=None, help="claude model alias, e.g. sonnet / opus")
-    parser.add_argument("--dry-run", action="store_true", help="write the prompt, skip Claude")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--emit", action="store_true", help="write prompt + schema and stop")
+    group.add_argument(
+        "--answer", nargs="?", const="", metavar="FILE",
+        help="score an answer (default build/<map>/review_answer.json)",
+    )  # fmt: skip
+    group.add_argument("--headless", action="store_true", help="call `claude -p`")
+    parser.add_argument("--model", default=None, help="claude model alias (headless only)")
     args = parser.parse_args(argv)
     cfg = load_config()
+    rcfg = cfg.data.get("review", {})
+    if args.answer is not None:
+        mode = "answer"
+    elif args.headless:
+        mode = "headless"
+    elif args.emit:
+        mode = "emit"
+    else:
+        mode = "headless" if rcfg.get("executor") == "headless" else "emit"
     try:
-        r = review_map(cfg, args.map, args.model or cfg.data.get("review", {}).get("model"),
-                       args.dry_run)  # fmt: skip
-    except (RuntimeError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
+        r = review_map(
+            cfg, args.map, mode, args.model or rcfg.get("model"),
+            Path(args.answer) if args.answer else None,
+        )  # fmt: skip
+    except (RuntimeError, OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
         print(f"review failed to run: {exc}", file=sys.stderr)
         return 2
-    verdict = {True: "PASS", False: "FAIL", None: "DRY RUN"}[r["passed"]]
-    print(f"review {args.map}: {verdict} ({r['stage']}, {r['seconds']} s) – {r['summary']}")
+    verdict = {True: "PASS", False: "FAIL", None: "PROMPT READY"}[r["passed"]]
+    print(f"review {args.map}: {verdict} ({r['stage']}, {r['seconds']} s) - {r['summary']}")
     for f in r["findings"]:
         print(f"  [{f['severity']}] {f['where']}: {f['what']} ({f['image']})")
     return 0 if r["passed"] or r["passed"] is None else 1
