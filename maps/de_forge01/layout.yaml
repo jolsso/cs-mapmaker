@@ -128,6 +128,10 @@ cover:
   - {name: b_tun_wall, area: b_tunnels, pos: [-1664, 0], size: [256, 32, 160]}
   - {name: b_tun_box, area: b_tunnels, pos: [-1472, 224], size: [64, 64, 64]}
   - {name: b_cut_chicane, area: t_b_cut, pos: [-1184, -800], size: [160, 32, 128]}
+  - {name: b_tunnels_cover, area: b_tunnels, pos: [-1920, 0], size: [256, 32, 160]}
+  - {name: b_tunnels_cover_2, area: b_tunnels, pos: [-1600, -152], size: [32, 272, 160]}
+  - {name: t_b_cut_cover, area: t_b_cut, pos: [-1088, -1120], size: [160, 32, 128]}
+  - {name: t_b_cut_cover_2, area: t_b_cut, pos: [-1088, -480], size: [160, 32, 128]}
 
 sites: {A: a_site, B: b_site}
 spawns:
