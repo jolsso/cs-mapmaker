@@ -138,7 +138,7 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
   <span class="eyebrow">CS 1.6 · GoldSrc · cs-mapmaker</span>
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
-  <div class="progress" aria-label="Fremdrift: fase 0–5 og Gate A færdig, fase 6 næste">
+  <div class="progress" aria-label="Fremdrift: fase 0–6 og Gate A færdig, Gate B næste">
     <div class="done"><i></i>0</div>
     <div class="done"><i></i>1</div>
     <div class="done"><i></i>1b</div>
@@ -148,13 +148,13 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
     <div class="done g"><i></i>A</div>
     <div class="done"><i></i>4</div>
     <div class="done"><i></i>5</div>
-    <div class="next"><i></i>6</div>
-    <div class="g"><i></i>B</div>
+    <div class="done"><i></i>6</div>
+    <div class="g next"><i></i>B</div>
     <div class=""><i></i>7</div>
     <div class="g"><i></i>C</div>
   </div>
   <div class="facts">
-    <span>status <b>fase 0–5 og Gate A færdig · fase 6 næste</b></span>
+    <span>status <b>fase 0–6 og Gate A færdig · loop på de_forge01 → Gate B</b></span>
     <span>opdateret <b>2026-10-10</b></span>
     <span>designguide <b>docs/DESIGN_GUIDE.md</b></span>
     <span>alle outputs: <b>http://localhost:8080</b> (lokalt website)</span>
@@ -530,15 +530,18 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
       </div>
     </li>
 
-    <li class="phase next">
+    <li class="phase done">
       <div class="phase-no"><small>Fase</small>6</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Autonomt loop</h3><span class="chip next">næste</span></div>
+        <div class="phase-head"><h3>Autonomt loop</h3><span class="chip done">færdig</span></div>
         <ul>
-          <li>Orchestrator med budget, stopkriterier og rollback ved forværring</li>
-          <li>To-hastigheds-loop: hurtige iterationer, indtil Review består; først da bot-tid</li>
-          <li>Claude headless får metrikker og billeder og returnerer en ændringsplan</li>
-          <li><code>runs/</code>-log med NOTES.md pr. iteration</li>
+          <li class="ok">Orchestrator (<code>./mf loop</code>) med budget, stopkriterier og rollback ved forværring</li>
+          <li class="ok">To-hastigheds-loop: hurtige iterationer, indtil Review består; først da bot-tid</li>
+          <li class="ok">Review og Decide besvares af friske subagents i sessionen; planen anvendes på <code>layout.yaml</code> (låste sites/spawns og beskyttede chokepoints afvises)</li>
+          <li class="ok"><code>runs/</code>-log med NOTES.md pr. iteration; tidslinje med rationaler på websitet</li>
+          <li class="ok">Accept på de_tilt01: score 2,11 → 1,21 → 0,04 i to ændringer (T-winrate 0,56 på 100 runder)</li>
+          <li class="ok">Live-visning af kørende simuleringer (UDP → Server-Sent Events)</li>
+          <li class="add">YaPB-graf verificeres af smoke og laves om med anden nodeafstand, hvis et site er umappet</li>
         </ul>
         <p class="accept"><b>Accept:</b> loopet flytter et bevidst ubalanceret map mod målintervallerne uden at bryde låste beslutninger.</p>
       </div>

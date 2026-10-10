@@ -98,6 +98,7 @@ class Loop:
 
     def stop(self, reason: str) -> int:
         self.state.update(status="stopped", stop_reason=reason, step="done")
+        self.state.pop("awaiting", None)
         self.save()
         self.log(f"STOP: {reason} (summary: {_rel(self.cfg, self.root / 'LOOP.md')})")
         return 0
@@ -400,10 +401,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--force-sim", action="store_true",
                         help="with --init: measure the first iteration even if review fails (baseline)")  # fmt: skip
     parser.add_argument("--status", action="store_true")
+    parser.add_argument("--stop", metavar="REASON", help="stop the loop by hand (a person decided)")
     args = parser.parse_args(argv)
     cfg = load_config()
     loop = Loop(cfg, args.map)
     try:
+        if args.stop:
+            if not loop.state:
+                raise RuntimeError(f"no loop for {args.map}")
+            return loop.stop(f"stoppet manuelt: {args.stop}")
         if args.status:
             print(loop.report() if loop.state else f"no loop for {args.map}")
             return 0

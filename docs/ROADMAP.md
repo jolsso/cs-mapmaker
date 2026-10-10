@@ -121,6 +121,9 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [x] `runs/`-log med NOTES.md pr. iteration
 
 **Accept:** Loopet forbedrer et bevidst ubalanceret map mod målintervallerne uden at bryde låste beslutninger.
+- ✅ 2026-10-10 på de_tilt01 (de_forge01 uden CT's direkte vej til B). Score 2,11 → 1,21 → **0,04** i to iterationer: Decide genskabte CT-døren til B (review-major + timing) og fjernede en kasse, hvor CT-bots klumpede sig (heatmap + kill-celle). 100 runder i iteration 003: T 0,56 [0,46–0,65], A-plants 0,56, første kontakt 16 s, runde 63 s, døde zoner 18 %. Ingen låste beslutninger rørt. `runs/de_tilt01/LOOP.md`.
+- Fundet undervejs: YaPB's automatiske graf kan efterlade hele områder umappede → graf-retry (CALIBRATION.md). Live-visning af kørende simuleringer på websitet (`docker compose up -d live`).
+- Næste: loopet på de_forge01 (tidligere målinger er ugyldige pga. grafen) frem mod Gate B.
 
 🚦 **Gate B – Geometri låst:** Mennesket godkender balance. Geometri fryses før art pass.
 
