@@ -539,9 +539,9 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <li class="ok">Tracker-plugin skriver <code>positions</code>, <code>events</code>, <code>rounds</code>.csv; skema tjekkes af runneren</li>
           <li class="ok">Smoke-kørsel (3 runder): de_forge01 OK – 5 mod 5 bots, begge sites nået, plants på A og B</li>
           <li class="ok">Hurtigere end realtid: ReHLDS <code>sys_timescale</code>, målt ≈ 4×</li>
-          <li>Batches à 20 runder med Wilson-interval og tidligt stop, 2 servere parallelt</li>
+          <li class="ok">Batches à 20 runder med Wilson-interval og tidligt stop, 2 servere parallelt: 50 runder på 10,5 min, 0 schema-fejl (T-winrate 0,46, A-plants 0,63)</li>
           <li>Spectator-adgang: <code>connect localhost:27015</code> fra din CS-klient; tracker logger kun bots</li>
-          <li>Demo-optagelse pr. run (HLTV i containeren), genses med <code>playdemo</code></li>
+          <li>Demo-optagelse pr. run (HLTV i containeren) – optages; mangler din test med <code>playdemo</code></li>
         </ul>
         <p class="accept"><b>Accept:</b> 50 runder kører uden indgriben, og CSV valideres mod skemaet. Du kan kigge med som spectator uden at påvirke data, og et run kan genses som demo.</p>
       </div>
