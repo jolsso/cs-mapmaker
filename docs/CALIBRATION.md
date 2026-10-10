@@ -42,5 +42,5 @@ de_queens_v1 (custom map i installationen, 0 bomb targets, 2 spawns pr. hold) er
 
 ## Åbne punkter til mennesket
 
-- **Design-normerne er strengere end Valves egne maps.** Officielle maps har typisk passager på 40–56 units og mange lofter under 96 (CLAUDE.md siger min. 64 bredde, 96–128 højde). Skal normerne for vores egne maps sænkes (fx 48 / 80), eller skal vi bevidst være strengere end Valve?
+- **Design-normerne er strengere end Valves egne maps.** Officielle maps har typisk passager på 40–56 units og mange lofter under 96. **Besluttet 2026-10-10: behold 64 / 96** for vores egne maps – bevidst lidt strengere end Valve (luft til bots og læsbarhed); det er warnings, så smalle steder kan stadig vælges bevidst.
 - **Tid.** Validate tager 12 s på dust2 men ~5 min på store udendørsmaps (de_mon). Fint nu; kan optimeres med grovere grid til nåbarhed, hvis det bliver flaskehalsen.

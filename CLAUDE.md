@@ -26,7 +26,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ## GoldSrc-fakta (design-normer)
 - 1 unit ≈ 1 inch. Grid: arbejd på 16/8-grid; aldrig off-grid vertices.
 - Spillerhull: 32×32×72 (stående), 32×32×36 (crouch). Max trinhøjde: 18 units.
-- Korridorer/døre: min. 64 bred, 96–128 høj som tommelfingerregel.
+- Korridorer/døre: min. 64 bred, 96–128 høj som tommelfingerregel. Bevidst strengere end Valves egne maps (typisk 40–56 brede passager) – besluttet 2026-10-10, se `docs/CALIBRATION.md`.
 - Brushes skal være konvekse. Ingen leaks: hele spilområdet skal være forseglet af world brushes.
 - Map-grænser: ±4096 units.
 - Hold øje med engine-limits (clipnodes, planes, entities/edicts, texture memory) og r_speeds (wpoly). Mål: < ~800 wpoly i spilområder (retningslinje).
