@@ -1,0 +1,120 @@
+# de_forge01 – first generated blockout (phase 2). Graybox; geometry only.
+#
+#        B site ─ ct_to_b ─ CT spawn ─ ct_to_a ─ A site (raised 32, stairs)
+#          │         │                     │          │
+#          │      b_short               a_short       │      (iteration 2: review found each
+#      b_tunnel_n    └──── mid_top (junction) ────┘   long_ec_n   site had one T entrance and mid
+#          │                    │                      │        ran straight into CT spawn)
+#      b_tunnels ─ mid_to_b ── MID ── mid_to_long ── a_long
+#          │                    │                      │
+#      b_tunnel_s            mid_s               long_ec_s
+#          │                    │                      │
+#       b_start ── t_to_b ── T spawn ── t_to_long ── a_long_start
+#
+# 3x3 zones of 768x768 on columns x = -1696..-928 | -384..384 | 928..1696 and the same rows in y;
+# connectors fill the 512-unit gaps, always exactly one 16-unit wall away from their neighbours.
+
+name: de_forge01
+grid: 16
+wall: 16
+sky:
+  name: desert
+  sun: {pitch: -55, yaw: 120, color: [255, 238, 210], brightness: 300, ambient: 110}
+lights: {spacing: 320, brightness: 230, color: [255, 232, 200]}
+
+areas:
+  # --- spawns and sites (zone centres) ---
+  - {name: t_spawn,  rect: [-384, -1696, 384, -928], height: 256, outdoor: true, role: t_spawn}
+  - {name: ct_spawn, rect: [-384, 928, 384, 1696],   height: 256, outdoor: true, role: ct_spawn}
+  - {name: a_site,   rect: [928, 928, 1696, 1696],   floor: 32, height: 320, outdoor: true, role: site}
+  - {name: b_site,   rect: [-1696, 928, -928, 1696], height: 224, role: site}
+  - {name: mid,      rect: [-384, -384, 384, 384],   height: 288, outdoor: true, role: mid}
+  # --- east (A long) ---
+  - {name: a_long_start, rect: [928, -1696, 1696, -928], height: 288, outdoor: true, role: corridor}
+  - {name: a_long,       rect: [928, -384, 1696, 384],   height: 288, outdoor: true, role: corridor}
+  - {name: long_ec_s,    rect: [1120, -912, 1504, -400], height: 288, outdoor: true, role: corridor}
+  - {name: long_ec_n,    rect: [1120, 400, 1504, 912],   height: 288, outdoor: true, role: corridor}
+  # --- west (B tunnels) ---
+  - {name: b_start,     rect: [-1696, -1696, -928, -928], height: 256, outdoor: true, role: corridor}
+  - {name: b_tunnels,   rect: [-1696, -384, -928, 384],   height: 160, role: corridor}
+  - {name: b_tunnel_s,  rect: [-1440, -912, -1184, -400], height: 144, role: corridor}
+  - {name: b_tunnel_n,  rect: [-1440, 400, -1184, 912],   height: 144, role: corridor}
+  # --- middle column and cross connectors ---
+  - {name: mid_s,       rect: [-192, -912, 192, -400],  height: 256, outdoor: true, role: corridor}
+  - {name: mid_top,     rect: [-912, 400, 912, 912],    height: 256, outdoor: true, role: mid}
+  - {name: a_short,     rect: [400, 928, 912, 1168],    height: 192, role: corridor}
+  - {name: b_short,     rect: [-912, 928, -400, 1168],  height: 192, role: corridor}
+  - {name: t_to_long,   rect: [400, -1504, 912, -1120], height: 192, role: corridor}
+  - {name: t_to_b,      rect: [-912, -1504, -400, -1120], height: 192, role: corridor}
+  - {name: mid_to_long, rect: [400, -128, 912, 128],    height: 160, role: corridor}
+  - {name: mid_to_b,    rect: [-912, -128, -400, 128],  height: 144, role: corridor}
+  - {name: ct_to_a,     rect: [400, 1184, 912, 1440],   height: 192, role: corridor}
+  - {name: ct_to_b,     rect: [-912, 1184, -400, 1440], height: 192, role: corridor}
+
+doors:
+  # T side
+  - {name: d_t_long,       between: [t_spawn, t_to_long],      width: 192}
+  - {name: d_long_start,   between: [t_to_long, a_long_start], width: 192}
+  - {name: d_t_b,          between: [t_spawn, t_to_b],         width: 192}
+  - {name: d_b_start,      between: [t_to_b, b_start],         width: 192}
+  - {name: d_t_mid,        between: [t_spawn, mid_s],          width: 256}
+  - {name: d_mid_s,        between: [mid_s, mid],              width: 256, offset: -64}
+  # A long
+  # staggered (iteration 3): aligned long doors gave a ~2100-unit sight line onto A
+  - {name: d_long_s1,      between: [a_long_start, long_ec_s], width: 192, offset: -96}
+  - {name: d_long_s2,      between: [long_ec_s, a_long],       width: 192, offset: 96}
+  - {name: d_long_n1,      between: [a_long, long_ec_n],       width: 192, offset: -96}
+  - {name: d_long_n2,      between: [long_ec_n, a_site],       width: 192, offset: 96}
+  # B tunnels
+  - {name: d_b_tun_s1,     between: [b_start, b_tunnel_s],     width: 160}
+  - {name: d_b_tun_s2,     between: [b_tunnel_s, b_tunnels],   width: 160}
+  - {name: d_b_tun_n1,     between: [b_tunnels, b_tunnel_n],   width: 160}
+  - {name: d_b_tun_n2,     between: [b_tunnel_n, b_site],      width: 160}
+  # mid
+  - {name: d_mid_long1,    between: [mid, mid_to_long],        width: 160}
+  - {name: d_mid_long2,    between: [mid_to_long, a_long],     width: 160}
+  - {name: d_mid_b1,       between: [mid, mid_to_b],           width: 128}
+  - {name: d_mid_b2,       between: [mid_to_b, b_tunnels],     width: 128}
+  - {name: d_mid_top,      between: [mid, mid_top],            width: 192, offset: 160}
+  - {name: d_top_ashort,   between: [mid_top, a_short],        width: 192}
+  - {name: d_ashort_cta,   between: [a_short, ct_to_a],        width: 192, offset: -96}
+  - {name: d_top_bshort,   between: [mid_top, b_short],        width: 192}
+  - {name: d_bshort_ctb,   between: [b_short, ct_to_b],        width: 192, offset: 96}
+  # CT side
+  - {name: d_ct_a1,        between: [ct_spawn, ct_to_a],       width: 192}
+  - {name: d_ct_a2,        between: [ct_to_a, a_site],         width: 192}
+  - {name: d_ct_b1,        between: [ct_spawn, ct_to_b],       width: 192}
+  - {name: d_ct_b2,        between: [ct_to_b, b_site],         width: 192}
+
+stairs:
+  # A site is 32 higher: steps up at the end of both approaches
+  - {name: a_steps_long, area: long_ec_n, axis: +y, rise: 32, step: 16, run: 32, start: 320}
+  - {name: a_steps_ct,   area: ct_to_a,   axis: +x, rise: 32, step: 16, run: 32, start: 320}
+
+cover:
+  # A site: double stack and a long wall, so attackers from long and CT both need angles
+  - {name: a_box_big,    area: a_site, pos: [1200, 1312], size: [128, 128, 96]}
+  - {name: a_box_small,  area: a_site, pos: [1328, 1248], size: [64, 64, 48]}
+  - {name: a_wall,       area: a_site, pos: [1520, 1056], size: [32, 192, 96]}
+  # B site: two pillars and a crate cluster
+  - {name: b_pillar_w,   area: b_site, pos: [-1504, 1248], size: [64, 64, 224]}
+  - {name: b_pillar_e,   area: b_site, pos: [-1120, 1376], size: [64, 64, 224]}
+  - {name: b_crates,     area: b_site, pos: [-1312, 1504], size: [128, 64, 64]}
+  # mid: breaks the north-south sight line between the spawns
+  - {name: mid_box,      area: mid,    pos: [0, 0],        size: [192, 96, 96]}
+  # long: cover halfway so long is not one open lane
+  - {name: long_box,     area: a_long, pos: [1408, 0],     size: [96, 96, 64]}
+  - {name: long_start_box, area: a_long_start, pos: [1312, -1216], size: [128, 64, 64]}
+  # B route: cover so the halls are not empty crossings
+  - {name: b_tun_wall,   area: b_tunnels, pos: [-1312, 0],   size: [256, 32, 160]}
+  - {name: b_tun_box,    area: b_tunnels, pos: [-1120, 224], size: [64, 64, 64]}
+  - {name: b_start_box,  area: b_start,   pos: [-1376, -1312], size: [128, 96, 64]}
+  - {name: b_start_wall, area: b_start,   pos: [-1088, -1088], size: [32, 192, 96]}
+  # mid_top junction: something to fight around in front of CT spawn
+  - {name: top_box,      area: mid_top,   pos: [-256, 656],  size: [96, 96, 64]}
+
+sites: {A: a_site, B: b_site}
+spawns:
+  T:  {area: t_spawn, count: 12}
+  CT: {area: ct_spawn, count: 12}
+buyzones: true

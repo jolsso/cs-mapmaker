@@ -70,9 +70,10 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 - [x] Layout-spec-format (YAML) dokumenteret – `docs/LAYOUT_SPEC.md` (Review i fase 3 bruger det til egne maps)
 - [x] Generator: rum, korridorer, trapper (ramper senere), sites, spawns, ydre skal – forseglet af konstruktion (`mapforge/generator/`)
 - [x] Round-trip: læs .map → ændr → skriv (`mapforge/mapfile/writer.py`)
-- [ ] Første de_-blockout genereret og compileret uden fejl
+- [x] Første de_-blockout genereret og compileret uden fejl (`maps/de_forge01/`)
 
-**Accept:** Et 2-site blockout passerer Fase 1-validering, inkl. nåbarhed.
+**Accept:** Et 2-site blockout passerer validering (fase 1 + 1b, inkl. nåbarhed) og Review.
+✅ Opfyldt 2026-10-10: `de_forge01` (23 områder, 27 døre, 143 brushes) – validering 0 errors/0 warnings, alle 24 spawns når begge sites; Review PASS i 3. runde (runde 1: én T-indgang pr. site + mid ind i CT-spawn; runde 2: lige sigtelinje ned ad long; begge rettet i layout.yaml).
 
 🚦 **Gate A – Layout:** Mennesket går rundt i blockout in-game. Er grundlayoutet sjovt og læsbart? Lås overordnet struktur i FITNESS.md.
 

@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0, 1, 1b, 3, 3b færdig · fase 2 i gang</b></span>
+    <span>status <b>fase 0, 1, 1b, 3, 3b, 2 færdig · 🚦 Gate A</b></span>
     <span>opdateret <b>2026-10-10</b></span>
     <span>alle outputs: <b>http://localhost:8080</b> (lokalt website)</span>
   </div>
@@ -510,14 +510,14 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       </div>
     </li>
 
-    <li class="phase next">
+    <li class="phase done">
       <div class="phase-no"><small>Fase</small>2</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Generator + blockout</h3><span class="chip next">i gang</span></div>
+        <div class="phase-head"><h3>Generator + blockout</h3><span class="chip done">færdig</span></div>
         <ul>
                     <li class="ok">Round-trip: læs .map → ændr → skriv (Valve 220-writer, kasse-brushes med tekstur pr. side)</li>
           <li class="ok">Layout-spec i YAML (<code>docs/LAYOUT_SPEC.md</code>) og generator: kun tomt rum beskrives, alt andet er solidt – forseglet af konstruktion, alle vertices på grid; døre, trapper, cover, sites, spawns, lys</li>
-          <li>Første 2-site de_-blockout</li>
+          <li class="ok">Første blockout <code>de_forge01</code>: 3×3 zoner, tre T-ruter, hævet A-site; Review bestået i 3. runde (rettede: én T-indgang pr. site, mid ind i CT-spawn, sigtelinje ned ad long)</li>
         </ul>
         <p class="accept"><b>Accept:</b> et 2-site blockout passerer validering (fase 1 + 1b) og Review.</p>
       </div>
