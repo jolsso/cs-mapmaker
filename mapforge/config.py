@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -65,4 +66,7 @@ def load_config(root: Path = REPO_ROOT) -> Config:
     local = config_dir / "pipeline.local.yaml"
     if local.exists():
         data = deep_merge(data, yaml.safe_load(local.read_text(encoding="utf-8")) or {})
+    # The forge image bakes compilers into /opt/tools, outside the mounted repo.
+    if tools_dir := os.environ.get("MAPFORGE_TOOLS_DIR"):
+        data["paths"]["tools_dir"] = tools_dir
     return Config(root=root, data=data)

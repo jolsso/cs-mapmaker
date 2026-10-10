@@ -1,6 +1,7 @@
 version: '3'
 
-# Run via `uv run task <name>` so go-task and Python come from the project venv.
+# Official: `./mf <name>` (runs inside the forge container).
+# Host fallback for debugging: `uv run task <name>`.
 
 vars:
   PROFILE: '{{.PROFILE | default "fast"}}'

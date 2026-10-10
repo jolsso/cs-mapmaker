@@ -21,6 +21,13 @@
 | 6 Analyze | CSV, renders | `metrics.json`, heatmaps | Python (pandas, numpy, matplotlib) |
 | 7 Decide | metrics, billeder, FITNESS.md | ændringsplan + næste .map | Claude Code headless (`claude -p`) |
 
+## Eksekvering
+Værten skal kun have Docker. Alt deterministisk kører i containere, der deler repoet som én mount (`/work`) og kun taler sammen gennem filer:
+- **forge** (bygget, fase 0): Python, uv, go-task, SDHLT. Generate, compile, validate, analyze, orchestrator.
+- **render** (fase 3): Blender headless.
+- **hlds ×N** (fase 4): HLDS + Metamod + AMXX + YaPB. Eget image; kræver lovligt ejede CS-filer.
+- **Undtagelse:** CS 1.6-klienten til screenshots med rigtige lightmaps kører på værten (GPU).
+
 ## Komponenter
 
 ### Generator (`generator/`)
@@ -62,7 +69,10 @@
 ```
 cs-mapmaker/
 ├── CLAUDE.md
-├── Taskfile.yml             # go-task; kør via `uv run task <navn>`
+├── mf, mf.ps1               # `./mf <task>` = task i forge-containeren
+├── compose.yaml             # forge-service, repo mountet på /work
+├── docker/forge/Dockerfile  # Python + uv + go-task + SDHLT (Linux), Debian trixie
+├── Taskfile.yml             # go-task
 ├── pyproject.toml           # uv-projekt, ruff, pytest
 ├── config/
 │   ├── pipeline.yaml        # stier, compiler (pinnet), profiler, budget

@@ -8,9 +8,10 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 - [x] Repo-struktur, Taskfile (i stedet for Makefile), `config/pipeline.yaml`
 - [x] Compilere (SDHLT, VHLT-fork) hentes pinnet og er kaldbare fra script
 - [x] Et minimalt testmap (`maps/test_box/`): forseglet kasse, 1 lys, 2 spawns pr. hold
-- [x] `uv run task compile MAP=test_box` producerer .bsp
+- [x] `./mf compile MAP=test_box` producerer .bsp
+- [x] Eksekvering i Docker (`forge`-image); værten skal kun have Docker
 
-**Accept:** test_box compiler uden errors fra rent checkout via én kommando.
+**Accept:** test_box compiler uden errors fra rent checkout via én kommando – i Docker.
 
 ## Fase 1 – Deterministisk loop (compile + validering)
 **Mål:** Fejl fanges og forklares automatisk.

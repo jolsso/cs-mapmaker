@@ -35,22 +35,25 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 - Python 3.11+ til generator, analyse og orkestrering. Type hints, `ruff` + `pytest`.
 - Pawn (AMX Mod X) til server-plugins i `server/plugins/`.
 - Python-pakken hedder `mapforge/` (undermoduler pr. pipeline-trin); moduler køres med `uv run python -m mapforge.<…>`.
-- Docker til HLDS og render-miljø. Ingen hardcodede stier – brug `config/*.yaml`.
+- Docker til alt deterministisk (forge), HLDS og render-miljø. Ingen hardcodede stier – brug `config/*.yaml`. Filer skal have LF-linjeskift (`.gitattributes`), da de bruges i Linux-containere.
 - Ingen ophavsretsbeskyttede assets fra andre spil i repoet. Kun egne/fri-licens teksturer, med licens noteret i `assets/LICENSES.md`.
 
 ## Kommandoer (opdatér når de findes)
-Task runner er [go-task](https://taskfile.dev) (`Taskfile.yml`), installeret i projektets venv. Kør altid via `uv run task …` – så synkroniseres venv automatisk, også fra rent checkout.
+**Docker er den officielle vej.** Værten skal kun have Docker. `mf` (sh) / `mf.ps1` (Windows) kører en task i `forge`-containeren (`docker/forge/Dockerfile`, `compose.yaml`) med repoet mountet på `/work`; imaget genbygges automatisk (cached) når `uv.lock` eller `config/pipeline.yaml` ændres. Task runner er [go-task](https://taskfile.dev) (`Taskfile.yml`).
 ```bash
-uv run task setup                    # uv sync + hent compilere til tools/ + generér dev-WAD
-uv run task compile MAP=<navn>       # CSG→BSP→VIS→RAD (PROFILE=fast|final, default fast)
-uv run task test                     # pytest
-uv run task lint                     # ruff check + format --check
-uv run task validate MAP=<navn>      # geometri, limits, leaks       (Fase 1, ikke implementeret)
-uv run task render MAP=<navn>        # top-down + kameraviews        (Fase 3)
-uv run task simulate MAP=<navn>      # HLDS + YaPB, N runder         (Fase 4)
-uv run task analyze MAP=<navn>       # heatmaps + metrikker          (Fase 5)
-uv run task loop MAP=<navn>          # fuld iteration                (Fase 6)
+./mf compile MAP=<navn>       # CSG→BSP→VIS→RAD (PROFILE=fast|final, default fast)
+./mf test                     # pytest (inkl. compile-smoke-test med Linux-binaries)
+./mf lint                     # ruff check + format --check
+./mf validate MAP=<navn>      # geometri, limits, leaks       (Fase 1)
+./mf render MAP=<navn>        # top-down + kameraviews        (Fase 3)
+./mf simulate MAP=<navn>      # HLDS + YaPB, N runder         (Fase 4)
+./mf analyze MAP=<navn>       # heatmaps + metrikker          (Fase 5)
+./mf loop MAP=<navn>          # fuld iteration                (Fase 6)
 ```
+Fallback til debugging på værten: `uv run task <navn>` (samme tasks, Windows-binaries i `tools/`). Kun Docker-vejen tæller for acceptkriterier.
+- Imaget er Debian trixie: SDHLT 1.3.0's Linux-binaries kræver glibc ≥ 2.38 (bookworm har 2.36).
+- Compilerne bages ind i imaget under `/opt/tools` (`MAPFORGE_TOOLS_DIR`), venv ligger i `/opt/venv` – intet i containeren skriver til repoets `.venv` eller `tools/`.
+- Projektet er ikke en installeret pakke (`[tool.uv] package = false`); moduler køres fra repo-roden.
 
 ## Compiler
 Vi bruger **SDHLT** (github.com/seedee/SDHLT), den vedligeholdte fork af Vluzacn's ZHLT v34 (VHLT). Version, URL, SHA256 og flag pr. profil står i `config/pipeline.yaml`; maskinspecifikke overrides i `config/pipeline.local.yaml` (gitignored).

@@ -1,0 +1,10 @@
+services:
+  forge:
+    build:
+      context: .
+      dockerfile: docker/forge/Dockerfile
+    image: mapforge/forge:dev
+    init: true
+    working_dir: /work
+    volumes:
+      - .:/work

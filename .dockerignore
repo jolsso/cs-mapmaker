@@ -1,0 +1,7 @@
+# The image only needs dependency metadata, config and the package; the repo is mounted at runtime.
+*
+!pyproject.toml
+!uv.lock
+!config/pipeline.yaml
+!mapforge/
+mapforge/**/__pycache__
