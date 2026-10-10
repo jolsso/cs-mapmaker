@@ -65,8 +65,8 @@ cover:                        # kasser/vægge inde i et område
 
 sites: {A: a_site, B: b_site} # område pr. bomb site (func_bomb_target, 32 units inde fra væggene)
 spawns:
-  T:  {area: t_spawn, count: 10}   # gitter med 64 units mellemrum, vendt mod mappets midte
-  CT: {area: ct_spawn, count: 10}
+  T:  {area: t_spawn, count: 16}   # standard 16 (spillets maks.); gitter med 64 units mellemrum, 8 units over gulvet, vendt mod midten
+  CT: {area: ct_spawn, count: 16}
 buyzones: true                # func_buyzone over hvert spawn-område
 ```
 

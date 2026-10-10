@@ -10,6 +10,7 @@ Iteration: {run_dir}
 {files}
 
 Mål, låste beslutninger og Goodhart-advarslen: docs/FITNESS.md (læs den).
+Designprincipper og normer (veje, chokepoints, timings, spawns): docs/DESIGN_GUIDE.md (læs den, og begrund ændringer med den).
 Tidligere iterationers noter (seneste først): {notes}
 
 ## Din værktøjskasse (de ENESTE tilladte ændringstyper)

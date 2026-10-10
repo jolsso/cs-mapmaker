@@ -1,26 +1,31 @@
 # Review-tjekliste (pre-sim-gate)
 
-Kig på hvert billede og vurdér punkterne. Rapportér kun det, du faktisk kan se.
+Kig på hvert billede og vurdér punkterne. Rapportér kun det, du faktisk kan se eller læse i validatorens data. Principperne og tallene kommer fra `docs/DESIGN_GUIDE.md`.
 
-## Layout (top-down)
-1. Er der to bomb sites, og ligger de i hver sin ende/zone af mappet (ikke oven i hinanden eller i et spawn)?
-2. Ligger T- og CT-spawn i hver sin zone, tydeligt adskilt?
-3. Har hvert site mindst to indgange (fra T-siden), og kan CT nå begge sites?
-4. Er afstanden spawn → site rimeligt balanceret (ingen site lige ved et spawn)?
-5. Er der en mid/forbindelse mellem ruterne, eller er mappet bare parallelle korridorer?
-6. Ses åbenlyse fejl: huller i geometrien, flydende stykker, rum uden forbindelse, sites/spawns uden for spilområdet?
+## Struktur (top-down + layout-spec)
+1. **Hovedveje:** 2–3 tydelige veje fra T-spawn mod sites – ikke flere end 3, og ikke kun én.
+2. **Chokepoints:** hver hovedvej har ét chokepoint *før* sitet (korridor, dør, tunnel, gyde eller kampplads med cover). Højst 1–2 indgange pr. chokepoint, og ved 2 skal forsvareren kunne se begge fra samme sted.
+3. **Forbindelsesveje** lader T skifte rute uden at gå tilbage til spawn – men går ikke gennem et chokepoint.
+4. **Sites:** to bomb sites i hver sin zone, ikke i eller ved et spawn. Hvert site kan nås ad mindst to T-ruter uden om CT-spawn, og CT har mindst lige så mange veje ind (retakes).
+5. **Spawns:** T og CT tydeligt adskilt; ingen rute fra mid direkte ind i et spawn; ingen sigtelinje spawn-til-spawn.
+6. Åbenlyse fejl: huller, flydende geometri, rum uden forbindelse, sites/spawns uden for spilområdet.
 
-## Sigtelinjer og cover (kameraer)
-7. Er der ekstremt lange, åbne sigtelinjer tværs over mappet fra et spawn eller ind på et site uden cover?
-8. Har sites cover (kasser, vægge) – eller er det tomme flader?
+## Timing (validatorens `timing site …`-linjer)
+7. T → site mellem ca. 14 og 25 s (officielle maps). Kortere = for kompakt; længere = tomme runder.
+8. CT når hvert site mindst ~3 s før T (typisk 7–13 s). CT-spawn ligger gerne tættere på det ene site end det andet.
+
+## Sigtelinjer, cover og spillestile (kameraer + top-down)
+9. Ingen ekstremt lange, åbne sigtelinjer uden cover fra et spawn eller ind på et site (døre på række, lige korridorer).
+10. Blanding af lange sigtelinjer (snipere) og close-quarters-områder – ikke kun én slags.
+11. Sites har cover til både forsvar og efter-plant; højdeforskelle bruges bevidst.
 
 ## Lys og læsbarhed
-9. Er spilområder så mørke, at spillere ikke ville kunne ses (se også topdown_dark.png og validation-data)?
-10. Ser teksturer korrekte ud (ingen checkerboard = manglende tekstur, ingen grove strækninger)?
+12. Spilområder er ikke så mørke, at spillere ikke kan ses (topdown_dark.png + data).
+13. Teksturer ser korrekte ud (ingen checkerboard = manglende tekstur, ingen grove strækninger). Dev-teksturer på et graybox-blockout er forventet.
 
 ## Alvorlighed
-- **critical:** gør mappet uspilleligt eller meningsløst (fx site i spawn, spawns oven i hinanden, rute mangler helt).
-- **major:** alvorligt balance- eller læsbarhedsproblem, der skal rettes før simulering (fx et site med kun én indgang, et spawn med direkte sigtelinje ind i det andet).
-- **minor:** værd at notere, blokerer ikke (kosmetik, små mørke hjørner).
+- **critical:** gør mappet uspilleligt eller meningsløst (site i spawn, spawns oven i hinanden, en rute mangler helt).
+- **major:** alvorligt balance- eller flowproblem, der skal rettes før simulering (site med kun én T-indgang, mid direkte ind i spawn, kæmpe sigtelinje ind på et site, T når et site før CT kan stille op).
+- **minor:** værd at notere, blokerer ikke (kosmetik, små mørke hjørner, timings lidt uden for det typiske).
 
-Officielle Valve-maps (de_dust2, de_nuke, ...) er kendt gode; brug dem ikke som undskyldning, men vurdér det billede, du får.
+Officielle Valve-maps er kendt gode; brug dem ikke som undskyldning, men vurdér det billede, du får.

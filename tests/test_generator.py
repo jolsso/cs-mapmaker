@@ -71,7 +71,10 @@ def test_entities():
 @pytest.mark.parametrize(
     ("over", "msg"),
     [
-        ({"doors": [{"name": "x", "between": ["t_spawn", "b_site"], "width": 128}]}, "do not share"),
+        (
+            {"doors": [{"name": "x", "between": ["t_spawn", "b_site"], "width": 128}]},
+            "do not share",
+        ),
         ({"doors": [{"name": "x", "between": ["t_spawn", "nope"], "width": 64}]}, "unknown area"),
         ({"stairs": [{"name": "s", "area": "mid", "axis": "+y", "rise": 40, "step": 20}]}, "> 18"),
         ({"areas": [{"name": "a", "rect": [0, 0, 100, 64]}]}, "off the 16-unit grid"),

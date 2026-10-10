@@ -166,7 +166,8 @@ def _spawn_points(area: Area, count: int, facing: tuple[float, float]) -> list[s
     )  # fill from the middle of the area outwards
     yaw = math.degrees(math.atan2(facing[1] - cym, facing[0] - cxm))
     for x, y in grid[:count]:
-        pts.append(f"{x} {y} {area.floor + 36}|0 {yaw:.0f} 0")
+        # hull origin 36 above the feet + ~8 units clearance off the floor (TWHL)
+        pts.append(f"{x} {y} {area.floor + 44}|0 {yaw:.0f} 0")
     return pts
 
 

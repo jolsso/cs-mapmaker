@@ -11,6 +11,8 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 - `docs/FITNESS.md` – hvad "bedre" betyder, stopkriterier, låste beslutninger
 - `docs/TRACKER_SPEC.md` – AMXX tracker-plugin og CSV-skema
 - `docs/ART_DIRECTION.md` – world bible + stilguide (udfyldes pr. map)
+- `docs/DESIGN_GUIDE.md` – designprincipper for gode de_-maps (veje, chokepoints, timings, spawns, mål), kalibreret på officielle maps
+- `docs/LAYOUT_SPEC.md` – YAML-formatet generatoren bygger maps ud fra
 
 ## Arbejdsregler
 1. **Én fase ad gangen.** Start ikke på næste fase før den aktuelle opfylder sine acceptkriterier i ROADMAP.md.
@@ -26,6 +28,8 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ## GoldSrc-fakta (design-normer)
 - 1 unit ≈ 1 inch. Grid: arbejd på 16/8-grid; aldrig off-grid vertices.
 - Spillerhull: 32×32×72 (stående), 32×32×36 (crouch). Max trinhøjde: 18 units.
+- 2–3 hovedveje, ét chokepoint pr. vej før sitet, forbindelsesveje uden om chokepoints, CT ≥ 3 s før T ved hvert site, T → site ca. 14–25 s ved 250 units/s (se `docs/DESIGN_GUIDE.md`).
+- Spawns: 16 pr. hold (32 i alt), ~32 units fri plads omkring hver, ~8 units over gulvet. func_buyzone pr. hold over spawn.
 - Korridorer/døre: min. 64 bred, 96–128 høj som tommelfingerregel. Bevidst strengere end Valves egne maps (typisk 40–56 brede passager) – besluttet 2026-10-10, se `docs/CALIBRATION.md`.
 - Brushes skal være konvekse. Ingen leaks: hele spilområdet skal være forseglet af world brushes.
 - Map-grænser: ±4096 units.

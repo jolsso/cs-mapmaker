@@ -187,6 +187,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <div class="facts">
     <span>status <b>fase 0, 1, 1b, 3, 3b, 2 færdig · 🚦 Gate A</b></span>
     <span>opdateret <b>2026-10-10</b></span>
+    <span>designguide <b>docs/DESIGN_GUIDE.md</b></span>
     <span>alle outputs: <b>http://localhost:8080</b> (lokalt website)</span>
   </div>
   <div class="facts">
@@ -608,6 +609,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
         <tr><td>0 / 7</td><td>Compiler-flag til fast- og final-profil</td><td>Afklaret mod SDHLT 1.3.0 <code>-help</code></td></tr>
         <tr><td>0</td><td>Kører SDHLT's Linux-binaries i containeren?</td><td>Afklaret: kræver glibc ≥ 2.38, derfor Debian trixie</td></tr>
         <tr><td>1b</td><td>Engine-limits: er HLSDK's <code>MAX_MAP_*</code> de rigtige?</td><td>Afklaret: nej, officielle maps overskrider texinfo og lightmaps; korrigeret</td></tr>
+        <tr><td>2</td><td>Designprincipper fra research (veje, chokepoints, timings, spawns)</td><td>Samlet i <code>docs/DESIGN_GUIDE.md</code>; timings målt på 9 officielle maps (T → site 14–25 s, CT-forspring typisk 7–13 s) og nu en del af valideringen</td></tr>
         <tr><td>1b</td><td>Design-normerne (min. 64 bred, 96 høj) er strengere end Valves egne maps (typisk 40–56 brede passager). Sænke eller beholde?</td><td>Besluttet: behold 64 / 96 (bevidst strengere end Valve)</td></tr>
         <tr><td>3</td><td>Er newbspguy's <code>exportobj</code> god nok til renders?</td><td>Afklaret: nej (kun natlige builds, [WIP], ingen lightmaps) → egen renderer</td></tr>
         <tr><td>3</td><td>Hvordan placeres klientens kamera fra et script?</td><td>Åben</td></tr>
