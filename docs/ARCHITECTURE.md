@@ -93,11 +93,15 @@ Værten skal kun have Docker. Alt deterministisk kører i containere, der deler 
 | `limit` | error > 90 %, warning > 75 % | .bsp | HLSDK `MAX_MAP_*` + AllocBlock fra compileren |
 | `spawn_count`, `bomb_targets`, `buyzone_count` | error | .bsp (.map hvis compile fejlede) | FITNESS; ingen `func_buyzone` = implicitte buyzones (OK); per-map override i `maps/<map>/validate.yaml` |
 | `spawn_stuck` | error | .bsp | stående hull passer ikke ved spawn-origin |
-| `narrow_passage`, `low_ceiling` | warning | .bsp | gangbare celler (hull 1) med fri bredde < 64 eller loftshøjde < 96 |
+| `unreachable_site`, `site_not_standable` | error | .bsp | FITNESS: hver spawn skal kunne gå til begge bomb targets (walkable-graf) |
+| `spawn_unplaced` | warning | .bsp | ingen jord under spawn inden for max fald |
+| `narrow_passage`, `low_ceiling` | warning | .bsp | nåbare celler med fri bredde < 64 eller loftshøjde < 96 |
+
+**Walkable-graf** (`mapforge/validate/walk.py`): flood-fill fra alle spawns på et 8-units grid med stående hull (hull 1). Træk: trin op ≤ 18, gå/træd ned, fald (envejs) ≤ 1024, stiger (`func_ladder`) fra bund til top. `func_wall` er solid; døre og breakables er passable. Nåbarhed: omvendt søgning fra hvert bomb target, så envejsfald tæller rigtigt. de_dust2: 116k celler på ~3 s.
 
 Begrænsninger:
+- Hop, crouch-only-passager (fx vents) og at svømme opad modelleres ikke – grafen er konservativ (kan underestimere, aldrig overestimere nåbarhed).
 - Korridorbredde måles langs x- og y-aksen, så diagonale gange vurderes for bredt (lempeligt, aldrig falsk alarm).
-- "Alle spawns kan nå begge sites" kræver sites fra layout-spec/YAPB-graf og kommer i fase 2/4.
 - Lysstyrkekort (mørke zoner) bygger på `Bsp.face_lightmap` og kommer i fase 3.
 
 ### Render (`render/`)

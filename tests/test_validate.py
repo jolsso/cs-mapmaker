@@ -18,6 +18,8 @@ EXPECTED = {
     "broken_stuck": (False, {"spawn_stuck"}, "error"),
     "de_onebomb": (False, {"bomb_targets"}, "error"),
     "narrow_gap": (True, {"narrow_passage"}, "warning"),
+    "de_split": (False, {"unreachable_site"}, "error"),
+    "de_twosites": (True, set(), "error"),
 }
 
 
@@ -77,3 +79,26 @@ def test_test_box_is_valid():
     assert result["summary"] == {"errors": 0, "warnings": 0}
     walk = result["stats"]["walkable"]
     assert walk["walkable_area_units2"] == (1024 - 32) ** 2  # room minus half a hull per side
+
+
+@pytest.mark.slow
+@needs_compilers
+def test_split_map_reports_each_team_and_site(fixture_cfg):
+    result = _compile_and_validate(fixture_cfg, "de_split")
+    unreachable = [f for f in result["findings"] if f["rule"] == "unreachable_site"]
+    # CT (west) cannot reach the east site, T (east) cannot reach the west site
+    assert sorted((f["details"]["site"], f["message"].split()[1]) for f in unreachable) == [
+        (1, "T"),
+        (2, "CT"),
+    ]
+    sites = result["stats"]["reachability"]["sites"]
+    assert [s["spawns_reaching"] for s in sites] == [{"T": 0, "CT": 2}, {"T": 2, "CT": 0}]
+
+
+@pytest.mark.slow
+@needs_compilers
+def test_two_site_map_is_clean(fixture_cfg):
+    result = _compile_and_validate(fixture_cfg, "de_twosites")
+    assert result["findings"] == []
+    sites = result["stats"]["reachability"]["sites"]
+    assert all(s["spawns_reaching"] == {"T": 2, "CT": 2} for s in sites)

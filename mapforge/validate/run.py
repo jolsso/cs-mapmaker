@@ -21,6 +21,7 @@ from mapforge.mapfile.parser import MapParseError, read_map
 from mapforge.refmaps import extract_archives, find_reference_bsp, reference_dirs
 from mapforge.validate import checks
 from mapforge.validate.checks import ERROR, Finding
+from mapforge.validate.walk import build_walk_graph
 
 
 def map_rules(cfg: Config, map_name: str) -> dict[str, Any]:
@@ -71,7 +72,21 @@ def validate_map(cfg: Config, map_name: str, reference_bsp: Path | None = None) 
         )
         findings += limit_findings
         stats["limits"] = usage
-        corridor_findings, stats["walkable"] = checks.check_corridors(bsp, vcfg["corridors"])
+        wcfg = vcfg["walk"]
+        origins, teams = checks.spawn_origins(bsp.entities)
+        graph = build_walk_graph(
+            bsp,
+            origins,
+            cell=float(wcfg["cell"]),
+            z_step=float(wcfg["z_step"]),
+            max_step=float(wcfg["max_step"]),
+            max_drop=float(wcfg["max_drop"]),
+        )
+        reach_findings, stats["reachability"] = checks.check_reachability(bsp, graph, teams)
+        findings += reach_findings
+        corridor_findings, stats["walkable"] = checks.check_corridors(
+            graph, bsp, {**vcfg["corridors"], "max_step": wcfg["max_step"]}
+        )
         findings += corridor_findings
 
     if bsp is not None:

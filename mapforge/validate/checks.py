@@ -11,6 +11,7 @@ import numpy as np
 from mapforge.bsp.reader import CONTENTS_SOLID, Bsp
 from mapforge.mapfile.geometry import brush_geometry
 from mapforge.mapfile.parser import MapFile
+from mapforge.validate.walk import WalkGraph, bomb_target_boxes, nodes_touching
 
 ERROR = "error"
 WARNING = "warning"
@@ -303,28 +304,74 @@ def check_entities(
     return out, stats
 
 
-# --- corridors (clip hull 1 = standing player) ------------------------------------------------
+# --- walkable space (clip hull 1 = standing player) ------------------------------------------
 
 
-def standing_spots(bsp: Bsp, cell: float, z_step: float) -> np.ndarray:
-    """(n, 3) origins where a standing player fits with solid ground just below."""
-    mins = bsp.models[0]["mins"].astype(np.float64)
-    maxs = bsp.models[0]["maxs"].astype(np.float64)
-    xs = np.arange(np.floor(mins[0] / cell) * cell, maxs[0] + cell, cell)
-    ys = np.arange(np.floor(mins[1] / cell) * cell, maxs[1] + cell, cell)
-    zs = np.arange(mins[2], maxs[2] + z_step, z_step)
-    spots = []
-    gx, gy = np.meshgrid(xs, ys, indexing="ij")
-    cols = np.column_stack([gx.ravel(), gy.ravel()])
-    chunk = max(1, 2_000_000 // len(zs))
-    for i in range(0, len(cols), chunk):
-        c = cols[i : i + chunk]
-        pts = np.column_stack([np.repeat(c, len(zs), axis=0), np.tile(zs, len(c))])
-        solid = (bsp.point_contents(pts, hull=1) == CONTENTS_SOLID).reshape(len(c), len(zs))
-        stand = ~solid[:, 1:] & solid[:, :-1]
-        ci, zi = np.nonzero(stand)
-        spots.append(np.column_stack([c[ci], zs[zi + 1]]))
-    return np.vstack(spots) if spots else np.zeros((0, 3))
+def spawn_origins(entities: list[dict[str, str]]) -> tuple[np.ndarray, list[str]]:
+    """Origins of all T and CT spawns (n, 3) and their team per row."""
+    rows, teams = [], []
+    for e in entities:
+        team = {T_SPAWN: "T", CT_SPAWN: "CT"}.get(e.get("classname", ""))
+        o = _origin(e)
+        if team and o is not None:
+            rows.append(o)
+            teams.append(team)
+    return (np.array(rows) if rows else np.zeros((0, 3))), teams
+
+
+def check_reachability(
+    bsp: Bsp, graph: WalkGraph, teams: list[str]
+) -> tuple[list[Finding], dict[str, Any]]:
+    """FITNESS hard requirement: every spawn can reach both bomb sites (on foot)."""
+    out = []
+    sites = []
+    for n, (lo, hi) in enumerate(bomb_target_boxes(bsp), start=1):
+        targets = nodes_touching(graph, lo, hi)
+        can_reach = graph.reverse_reachable(targets)
+        centre = (lo + hi) / 2
+        site = {"site": n, "centre": _xyz(centre), "bbox": [_xyz(lo), _xyz(hi)],
+                "standable_cells": len(targets), "spawns_reaching": {"T": 0, "CT": 0}}  # fmt: skip
+        stuck_at: dict[str, list[list[float]]] = {"T": [], "CT": []}
+        for seed, team in zip(graph.seeds, teams, strict=True):
+            if seed is not None and can_reach[seed]:
+                site["spawns_reaching"][team] += 1
+            elif seed is not None:
+                stuck_at[team].append(_xyz(graph.positions[seed] - [0, 0, 36]))
+        for team, where in stuck_at.items():
+            if where:
+                out.append(
+                    Finding(
+                        "unreachable_site",
+                        ERROR,
+                        f"{len(where)} {team} spawn(s) cannot walk to bomb site {n} "
+                        f"(centre {_xyz(centre)})",
+                        "bsp",
+                        location=where[0],
+                        details={"site": n, "spawns": where[:10]},
+                    )
+                )
+        if not len(targets):
+            out.append(
+                Finding(
+                    "site_not_standable",
+                    ERROR,
+                    f"No reachable place to stand inside bomb site {n} (centre {_xyz(centre)})",
+                    "bsp",
+                    location=_xyz(centre),
+                )
+            )
+        sites.append(site)
+    for seed, team in zip(graph.seeds, teams, strict=True):
+        if seed is None:
+            out.append(
+                Finding(
+                    "spawn_unplaced",
+                    WARNING,
+                    f"A {team} spawn has no ground below it within the drop limit",
+                    "bsp",
+                )
+            )
+    return out, {"sites": sites}
 
 
 def _runs(keys: dict[tuple[int, int], list[float]], axis: int, max_step: float) -> dict:
@@ -348,26 +395,17 @@ def _runs(keys: dict[tuple[int, int], list[float]], axis: int, max_step: float) 
     return {k: len(members[r]) for k, r in run_of.items()}
 
 
-def check_corridors(bsp: Bsp, cfg: dict[str, Any]) -> tuple[list[Finding], dict[str, Any]]:
-    cell, z_step = float(cfg["cell"]), float(cfg["z_step"])
+def check_corridors(
+    graph: WalkGraph, bsp: Bsp, cfg: dict[str, Any]
+) -> tuple[list[Finding], dict[str, Any]]:
+    """Narrow passages and low ceilings, only where players can actually walk (graph nodes)."""
+    cell = graph.cell
     min_w, min_h, max_step = (
         float(cfg["min_width"]),
         float(cfg["min_height"]),
         float(cfg["max_step"]),
     )
-    size = (bsp.models[0]["maxs"] - bsp.models[0]["mins"]).astype(np.float64)
-    samples = float(np.prod(size / [cell, cell, z_step]))
-    if samples > float(cfg.get("max_samples", 5e7)):
-        # A dense scan of the world bounds (which include the skybox) is too slow for big maps.
-        return [
-            Finding(
-                "corridor_scan_skipped",
-                WARNING,
-                f"Corridor scan skipped: {samples / 1e6:.0f}M samples over the world bounds",
-                "bsp",
-            )
-        ], {}
-    spots = standing_spots(bsp, cell, z_step)
+    spots = graph.positions
     if not len(spots):
         return [Finding("no_walkable_space", ERROR, "No place where a player can stand", "bsp")], {}
 
@@ -414,7 +452,7 @@ def check_corridors(bsp: Bsp, cfg: dict[str, Any]) -> tuple[list[Finding], dict[
                 )
             )
     stats = {
-        "standing_cells": len(spots),
+        "reachable_cells": len(spots),
         "walkable_area_units2": int(len(spots) * cell * cell),
         "narrow_cells": len(narrow_keys),
         "low_ceiling_cells": len(low_keys),

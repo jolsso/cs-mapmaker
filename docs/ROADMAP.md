@@ -33,7 +33,7 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 - [x] Referencemaps: læses read-only fra den lokale CS 1.6-installation (`HL_DIR` i `.env`, se `.env.example`) + community-maps fra `test_maps/` (pakkes ud med `./mf refmaps`), mountes read-only i containeren og kopieres aldrig ind i repoet
 - [x] BSP-tilstand i Validate: `./mf validate MAP=de_dust2 SOURCE=reference` (ingen .map, ingen compile)
 - [x] Buyzones: implicitte buyzones tæller (ingen `func_buyzone` overhovedet = CS laver dem ved spawn); fejl kun hvis kun ét hold har
-- [ ] Nåbarhed: flood-fill fra spawns på walkable-grafen (hull 1); hver spawn skal nå begge bomb targets (`unreachable_site`); korridor-warnings kun i nåbart område
+- [x] Nåbarhed: flood-fill fra spawns på walkable-grafen (hull 1); hver spawn skal nå begge bomb targets (`unreachable_site`); korridor-warnings kun i nåbart område
 - [ ] Kalibrering på alle officielle de_-maps; tærskler justeres og begrundes
 
 **Accept:** Alle officielle de_-maps i installationen validerer med 0 errors, og de resterende warnings er gennemgået og giver mening.

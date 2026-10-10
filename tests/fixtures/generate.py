@@ -55,6 +55,11 @@ def drop_entities(text: str, classname: str) -> str:
     return re.sub(rf'\{{\n"classname" "{classname}"\n.*?\n\}}\n', "", text, flags=re.S)
 
 
+def bomb(origin: tuple[int, int, int]) -> str:
+    x, y, z = origin
+    return f'{{\n"classname" "info_bomb_target"\n"origin" "{x} {y} {z}"\n}}\n'
+
+
 def fixtures(base: str) -> dict[str, str]:
     pillar = ((-64, -64, 0), (64, 64, 128))
     return {
@@ -75,7 +80,14 @@ def fixtures(base: str) -> dict[str, str]:
             base, box((-8, -512, 0), (8, 464, 256), "DEV_WALL"), "divider"
         ),
         # de_ map with one bomb target instead of two
-        "de_onebomb": base + '{\n"classname" "info_bomb_target"\n"origin" "0 0 16"\n}\n',
+        "de_onebomb": base + bomb((0, 0, 16)),
+        # two sites, one per half; a full-height wall splits the room so neither team can
+        # walk to the site on the other side
+        "de_split": add_world_brush(base, box((-8, -512, 0), (8, 512, 256), "DEV_WALL"), "divider")
+        + bomb((-256, 0, 16))
+        + bomb((256, 0, 16)),
+        # the same two sites without the wall: valid
+        "de_twosites": base + bomb((-256, 0, 16)) + bomb((256, 0, 16)),
     }
 
 

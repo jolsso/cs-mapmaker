@@ -82,12 +82,16 @@ validate:
     spawns_per_team: 10
     buyzones_per_team: 1
     bomb_targets: {de: 2}   # by map type = name prefix before "_" (de_dust -> de)
+  # Walkable graph: flood-fill from the spawns with a standing player hull (hull 1).
+  walk:
+    cell: 8               # horizontal grid (units)
+    z_step: 4             # vertical grid (units)
+    max_step: 18          # max step up between neighbouring cells (GoldSrc stepsize)
+    max_drop: 1024        # longest fall still counted as a (one-way) move
+  # Checked only on reachable cells of the walkable graph.
   corridors:
     min_width: 64         # CLAUDE.md: corridors/doors min. 64 wide
     min_height: 96        # CLAUDE.md: 96-128 high (rule of thumb)
-    cell: 8               # horizontal sampling step (units)
-    z_step: 4             # vertical sampling step (units)
-    max_step: 18          # max step height between neighbouring cells
 
 reference_maps:
   # Third-party maps used only to test/calibrate the pipeline; never committed.
