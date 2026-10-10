@@ -542,6 +542,8 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
           <li class="ok">Accept på de_tilt01: score 2,11 → 1,21 → 0,04 i to ændringer (T-winrate 0,56 på 100 runder)</li>
           <li class="ok">Live-visning af kørende simuleringer (UDP → Server-Sent Events)</li>
           <li class="add">YaPB-graf verificeres af smoke og laves om med anden nodeafstand, hvis et site er umappet</li>
+          <li class="add">Designforskning: bot-mål er nu sanity checks (T 35–65 %); nye strukturelle regler kalibreret på 9 officielle maps (rotation, spawn-sigtelinjer, territorium, sigtelinje-fordeling, site-indgange, 4-vejskryds); review-rubrik; "sjæl"-felter låst i layout-spec'en</li>
+          <li class="add">Dashboard: 1 Input = dine ønsker (tekst eller tegnet på kortet) går direkte i Decide; map-siden viser versioner som kasser med de 8 faser og en pil ved stadiet vi er på</li>
         </ul>
         <p class="accept"><b>Accept:</b> loopet flytter et bevidst ubalanceret map mod målintervallerne uden at bryde låste beslutninger.</p>
       </div>
@@ -590,7 +592,7 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
         <tr><td>4</td><td>Kommando til automatisk YaPB-graf</td><td>Afklaret: YaPB 4.4 analyserer selv et map uden graf (<code>yb_graph_analyze_auto_start</code>) og gemmer den</td></tr>
         <tr><td>4</td><td>Kan HLDS køre hurtigere end realtid?</td><td>Afklaret: ja, med ReHLDS <code>sys_timescale</code> (målt ≈ 4×)</td></tr>
         <tr><td>4</td><td>AMXX-natives og events til tracker-plugin; YaPB-cvars</td><td>Afklaret mod AMXX 1.10-includes og YaPB 4.4.957's yapb.cfg</td></tr>
-        <tr><td>5</td><td>Døde zoner &lt; 5 % – realistisk for bot-data?</td><td>Åben: de_dust2 giver 16 % (bots følger deres navigationsgraf); forslag ≤ 20 % eller relativt til dust2</td></tr>
+        <tr><td>5</td><td>Døde zoner &lt; 5 % – realistisk for bot-data?</td><td>Afklaret: diagnostik uden vægt (dust2 16 %); bot-tal er sanity checks, balance-dommen ligger ved Gate C</td></tr>
         <tr><td>4</td><td>Kan SteamCMD hente cstrike uden dine CS-filer?</td><td>Afklaret: ja, anonymt (branch steam_legacy til ReHLDS)</td></tr>
       </tbody>
     </table>
