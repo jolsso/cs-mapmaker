@@ -101,6 +101,7 @@ Værten skal kun have Docker. Alt deterministisk kører i containere, der deler 
 | `spawn_stuck` | error | .bsp | stående hull passer ikke ved spawn-origin |
 | `unreachable_site`, `site_not_standable` | error | .bsp | FITNESS: hver spawn skal kunne gå til begge bomb targets (walkable-graf) |
 | `spawn_unplaced` | warning | .bsp | ingen jord under spawn inden for max fald |
+| `timing_t_fast`, `timing_t_slow`, `timing_ct_late` | warning (egne maps) / info (referencemaps) | .bsp | løbetid spawn → site ved 250 units/s (korteste gåsti, string-pulled): T 14–26 s, CT ≥ 3 s før T – kalibreret på 9 officielle maps (DESIGN_GUIDE.md §2) |
 | `narrow_passage`, `low_ceiling` | warning (egne maps) / info (referencemaps) | .bsp | design-norm: nåbare passager med væg på begge sider og fri bredde < 64, eller loft < 96; clusters < 4 celler ignoreres |
 
 **Walkable-graf** (`mapforge/validate/walk.py`): flood-fill fra alle spawns på et 8-units grid, i to stillinger: stående (hull 1) og crouch (hull 3). Træk til hver nabo, i rækkefølge: gå (trin op ≤ 18), hop op på noget (duck-jump ≤ 54), crouch ind under noget, duck-jump ind i en crouch-åbning (vents). Fald (envejs) ≤ 1024, stiger (`func_ladder`) fra bund til top; crouch-celler rejser sig, så snart der er plads. `func_wall` er solid; døre og breakables er passable. **Sites:** `func_bomb_target`-brushes inden for 128 units af hinanden er ét site (prodigy/torn bygger et site af flere). Nåbarhed: omvendt søgning fra hvert site, så envejsfald tæller rigtigt.

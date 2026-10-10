@@ -21,6 +21,7 @@ from mapforge.mapfile.parser import MapParseError, read_map
 from mapforge.refmaps import extract_archives, find_reference_bsp, reference_dirs
 from mapforge.validate import checks
 from mapforge.validate.checks import ERROR, Finding
+from mapforge.validate.timings import route_timings
 from mapforge.validate.walk import build_walk_graph
 
 
@@ -88,6 +89,12 @@ def validate_map(cfg: Config, map_name: str, reference_bsp: Path | None = None) 
         )
         reach_findings, stats["reachability"] = checks.check_reachability(bsp, graph, teams)
         findings += reach_findings
+        stats["timings"] = route_timings(bsp, graph, teams)
+        findings += checks.check_timings(
+            stats["timings"],
+            vcfg["timings"],
+            checks.INFO if reference_bsp is not None else checks.WARNING,
+        )
         corridor_findings, stats["walkable"] = checks.check_corridors(
             graph,
             bsp,

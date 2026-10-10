@@ -180,9 +180,14 @@ def check_limits(
         if row["name"] in table_rows:
             used = row["count"] if row["count"] is not None else row["memory"]
             usage.append(
-                {"name": row["name"], "used": used, "max": row["max"] or row["max_memory"],
-                 "pct": row["fullness_pct"], "source": "compiler"}
-            )  # fmt: skip
+                {
+                    "name": row["name"],
+                    "used": used,
+                    "max": row["max"] or row["max_memory"],
+                    "pct": row["fullness_pct"],
+                    "source": "compiler",
+                }
+            )
     out = []
     for u in usage:
         if u["pct"] > 100:
@@ -525,3 +530,44 @@ def _clusters(cells: set[tuple[int, int, float]], max_step: float) -> list[list]
                             stack.append(n)
         clusters.append(comp)
     return sorted(clusters, key=len, reverse=True)
+
+
+def check_timings(rows: list[dict[str, Any]], cfg: dict[str, Any], severity: str) -> list[Finding]:
+    """Design norms on spawn -> site run times (DESIGN_GUIDE.md §2)."""
+    out = []
+    for r in rows:
+        site = r["site"]
+        t = r.get("T", {}).get("median_s")
+        lead = r.get("ct_lead_s")
+        if t is not None and t < cfg["min_t_s"]:
+            out.append(
+                Finding(
+                    "timing_t_fast",
+                    severity,
+                    f"T reaches site {site} in {t} s (< {cfg['min_t_s']} s): too compact",
+                    "bsp",
+                    details=r,
+                )
+            )
+        if t is not None and t > cfg["max_t_s"]:
+            out.append(
+                Finding(
+                    "timing_t_slow",
+                    severity,
+                    f"T needs {t} s to site {site} (> {cfg['max_t_s']} s)",
+                    "bsp",
+                    details=r,
+                )
+            )
+        if lead is not None and lead < cfg["min_ct_lead_s"]:
+            out.append(
+                Finding(
+                    "timing_ct_late",
+                    severity,
+                    f"CT is only {lead} s ahead of T at site {site} (< {cfg['min_ct_lead_s']} s): "
+                    "attackers can arrive before defenders set up",
+                    "bsp",
+                    details=r,
+                )
+            )
+    return out

@@ -73,6 +73,12 @@ def validation_summary(v: dict[str, Any]) -> str:
             f"- site {s.get('label', s['site'])} centre {s['centre']}: "
             f"spawns reaching {s['spawns_reaching']}"
         )
+    for t in v.get("stats", {}).get("timings", []):
+        lines.append(
+            f"- timing site {t['site']}: T {t.get('T', {}).get('median_s')} s, "
+            f"CT {t.get('CT', {}).get('median_s')} s, CT lead {t.get('ct_lead_s')} s "
+            "(official maps: T 14-25 s, CT lead typically 7-13 s)"
+        )
     ents = v.get("stats", {}).get("entities", {})
     if ents:
         lines.append(

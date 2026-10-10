@@ -96,6 +96,12 @@ validate:
     max_drop: 1024        # longest fall still counted as a (one-way) move
     jump_height: 54       # duck-jump onto objects (0 = no jumping)
     crouch: true          # crouch-only passages (vents) count as walkable
+  # Spawn -> site timings at 250 u/s (docs/DESIGN_GUIDE.md §2, calibrated on 9 official maps:
+  # T 14-25 s, CT lead typically 7-13 s). Warnings on our maps, info on reference maps.
+  timings:
+    min_t_s: 14          # T faster than this: map too compact for chokepoints/rotations
+    max_t_s: 26          # slower: long, empty rounds
+    min_ct_lead_s: 3     # defenders must reach the site a few seconds before attackers
   # Checked only on reachable cells of the walkable graph.
   corridors:
     min_width: 64         # CLAUDE.md: corridors/doors min. 64 wide

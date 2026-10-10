@@ -177,6 +177,17 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
                            f"<td class='num'>{x['spawns_reaching']}</td></tr>" for x in sites)  # fmt: skip
             parts.append("<h3>Nåbarhed</h3><div class='table'><table><tr><th>Site</th><th>Centrum"
                          f"</th><th>Spawns der når det</th></tr>{rows}</table></div>")  # fmt: skip
+        timings = st_.get("timings", [])
+        if timings:
+            rows = "".join(
+                f"<tr><td>site {e(str(t['site']))}</td><td class='num'>{t.get('T', {}).get('median_s')} s</td>"
+                f"<td class='num'>{t.get('CT', {}).get('median_s')} s</td><td class='num'>{t.get('ct_lead_s')} s</td></tr>"
+                for t in timings
+            )
+            parts.append(
+                "<h3>Løbetider (250 units/s)</h3><p class='muted'>Officielle maps: T 14–25 s, CT-forspring typisk 7–13 s (DESIGN_GUIDE.md).</p>"
+                f"<div class='table'><table><tr><th>Site</th><th>T</th><th>CT</th><th>CT-forspring</th></tr>{rows}</table></div>"
+            )
         limits = sorted(st_.get("limits", []), key=lambda x: -x["pct"])[:6]
         if limits:
             rows = "".join(f"<tr><td>{e(x['name'])}</td><td class='num'>{x['used']}/{x['max']}</td>"
