@@ -484,6 +484,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
         <ul>
           <li class="ok">Egen renderer (BSP + moderngl, headless i containeren): top-down med teksturer og rigtigt kompileret lys, tage over spillerhøjde skåret væk, spawns og sites tegnet på (dust2: 5 s)</li>
           <li class="ok">Lysstyrke: lightmap under hver gangbar celle; mørke zoner (luma &lt; 10, ≥ 64×64 units) som rød kontur. dust2 har 4 (tunneller, CT-dør)</li>
+          <li class="ok">Heatmap-overlay (til fase 5); testet med T's korteste ruter på dust2: B-tunneller og mid → short A</li>
           <li class="ok">Kameraer: perspektiv fra hver spawn og angribernes view ind på hvert site (korteste gåsti fra T-spawn); egne kameraer i <code>config/cameras/&lt;map&gt;.yaml</code></li>
                     <li>Klient-screenshots flyttet til fase 7 (egne renders har allerede lys)</li>
           <li>Review-trin: Claude ser billederne mod tjeklisten (og layout-spec'en, når mappet har en) før simulering; fejl går direkte til Decide</li>
