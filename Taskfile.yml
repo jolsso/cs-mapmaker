@@ -98,9 +98,11 @@ tasks:
       - uv run python -m mapforge.simulate.run --map {{.MAP}} --source {{.SOURCE | default "map"}} {{.CLI_ARGS}}
 
   analyze:
-    desc: Heatmaps + metrics (Phase 5)
+    desc: Simulation CSV -> build/<map>/analysis/ (metrics.json, report.md, heatmaps) (MAP=<name>; -- --baseline FILE)
+    requires:
+      vars: [MAP]
     cmds:
-      - cmd: echo "not implemented (Phase 5)" && exit 1
+      - uv run python -m mapforge.analyze.run --map {{.MAP}} {{.CLI_ARGS}}
 
   loop:
     desc: Full iteration (Phase 6)

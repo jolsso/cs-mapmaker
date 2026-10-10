@@ -180,7 +180,8 @@ class Simulation:
             errors += e
             for k in merged:
                 merged[k] += d[k]
-        assign_plant_sites(merged, self.bsp_data)
+        names = self.cfg.data.get("analyze", {}).get("site_names", {}).get(self.map_name)
+        assign_plant_sites(merged, self.bsp_data, names)
         return merged, errors
 
     def run(self, smoke_only: bool, no_smoke: bool) -> dict[str, Any]:

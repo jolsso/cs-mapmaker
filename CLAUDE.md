@@ -62,7 +62,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf site                     # genbyg lokalt website build/site/ (sker også automatisk efter validate/render/review/decide)
 docker compose up -d site     # PÅ VÆRTEN: serverer websitet på http://localhost:8080 (kun 127.0.0.1)
 ./mf simulate MAP=<navn>      # HLDS + YaPB-bots: smoke + batches → build/<map>/simulation.json (-- --smoke-only | --watch | --rounds N; SOURCE=reference)
-./mf analyze MAP=<navn>       # heatmaps + metrikker          (Fase 5)
+./mf analyze MAP=<navn>       # simulation → build/<map>/analysis/ (metrics.json, report.md, heatmaps, delta) (-- --baseline FILE)
 ./mf loop MAP=<navn>          # fuld iteration                (Fase 6)
 ```
 Fallback til debugging på værten: `uv run task <navn>` (samme tasks, Windows-binaries i `tools/`). Kun Docker-vejen tæller for acceptkriterier.

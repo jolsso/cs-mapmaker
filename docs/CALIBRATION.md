@@ -58,7 +58,26 @@ Lightmap-luma (0–255) af gulvet under hver gangbar celle (16×16 units), clust
 
 Valgt: **luma < 10**. På dust2 giver det 4 zoner – B-tunnellerne, trappen ved B, under taget ved CT-dør og en passage på T-siden – dvs. Valves bevidst mørke steder. Officielle maps har altså 0–6 mørke zoner; FITNESS' mål om 0 gælder vores egne maps i art pass (fase 7).
 
+## Bot-metrikker (fase 5)
+
+Sanity-check: 50 YaPB-runder (5 mod 5, difficulty 3, timescale 4) på de_dust2 mod de_forge01:
+
+| Metrik | de_dust2 | de_forge01 | Mål (FITNESS) |
+|---|---:|---:|---|
+| T-winrate | 0,48 [0,35–0,62] | 0,46 [0,33–0,60] | 0,45–0,55 |
+| Andel plants på A | 0,36 (28 plants) | 0,63 (27 plants) | 0,35–0,65 |
+| Første kontakt, median | 16,6 s | 16,8 s | 15–25 s |
+| Rundelængde, median | 58 s | 70 s | 50–100 s |
+| Kill-koncentration, største 128-celle | 3 % | 6 % | < 10 % |
+| Døde zoner (64-celler, < 2 % af middel) | **15,8 %** | 15,0 % | < 5 % |
+| Kills pr. runde | 5,9 | 6,2 | – |
+
+Tallene for dust2 er plausible (T ≈ halvdelen, bots foretrækker B på dust2, kontakt efter ~17 s). **Døde zoner kan ikke nås med bot-data:** et kendt godt map ligger på ~16 %, fordi YaPB går fra node til node i sin graf og aldrig bruger hjørner og kanter. Målet < 5 % er sat ud fra menneskelig trafik. Forslag (afventer dig): mål ≤ 20 % for bot-data, eller mål det relativt til dust2.
+
+dust2's bomb targets har ingen navne, og det første i entity-listen er B. Navnene står i `config/pipeline.yaml` → `analyze.site_names`.
+
 ## Åbne punkter til mennesket
 
 - **Design-normerne er strengere end Valves egne maps.** Officielle maps har typisk passager på 40–56 units og mange lofter under 96. **Besluttet 2026-10-10: behold 64 / 96** for vores egne maps – bevidst lidt strengere end Valve (luft til bots og læsbarhed); det er warnings, så smalle steder kan stadig vælges bevidst.
+- **Døde zoner i FITNESS (< 5 %)** er urealistisk for bot-data (dust2: 16 %). Skal målet sænkes til fx ≤ 20 % eller måles relativt til dust2? Indtil da bidrager døde zoner til scoren på alle maps.
 - **Tid.** Validate tager 12 s på dust2 men ~5 min på store udendørsmaps (de_mon). Fint nu; kan optimeres med grovere grid til nåbarhed, hvis det bliver flaskehalsen.

@@ -204,3 +204,15 @@ simulate:
     yb_graph_analyze_auto_start: 1
     yb_graph_analyze_auto_save: 1
     yb_display_welcome_text: 0
+
+analyze:
+  # Metrics from simulation CSV (docs/FITNESS.md) -> build/<map>/analysis/{metrics.json,report.md,heatmaps/}
+  dead_zone_cell: 64        # 2-D cells over the walkable area (standing walk-graph nodes)
+  dead_zone_min_frac: 0.02  # a cell is "dead" with fewer samples than this share of the mean cell
+  kill_cell: 128            # kill concentration: share of all kills (victim position) per cell
+  heat_sigma: 48            # heatmap blur in world units
+  bootstrap: 2000           # resamples for median confidence intervals (fixed seed)
+  # Reference maps without "site_<X>" targetnames: bomb-site number (entity order, as in
+  # validate) -> letter. Checked against the official overview (dust2: B is the west site).
+  site_names:
+    de_dust2: {"1": "B", "2": "A"}

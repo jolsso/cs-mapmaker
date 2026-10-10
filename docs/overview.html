@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0–4 og Gate A færdig · fase 5 næste</b></span>
+    <span>status <b>fase 0–5 og Gate A færdig · fase 6 næste</b></span>
     <span>opdateret <b>2026-10-10</b></span>
     <span>designguide <b>docs/DESIGN_GUIDE.md</b></span>
     <span>alle outputs: <b>http://localhost:8080</b> (lokalt website)</span>
@@ -547,23 +547,24 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       </div>
     </li>
 
-    <li class="phase next">
+    <li class="phase done">
       <div class="phase-no"><small>Fase</small>5</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Analyse</h3><span class="chip next">næste</span></div>
+        <div class="phase-head"><h3>Analyse</h3><span class="chip done">færdig</span></div>
         <ul>
-          <li>Metrikker fra FITNESS.md → <code>metrics.json</code></li>
-          <li>Heatmaps (trafik, kills, deaths, første kontakt) oven på top-down</li>
-          <li>Delta-rapport mellem iterationer; sanity-check på et kendt map</li>
+          <li class="ok">Metrikker fra FITNESS.md → <code>metrics.json</code> med konfidensintervaller og samlet score</li>
+          <li class="ok">Heatmaps (trafik T/CT, kills, deaths, første kontakt, døde zoner) oven på top-down</li>
+          <li class="ok">Delta-rapport mellem versioner; ændringer inden for støjen tæller ikke</li>
+          <li class="ok">Sanity-check på de_dust2: T 0,48, kontakt 16,6 s, runde 58 s – men døde zoner 16 % (bots følger deres graf), så det mål skal kalibreres</li>
         </ul>
         <p class="accept"><b>Accept:</b> én rapport pr. iteration, som både du og Claude kan læse.</p>
       </div>
     </li>
 
-    <li class="phase">
+    <li class="phase next">
       <div class="phase-no"><small>Fase</small>6</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Autonomt loop</h3><span class="chip">senere</span></div>
+        <div class="phase-head"><h3>Autonomt loop</h3><span class="chip next">næste</span></div>
         <ul>
           <li>Orchestrator med budget, stopkriterier og rollback ved forværring</li>
           <li>To-hastigheds-loop: hurtige iterationer, indtil Review består; først da bot-tid</li>
@@ -617,6 +618,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
         <tr><td>4</td><td>Kommando til automatisk YaPB-graf</td><td>Afklaret: YaPB 4.4 analyserer selv et map uden graf (<code>yb_graph_analyze_auto_start</code>) og gemmer den</td></tr>
         <tr><td>4</td><td>Kan HLDS køre hurtigere end realtid?</td><td>Afklaret: ja, med ReHLDS <code>sys_timescale</code> (målt ≈ 4×)</td></tr>
         <tr><td>4</td><td>AMXX-natives og events til tracker-plugin; YaPB-cvars</td><td>Afklaret mod AMXX 1.10-includes og YaPB 4.4.957's yapb.cfg</td></tr>
+        <tr><td>5</td><td>Døde zoner &lt; 5 % – realistisk for bot-data?</td><td>Åben: de_dust2 giver 16 % (bots følger deres navigationsgraf); forslag ≤ 20 % eller relativt til dust2</td></tr>
         <tr><td>4</td><td>Kan SteamCMD hente cstrike uden dine CS-filer?</td><td>Afklaret: ja, anonymt (branch steam_legacy til ReHLDS)</td></tr>
       </tbody>
     </table>

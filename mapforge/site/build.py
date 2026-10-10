@@ -23,7 +23,7 @@ from mapforge.runs import iterations, stage_of
 PHASES = [  # (key, label, built?)
     ("compile", "2 Compile", True), ("validate", "3 Validate", True),
     ("render", "4 Render", True), ("review", "5 Review", True),
-    ("simulate", "6 Simulate", True), ("analyze", "7 Analyze", False),
+    ("simulate", "6 Simulate", True), ("analyze", "7 Analyze", True),
     ("decide", "8 Decide", True),
 ]  # fmt: skip
 SKIP_BUILD_DIRS = {"refmaps", "site", "no-hl-install"}
@@ -101,7 +101,7 @@ def map_status(cfg: Config, name: str) -> dict[str, Any]:
     b = cfg.path("build_dir") / name
     validation, review = _load(b / "validation.json"), _load(b / "review.json")
     index, compile_ = _load(b / "renders" / "index.json"), _load(b / "compile.json")
-    sim = _load(b / "simulation.json")
+    sim, metrics = _load(b / "simulation.json"), _load(b / "analysis" / "metrics.json")
     stage = stage_of(b) if b.is_dir() else {}
     return {
         "compile": None if compile_ is None else compile_.get("ok"),
@@ -109,7 +109,8 @@ def map_status(cfg: Config, name: str) -> dict[str, Any]:
         "render": None if index is None else True,
         "review": None if stage.get("review_passed") is None else stage["review_passed"],
         "review_stale": review is not None and stage.get("review_passed") is None,
-        "simulate": None if sim is None else sim.get("ok"), "analyze": None,
+        "simulate": None if sim is None else sim.get("ok"),
+        "analyze": None if metrics is None else metrics.get("targets_met"),
         "decide": True if iterations(cfg, name) else None,
         "source": None if validation is None else validation.get("source"),
         "next": stage.get("next"), "why": stage.get("why"),
@@ -153,6 +154,62 @@ def simulate_section(b: Path) -> str:
         parts.append(f"<p class='muted'>Demoer ({len(demos)}): kopiér til <code>cstrike/</code> og afspil med "
                      f"<code>playdemo &lt;navn&gt;</code> – {e(', '.join(Path(d).name for d in demos))}</p>")  # fmt: skip
     parts.append("</section>")
+    return "".join(parts)
+
+
+ANALYZE_NAMES = {
+    "t_winrate": "T-winrate", "site_split_a": "Andel plants på A",
+    "first_contact_s": "Første kontakt (median, s)", "dead_zone_share": "Døde zoner",
+    "max_kill_cell_share": "Kill-koncentration", "round_length_median_s": "Rundelængde (median, s)",
+}  # fmt: skip
+
+
+def analyze_section(b: Path, out: Path) -> str:
+    """Metrics with intervals, delta and heatmaps (build/<map>/analysis/)."""
+    a = b / "analysis"
+    m = _load(a / "metrics.json")
+    parts = ["<section id='analyze'><h2>7 Analyze</h2>"]
+    if not m:
+        parts.append(
+            "<p class='muted'>Ikke analyseret endnu (<code>./mf analyze MAP=…</code>).</p></section>"
+        )
+        return "".join(parts)
+    enough = (
+        ""
+        if m.get("enough_rounds")
+        else f" – for få til en fuld måling (FITNESS: {m.get('min_rounds')})"
+    )
+    parts.append(f"<p>{_chip(m.get('targets_met'), 'alle mål ramt', 'mål ikke ramt')} "
+                 f"<span class='muted'>score {m.get('score')} (0 = alle mål) · {m.get('rounds')} gyldige runder{e(enough)}</span></p>")  # fmt: skip
+    rows = []
+    for k, v in m.get("metrics", {}).items():
+        ci = "–" if v["ci"][0] is None else f"{v['ci'][0]}–{v['ci'][1]}"
+        ok = v.get("distance") == 0
+        rows.append(f"<tr><td>{e(ANALYZE_NAMES.get(k, k))}</td><td>{v['value']}</td><td>{ci}</td><td>{v['target']}</td>"
+                    f"<td>{_chip(ok, 'inden for', 'uden for')}</td><td>{v['n']}</td></tr>")  # fmt: skip
+    parts.append("<table><tr><th>metrik</th><th>værdi</th><th>95 %-interval</th><th>mål</th><th></th><th>n</th></tr>"
+                 + "".join(rows) + "</table>")  # fmt: skip
+    parts.append(f"<p class='muted'>Rundeårsager {e(json.dumps(m.get('round_reasons', {})))} · plants "
+                 f"{e(json.dumps(m.get('plants', {}).get('by_site', {})))} · kills pr. runde {m.get('kills', {}).get('per_round')}</p>")  # fmt: skip
+    d = m.get("delta")
+    if d:
+        drows = "".join(f"<tr><td>{e(ANALYZE_NAMES.get(k, k))}</td><td>{v['before']}</td><td>{v['after']}</td>"
+                        f"<td>{v['change']:+}</td><td>{e(v['verdict'])}</td></tr>" for k, v in d["metrics"].items())  # fmt: skip
+        parts.append(f"<h3>Delta mod {e(d.get('baseline', ''))}: {e(d['verdict'])}</h3><table><tr><th>metrik</th>"
+                     f"<th>før</th><th>efter</th><th>ændring</th><th>vurdering</th></tr>{drows}</table>")  # fmt: skip
+    if m.get("heatmaps"):
+        parts.append("<div class='grid'>")
+        for h in m["heatmaps"]:
+            src = a / h["file"]
+            if src.is_file():
+                _copy(src, out / "img" / "analysis" / Path(h["file"]).name)
+                f = f"img/analysis/{Path(h['file']).name}"
+                parts.append(f"<figure><a href='{e(f)}' target='_blank'><img src='{e(f)}' loading='lazy' alt=''></a>"
+                             f"<figcaption><b>{e(Path(h['file']).name)}</b> – {e(h['purpose'])} (n={h['n']})</figcaption></figure>")  # fmt: skip
+        parts.append("</div>")
+    parts.append(
+        "<p class='muted'>Rapport: <code>build/…/analysis/report.md</code>. Tallene beskriver YaPB-bots, ikke mennesker.</p></section>"
+    )
     return "".join(parts)
 
 
@@ -276,8 +333,7 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
     parts.append("</section>")
 
     parts.append(simulate_section(b))
-    parts.append("<section id='analyze'><h2>7 Analyze</h2><p class='muted'>Ikke bygget endnu "
-                 "(fase 5).</p></section>")  # fmt: skip
+    parts.append(analyze_section(b, out))
 
     parts.append("<section id='decide'><h2>8 Decide – iterationer</h2>")
     runs = iterations(cfg, name)

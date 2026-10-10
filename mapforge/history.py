@@ -20,7 +20,7 @@ from typing import Any
 
 from mapforge.config import Config, load_config
 
-COPY_FILES = ("validation.json", "review.json", "compile.json")
+COPY_FILES = ("validation.json", "review.json", "compile.json", "simulation.json")
 
 
 def history_root(cfg: Config, map_name: str) -> Path:
@@ -111,6 +111,19 @@ def snapshot(cfg: Config, map_name: str, note: str | None = None) -> Path | None
     for name in COPY_FILES:
         if (build / name).is_file():
             shutil.copy2(build / name, target / name)
+    analysis = build / "analysis"
+    if (analysis / "metrics.json").is_file():
+        m = json.loads((analysis / "metrics.json").read_text(encoding="utf-8"))
+        if m.get("bsp_sha256") in (None, sha):  # only an analysis of this very .bsp
+            if (target / "analysis").exists():
+                shutil.rmtree(target / "analysis")
+            shutil.copytree(analysis, target / "analysis")
+            meta["analysis"] = {
+                "rounds": m.get("rounds"),
+                "score": m.get("score"),
+                "targets_met": m.get("targets_met"),
+                "t_winrate": m.get("metrics", {}).get("t_winrate", {}).get("value"),
+            }
     layout = cfg.path("maps_dir") / map_name / "layout.yaml"
     if layout.is_file():
         shutil.copy2(layout, target / "layout.yaml")

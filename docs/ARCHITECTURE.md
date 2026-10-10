@@ -25,7 +25,7 @@ Simulering koster timer; alt hvad der kan ses eller beregnes uden bots skal fang
 | 4 Render | `.bsp`, WADs | `renders/*.png` + `renders/index.json` | Egen renderer: BSP-parser + moderngl (Mesa/EGL headless) med teksturer og kompilerede lightmaps | < 5 min |
 | 5 Review | renders, `validation.json`, layout-spec, review-tjekliste | `review.json` (pass/fail + fund) | Deterministiske pre-sim-checks + Claude (`claude -p`) ser billederne | ~1 min |
 | 6 Simulate | `.bsp`, YaPB-graf | CSV (TRACKER_SPEC.md), `simulation.json` | ReHLDS + Metamod-R + AMXX + YaPB i Docker | min.–timer |
-| 7 Analyze | CSV, renders | `metrics.json`, heatmaps | Python (pandas, numpy, matplotlib) | sek. |
+| 7 Analyze | CSV, renders | `metrics.json`, `report.md`, heatmaps | Python (numpy, Pillow) | sek. |
 | 8 Decide | se input-kontrakt nedenfor | `plan.json` + `NOTES.md` | Claude Code headless (`claude -p`) | ~1 min |
 
 ### 5 Review – pre-sim-gate
@@ -131,10 +131,12 @@ Begrænsninger:
 - **Demo:** HLTV-proxy i samme container (`+delay 0 +record`), som standard på første server pr. batch; `.dem` hentes til `<out>/<gruppe>/<run>/demos/`.
 - Output: `build/<map>/sim/` (CSV, server.log, demoer) og `build/<map>/simulation.json`; loopet (fase 6) bruger `--out runs/<map>/<NNN>/sim`.
 
-### Analyze (`analyze/`)
-- Heatmaps: position, kills, deaths, første kontakt.
-- Metrikker defineret i FITNESS.md → `metrics.json`.
-- Overlay heatmaps på top-down render.
+### Analyze (`mapforge/analyze/`) – bygget (fase 5)
+- Input: `build/<map>/sim/` (kun batches; graf- og smoke-runder tæller ikke) + top-down fra Render. Gyldige runder: vinder, ingen mennesker, fulde hold.
+- Metrikker (FITNESS): T-winrate og site-fordeling med Wilson-interval; første kontakt og rundelængde som median med bootstrap-interval (fast seed); døde zoner = andel gangbare 64-celler (≥ halvt dækket af walk-noder) med < 2 % af middeltrafikken; kill-koncentration = største andel kills (offerets position) i én 128-celle. Score = vægtet afstand til målintervallerne (`config/fitness.yaml` → weights).
+- Heatmaps (`render/overlay.py`): trafik T og CT, kills, deaths, første kontakt, døde zoner.
+- Delta mod forrige analyserede version (historikken) eller `--baseline`: en ændring tæller kun, når intervallerne ikke overlapper; vurderingen ser på afstanden til målet.
+- Output: `build/<map>/analysis/{metrics.json,report.md,heatmaps/}`; kopieres til historikken og vises på websitet.
 
 ### Orchestrator (`orchestrator/`)
 - Kører loop, håndterer stopkriterier og budget, skriver `runs/`.

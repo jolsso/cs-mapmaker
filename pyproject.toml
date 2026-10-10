@@ -33,6 +33,9 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 [tool.ruff.lint.per-file-ignores]
 # HTML templates: long string literals read better unbroken
 "mapforge/site/build.py" = ["E501"]
+"mapforge/analyze/run.py" = ["E501"]
+# fixture rows read better one per line
+"tests/test_analyze.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -158,11 +158,18 @@ def site_of(point: np.ndarray, sites: list[list[tuple[np.ndarray, np.ndarray]]],
     return label
 
 
-def assign_plant_sites(data: dict[str, list[dict]], bsp: Any) -> None:
-    """Fill empty rounds.plant_site from the bomb_plant position and the map's bomb sites."""
+def assign_plant_sites(
+    data: dict[str, list[dict]], bsp: Any, names: dict[str, str] | None = None
+) -> None:
+    """Fill empty rounds.plant_site from the bomb_plant position and the map's bomb sites.
+
+    names: site number -> letter for maps without "site_<X>" targetnames (config
+    analyze.site_names); unnamed sites keep their number.
+    """
     from mapforge.validate.walk import bomb_sites, site_labels
 
-    sites, labels = bomb_sites(bsp), site_labels(bsp)
+    sites = bomb_sites(bsp)
+    labels = [(names or {}).get(lab, lab) for lab in site_labels(bsp)]
     if not sites:
         return
     plants = {

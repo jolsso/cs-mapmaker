@@ -103,12 +103,13 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 ## Fase 5 – Analyse
 **Mål:** Data bliver til metrikker og billeder.
 
-- [ ] Metrikker fra FITNESS.md → `metrics.json`
-- [ ] Heatmaps: trafik, kills, deaths, første kontakt – oven på top-down
-- [ ] Sammenligning mellem iterationer (delta-rapport)
-- [ ] Sanity-check: kør på et kendt map og vurdér om tallene giver mening
+- [x] Metrikker fra FITNESS.md → `metrics.json` (`mapforge/analyze/`; intervaller: Wilson for andele, bootstrap for medianer; score = vægtet afstand til målintervaller)
+- [x] Heatmaps: trafik T/CT, kills, deaths, første kontakt, døde zoner – oven på top-down
+- [x] Sammenligning mellem iterationer (delta-rapport; ændringer inden for støjen tæller ikke)
+- [x] Sanity-check: kør på et kendt map og vurdér om tallene giver mening (de_dust2, se CALIBRATION.md – døde zoner-målet passer ikke til bot-data)
 
 **Accept:** Én rapport pr. iteration, der kan læses af både menneske og Claude.
+- ✅ 2026-10-10: `build/<map>/analysis/report.md` + `metrics.json` + heatmaps, på websitet og i historikken. Kørt på de_forge01 og de_dust2.
 
 ## Fase 6 – Autonomt loop
 **Mål:** Iterationer kører selv inden for rammer.
