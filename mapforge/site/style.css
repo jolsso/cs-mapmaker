@@ -206,7 +206,18 @@ button.on, button.primary { background: var(--accent-soft); border-color: var(--
 .annside { display: grid; gap: 10px; align-content: start; }
 .annside textarea { width: 100%; font: 14px var(--font); color: var(--ink); background: var(--bg2); border: 1px solid var(--line2); border-radius: 8px; padding: 8px 10px; resize: vertical; }
 .annlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-height: 520px; overflow: auto; }
-.annlist li { background: var(--panel2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: 8px 34px 8px 10px; position: relative; display: grid; gap: 4px; font-size: 14px; }
+.annlist li { background: var(--panel2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: 8px 34px 8px 10px; position: relative; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; }
+.annlist li > span:not(.chip) { flex-basis: 100%; }
+.annlist li .chip { width: auto; }
 .annlist li.st-done { border-left-color: var(--ok); } .annlist li.st-needs_human { border-left-color: var(--bad); }
 .annlist li button { position: absolute; right: 6px; top: 6px; padding: 1px 7px; font-size: 12px; }
 @media (max-width: 900px) { .annwrap { grid-template-columns: 1fr; } }
+
+/* "where are we now" marker on the phase bar */
+.step { position: relative; }
+.step.now { color: var(--accent) !important; }
+.step.now i { background: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-soft), 0 0 12px var(--accent); animation: nowpulse 1.4s ease-in-out infinite; }
+.step.now::before { content: "▼"; position: absolute; top: -17px; left: 50%; transform: translateX(-50%); color: var(--accent); font-size: 12px; animation: nowbob 1.4s ease-in-out infinite; }
+.nowline { margin: 4px 0 0; color: var(--accent); font: 600 13px var(--mono); }
+@keyframes nowpulse { 50% { box-shadow: 0 0 0 5px var(--accent-soft), 0 0 18px var(--accent); } }
+@keyframes nowbob { 50% { transform: translate(-50%, -3px); } }

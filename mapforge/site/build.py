@@ -139,13 +139,39 @@ def _state_cls(built: bool, state: bool | None) -> str:
     return "todo" if not built else ("ok" if state else "bad" if state is False else "todo")
 
 
-def stepper(st: dict[str, Any], link: bool = True) -> str:
-    """Pipeline phases as a segmented bar (green passed, red failed, dashed not run)."""
+LOOP_STEP_PHASE = {"build": "validate", "review": "review", "sim": "simulate", "decide": "decide"}
+NEXT_PHASE = {"validate": "validate", "review": "review", "simulate": "simulate", "fix": "decide",
+              "improve or stop": "decide"}  # fmt: skip
+
+
+def current_phase(cfg: Config, name: str, st: dict[str, Any]) -> tuple[str | None, str]:
+    """Where the work on this map is now: (phase key, short text) – from a running loop
+    (runs/<map>/loop.json), else from the stage of the build."""
+    from mapforge.runs import runs_root
+
+    loop = _load(runs_root(cfg, name) / "loop.json") or {}
+    if loop.get("status") == "running":
+        step = loop.get("step", "")
+        wait = loop.get("awaiting")
+        what = {"build": "bygger (generate → compile → validate → render)", "review": "review",
+                "sim": "simulerer (bots spiller)", "decide": "Decide"}.get(step, step)  # fmt: skip
+        text = f"Loopet: iteration {loop.get('iteration')} · " + (
+            f"venter på svar til {wait['step']}" if wait else f"i gang: {what}")  # fmt: skip
+        return LOOP_STEP_PHASE.get(step), text
+    if loop.get("status") == "stopped":
+        return None, f"Loopet stoppede: {loop.get('stop_reason')}"
+    nxt = st.get("next")
+    return NEXT_PHASE.get(nxt or ""), (f"Næste trin: {nxt}" if nxt else "")
+
+
+def stepper(st: dict[str, Any], link: bool = True, current: str | None = None) -> str:
+    """Pipeline phases as a segmented bar (green passed, red failed, dashed not run); the
+    phase the work is at now gets a pulsing arrow."""
     tag = "a" if link else "span"
     steps = "".join(
-        f"<{tag} class='step {_state_cls(built, st.get(k))}'"
+        f"<{tag} class='step {_state_cls(built, st.get(k))}{' now' if k == current else ''}'"
         + (f" href='#{k}'" if link else "")
-        + f" title='{e(label)}'><i></i>{e(label.split()[1])}</{tag}>"
+        + f" title='{e(label)}{' – her er vi nu' if k == current else ''}'><i></i>{e(label.split()[1])}</{tag}>"
         for k, label, built in PHASES
     )
     return f"<div class='stepper'>{steps}</div>"
@@ -166,6 +192,8 @@ def kpis(b: Path) -> str:
         tiles.append(f"<div class='kpi {cls}'><b>{value}</b><span>{e(label)}</span></div>")
 
     def ok(key: str) -> str:
+        if key in (m.get("diagnostics") or []):
+            return ""
         d = met.get(key, {}).get("distance")
         return "" if d is None else "ok" if d == 0 else "bad"
 
@@ -286,7 +314,8 @@ def analyze_section(b: Path, out: Path) -> str:
             return None if x is None else x * f
 
         target = [sc(t) for t in v["target"]] if v.get("target") else None
-        bullets.append(charts.bullet(ANALYZE_NAMES.get(k, k), sc(v["value"]), target,
+        diag = k in (m.get("diagnostics") or [])
+        bullets.append(charts.bullet(ANALYZE_NAMES.get(k, k) + (" (diagnostik)" if diag else ""), sc(v["value"]), target,
                                      [sc(c) for c in v["ci"]], 0.0, sc(hi) if hi else None, unit, digits))  # fmt: skip
     parts.append("<div class='chartbox'><h3>Metrikker mod mål (grønt bånd = mål, streg = 95 %-interval)</h3>"
                  f"<div class='bullets'>{''.join(bullets)}</div></div>")  # fmt: skip
@@ -476,12 +505,14 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
         st["source"] or "", "ikke valideret endnu"
     )
     nxt = f"Næste trin: <b>{e(st['next'] or '-')}</b> – {e(st['why'] or '')}"
+    cur, cur_text = current_phase(cfg, name, st)
     img = ""
     if st["thumb"]:
         _copy(b / "renders" / "topdown.png", out / "img" / "topdown.png")
         img = "<a href='img/topdown.png' target='_blank'><img src='img/topdown.png' alt='top-down'></a>"
     parts = [f"<section class='hero'><div>{img}</div><div class='side'><div><span class='eyebrow'>Projekt · "
-             f"{e(src)}</span><h1>{e(name)}</h1><p class='muted'>{nxt}</p></div>{stepper(st)}"
+             f"{e(src)}</span><h1>{e(name)}</h1><p class='muted'>{nxt}</p></div>"
+             f"{stepper(st, current=cur)}<p class='nowline'>▸ {e(cur_text)}</p>"
              f"{kpis(b)}</div></section>"]  # fmt: skip
 
     compile_ = _load(b / "compile.json")
@@ -822,6 +853,7 @@ def build_site(cfg: Config) -> Path:
 
     def card(m: str) -> str:
         st = map_status(cfg, m)
+        cur, cur_text = current_phase(cfg, m, st)
         b = cfg.path("build_dir") / m
         bg = ""
         if st["thumb"]:
@@ -844,7 +876,8 @@ def build_site(cfg: Config) -> Path:
             f"<div style='display:flex;justify-content:space-between;align-items:center;gap:10px'>"
             f"<div><div class='name'>{e(m)}</div><div class='muted small'>næste: {e(st['next'] or '-')}</div></div>"
             f"{charts.ring(done / sum(1 for *_, bl in PHASES if bl), f'{done} faser bestået')}</div>"
-            f"{stepper(st, link=False)}<div class='mini'>{''.join(mini)}</div></div></a>"
+            f"{stepper(st, link=False, current=cur)}<p class='nowline small'>▸ {e(cur_text)}</p>"
+            f"<div class='mini'>{''.join(mini)}</div></div></a>"
         )
 
     own = [m for m in maps if map_status(cfg, m)["source"] != "reference"]

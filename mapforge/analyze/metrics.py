@@ -134,8 +134,12 @@ def compute(
     acfg: dict[str, Any],
     confidence: float = 0.95,
 ) -> dict[str, Any]:
-    """All FITNESS gameplay metrics over the valid rounds."""
-    targets = fitness["targets"]
+    """All FITNESS gameplay metrics over the valid rounds.
+
+    `targets` are scored; `diagnostics` keep a reference band for display but never count.
+    """
+    scored = fitness["targets"]
+    targets = {**fitness.get("diagnostics", {}), **scored}
     keys = {(r["run_id"], r["round"]) for r in valid}
     n = len(valid)
     t_wins = sum(r["winner"] == "T" for r in valid)
@@ -199,7 +203,8 @@ def compute(
         "metrics": metrics,
         "score": None if score is None else round(score, 4),
         "score_parts": {k: round(weights[k] * d, 4) for k, d in parts.items()},
-        "targets_met": all(metrics[k]["distance"] == 0 for k in metrics if k in targets),
+        "targets_met": all(metrics[k]["distance"] == 0 for k in metrics if k in scored),
+        "diagnostics": sorted(k for k in metrics if k not in scored),
         "round_reasons": reasons,
         "plants": {"A": plants_a, "other": len(plants) - plants_a,
                    "by_site": {s: plants.count(s) for s in sorted(set(plants))}},

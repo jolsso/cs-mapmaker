@@ -13,23 +13,27 @@ locked:
   landmarks: []          # none yet (graybox); named at the art pass
   geometry_frozen: false # true after Gate B
 
-# Gameplay targets (bot data, >= 100 rounds per measurement).
+# Bot-data targets (>= 100 rounds per measurement). Changed 2026-10-10 after the design
+# research (docs/DESIGN_GUIDE.md §8): YaPB cannot see a map, so bot numbers are sanity checks and
+# bug finders, not the balance verdict (that is the human playtest at Gate C). The structural
+# design norms are hard validator rules (config/pipeline.yaml -> validate).
 targets:
-  t_winrate: [0.45, 0.55]
-  site_split_a: [0.35, 0.65]   # share of plants on site A
-  first_contact_s: [15, 25]
-  dead_zone_share: [0, 0.20]   # bot data: YaPB follows its graph (dust2: 16 %); human target was 5 %
-  max_kill_cell_share: [0, 0.10]
+  t_winrate: [0.35, 0.65]        # sanity band; real balance: Gate C
+  site_split_a: [0.35, 0.65]     # share of plants on site A: both sites must be used
+  max_kill_cell_share: [0, 0.10] # death-trap detector
   round_length_median_s: [50, 100]
+# Reported (metrics.json, website), never scored: they mostly reflect YaPB's waypoint graph.
+diagnostics:
+  first_contact_s: [15, 25]      # replaced by per-choke arrival timing in validate
+  dead_zone_share: [0, 0.20]     # dust2 has 16 %; low-traffic rooms can be valuable threats
 min_rounds: 100
 
 # Weighted distance to the target ranges (0 = all targets met).
 weights:
-  t_winrate: 0.4
-  site_split_a: 0.2
-  first_contact_s: 0.15
-  dead_zone_share: 0.15
-  max_kill_cell_share: 0.1
+  t_winrate: 0.35
+  site_split_a: 0.25
+  max_kill_cell_share: 0.2
+  round_length_median_s: 0.2
 
 budget:
   max_iterations: 20
