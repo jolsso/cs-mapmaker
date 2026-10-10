@@ -31,6 +31,9 @@ PHASES = [  # (key, label, built?)
 CSS_VERSION = (
     __import__("hashlib").sha256(Path(__file__).with_name("style.css").read_bytes()).hexdigest()[:8]
 )
+JS_VERSION = (
+    __import__("hashlib").sha256(Path(__file__).with_name("live.js").read_bytes()).hexdigest()[:8]
+)
 SKIP_BUILD_DIRS = {"refmaps", "site", "no-hl-install"}
 
 e = html.escape
@@ -396,7 +399,7 @@ def live_page(cfg: Config, maps: list[str], out: Path) -> str:
             "Server-Sent Events på localhost:8090). Orange = T, blå = CT, grå = død, rødt kryds = kill i runden; streg = sigteretning. "
             "Spiltiden kører hurtigere end realtid (timescale).</p><p id='status' class='muted'>forbinder …</p>"
             "<div id='totals' class='kpis'></div></section><div id='runs' class='livegrid'></div>"
-            f"<script>const MAPS = {json.dumps(views)};</script><script src='live.js?v={CSS_VERSION}'></script>")  # fmt: skip
+            f"<script>const MAPS = {json.dumps(views)};</script><script src='live.js?v={JS_VERSION}'></script>")  # fmt: skip
 
 
 def _copy(src: Path, dst: Path) -> None:

@@ -5,9 +5,14 @@ const COLLECTOR = "http://localhost:8090/events";
 const imgs = {};
 const esc = v => String(v ?? "").replace(/[&<>"']/g, ch => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[ch]));
 const cards = {};
+let last = null;
 
 function img(map) {
-  if (!imgs[map] && MAPS[map]) { imgs[map] = new Image(); imgs[map].src = MAPS[map].img; }
+  if (!imgs[map] && MAPS[map]) {
+    imgs[map] = new Image();
+    imgs[map].onload = () => last && render(last);  // redraw once the (large) render is in
+    imgs[map].src = MAPS[map].img;
+  }
   return imgs[map];
 }
 
@@ -30,7 +35,7 @@ function card(run) {
 
 function draw(c, run) {
   const m = MAPS[run.map];
-  c.el.querySelector(".run").textContent = `${run.map} · ${run.run}`;
+  c.el.querySelector(".run").textContent = `${run.map} · ${run.run}` + (counted(run) ? "" : " (tjek, tæller ikke)");
   const state = run.done ? "færdig" : run.stale ? `ingen data i ${run.age_s} s` : (run.live ? "runde i gang" : "freezetime / mellem runder");
   c.el.querySelector(".meta").textContent = `runde ${run.round} · ${run.t.toFixed(0)} s · ${state}`;
   c.el.classList.toggle("off", run.done || run.stale);
@@ -68,7 +73,11 @@ function draw(c, run) {
   }
 }
 
+// graph analysis and smoke runs are checks, not measurements: shown, but not in the totals
+const counted = r => !/^(graph|smoke)/.test(r.run);
+
 function render(state) {
+  last = state;
   const status = document.getElementById("status");
   const runs = state.runs;
   const active = runs.filter(r => !r.done && !r.stale);
@@ -77,14 +86,14 @@ function render(state) {
     : `<span class="chip ok">forbundet</span> ingen simuleringer kører lige nu – start fx <code>./mf simulate MAP=…</code> eller loopet`;
   // per-map totals over all runs (live + recently finished)
   const byMap = {};
-  for (const r of runs) {
+  for (const r of runs.filter(counted)) {
     const t = byMap[r.map] ||= { T: 0, CT: 0, A: 0, B: 0, runs: 0 };
     t.T += r.score.T; t.CT += r.score.CT; t.runs += 1;
     for (const x of r.rounds) if (x.site) t[x.site] = (t[x.site] || 0) + 1;
   }
   document.getElementById("totals").innerHTML = Object.entries(byMap).map(([map, t]) => {
     const n = t.T + t.CT, plants = (t.A || 0) + (t.B || 0);
-    return `<div class="kpi"><b>${n ? Math.round(100 * t.T / n) : "–"}%</b><span>${esc(map)}: T-winrate over ${n} runder (${t.runs} servere)</span></div>
+    return `<div class="kpi"><b>${n ? Math.round(100 * t.T / n) : "–"}%</b><span>${esc(map)}: T-winrate over ${n} målte runder (${t.runs} servere)</span></div>
       <div class="kpi"><b>${plants ? Math.round(100 * (t.A || 0) / plants) : "–"}%</b><span>${esc(map)}: plants på A (${plants})</span></div>`;
   }).join("");
   const box = document.getElementById("runs");
