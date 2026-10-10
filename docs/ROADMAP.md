@@ -57,7 +57,7 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 **Mål:** Decide-trinnet virker på rigtige input, før der findes en generator at anvende planen på.
 
 - [ ] Input-kontrakt (ARCHITECTURE.md → 8 Decide) samles i `runs/<map>/<iteration>/` + `stage.json`
-- [ ] `plan.json`-skema; orchestrator-validering afviser ikke-tilladte ændringstyper og låste beslutninger
+- [x] `plan.json`-skema; orchestrator-validering afviser ikke-tilladte ændringstyper og låste beslutninger (`config/fitness.yaml`, `mapforge/decide/policy.py`)
 - [ ] Claude Code headless (`claude -p`) får input og returnerer `plan.json` + `NOTES.md`
 
 **Accept:** For dust2 og et bevidst ødelagt referencemap returnerer Decide en skema-gyldig plan, der adresserer de faktiske fund. Planen anvendes ikke endnu.

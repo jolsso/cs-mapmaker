@@ -1,0 +1,78 @@
+# Machine-readable mirror of docs/FITNESS.md. If the two disagree, FITNESS.md is wrong or this
+# file is: fix both. The loop optimises only what is here.
+
+# Locked decisions: never changed by the loop without human approval (filled at Gate A / B).
+locked:
+  theme: ""
+  map_type: "de"
+  topology: ""
+  site_locations: []     # rough coordinates/zones
+  landmarks: []          # named landmarks that must survive
+  geometry_frozen: false # true after Gate B
+
+# Gameplay targets (bot data, >= 100 rounds per measurement).
+targets:
+  t_winrate: [0.45, 0.55]
+  site_split_a: [0.35, 0.65]   # share of plants on site A
+  first_contact_s: [15, 25]
+  dead_zone_share: [0, 0.05]
+  max_kill_cell_share: [0, 0.10]
+  round_length_median_s: [50, 100]
+min_rounds: 100
+
+# Weighted distance to the target ranges (0 = all targets met).
+weights:
+  t_winrate: 0.4
+  site_split_a: 0.2
+  first_contact_s: 0.15
+  dead_zone_share: 0.15
+  max_kill_cell_share: 0.1
+
+budget:
+  max_iterations: 20
+  max_wall_clock_h: 12
+stop:
+  targets_met_in_a_row: 2
+  plateau_iterations: 5
+  hard_fail_in_a_row: 3
+  review_fail_in_a_row: 5
+
+# The loop's toolbox (FITNESS.md -> "Tilladte ændringer"). A plan may only use these types.
+# `params` lists required parameters; limits are checked by mapforge.decide.policy.
+allowed_changes:
+  move_corridor:
+    description: Move a corridor/segment sideways or along its axis
+    params: [target, delta]          # delta [dx, dy] units
+    max_abs_delta: 256
+  resize_corridor:
+    description: Lengthen or shorten a corridor
+    params: [target, length_delta]   # units, + longer / - shorter
+    max_abs_delta: 256
+  add_cover:
+    description: Add a box/wall as cover inside a zone
+    params: [zone, position, size]   # position [x, y], size [w, d, h]
+  remove_cover:
+    description: Remove a piece of cover
+    params: [target]
+  adjust_opening:
+    description: Change the width (or height) of a doorway/opening
+    params: [target, width]
+    min_width: 64                    # CLAUDE.md corridor/door norm
+  move_spawn:
+    description: Move spawns within their spawn zone
+    params: [team, delta]
+    max_abs_delta: 256
+  add_connection:
+    description: Add a secondary connection between two areas
+    params: [from, to]
+    before_gate_b_only: true
+    max_per_iteration: 1
+  remove_connection:
+    description: Remove a secondary connection
+    params: [from, to]
+    before_gate_b_only: true
+    max_per_iteration: 1
+  lighting:
+    description: Light intensity, colour or position
+    params: [target]
+    from_phase: 7

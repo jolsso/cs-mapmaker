@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0, 1, 1b, 3 færdig · fase 3b næste</b></span>
+    <span>status <b>fase 0, 1, 1b, 3 færdig · fase 3b i gang</b></span>
     <span>opdateret <b>2026-10-10</b></span>
   </div>
   <div class="facts">
@@ -498,10 +498,10 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
     <li class="phase next">
       <div class="phase-no"><small>Fase</small>3b</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Decide (tørkørsel)</h3><span class="chip next">næste</span></div>
+        <div class="phase-head"><h3>Decide (tørkørsel)</h3><span class="chip next">i gang</span></div>
         <ul>
           <li>Input-kontrakt samles i <code>runs/&lt;map&gt;/&lt;iteration&gt;/</code> + <code>stage.json</code></li>
-          <li><code>plan.json</code>-skema; ikke-tilladte ændringer og låste beslutninger afvises</li>
+          <li class="ok"><code>plan.json</code>-skema og politik: kun typer fra værktøjskassen (<code>config/fitness.yaml</code>), grænser (fx ±256 units), max én forbindelse pr. iteration, låste landmarks/sites og frossen geometri afvises; ellers eskalering</li>
           <li>Claude headless returnerer plan + NOTES.md for dust2 og et ødelagt referencemap</li>
         </ul>
         <p class="accept"><b>Accept:</b> skema-gyldig plan, der adresserer de faktiske fund. Anvendes ikke før generatoren findes.</p>

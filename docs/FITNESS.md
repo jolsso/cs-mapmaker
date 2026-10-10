@@ -60,6 +60,8 @@ locked:
 ```
 
 ## Tilladte ændringer (loopets værktøjskasse)
+Maskinlæsbart i `config/fitness.yaml` → `allowed_changes` (typer, påkrævede parametre, grænser). En plan med andre typer, for store ændringer eller ændringer der nævner låste landmarks/sites afvises af `mapforge/decide/policy.py`. Kræver en rettelse noget uden for værktøjskassen, skal planen eskalere (`escalate: true`).
+
 - Flytte/forlænge/forkorte korridorer inden for ±256 units
 - Tilføje/fjerne cover (kasser, vægge) inden for en zone
 - Justere døråbninger og bredder
