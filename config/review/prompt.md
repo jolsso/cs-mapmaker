@@ -18,4 +18,4 @@ Top-down-billederne er set lige ovenfra med nord opad; geometri over spillerhøj
 {checklist}
 
 ## Svar
-Svar KUN med JSON efter skemaet. `findings` er tom, hvis du intet finder. `where` beskriver stedet i ord (fx "site 2, nordlig indgang") og gerne grove koordinater. `image` er filnavnet, fundet ses på.
+Skriv alle tekster på dansk. Svar KUN med JSON efter skemaet. `findings` er tom, hvis du intet finder. `where` beskriver stedet i ord (fx "site 2, nordlig indgang") og gerne grove koordinater. `image` er filnavnet, fundet ses på.

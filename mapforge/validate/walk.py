@@ -330,7 +330,11 @@ def bomb_target_boxes(bsp: Bsp) -> list[tuple[np.ndarray, np.ndarray]]:
         model = ent.get("model", "")
         if cls == "func_bomb_target" and model.startswith("*"):
             m = bsp.models[int(model[1:])]
-            boxes.append((m["mins"].astype(np.float64), m["maxs"].astype(np.float64)))
+            # a brush entity's "origin" moves its model
+            shift = np.array([float(v) for v in ent.get("origin", "0 0 0").split()])
+            boxes.append(
+                (m["mins"].astype(np.float64) + shift, m["maxs"].astype(np.float64) + shift)
+            )
         elif cls == "info_bomb_target" and "origin" in ent:
             o = np.array([float(v) for v in ent["origin"].split()])
             boxes.append((o - 64, o + 64))

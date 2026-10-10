@@ -51,6 +51,7 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 - [x] Review-trin (pre-sim-gate): deterministiske checks + Claude ser billederne mod tjekliste (og layout-spec, når mappet har en) → `review.json`; fail går direkte til Decide uden simulering (ARCHITECTURE.md → 5 Review)
 
 **Accept:** `./mf render` producerer alle billeder for de_dust2 på < 5 min uden manuelle trin, og Review på dust2 består. Et bevidst ødelagt referencemap (fx med en blokeret forbindelse) fanges af Review uden at simulere. Efter fase 2 gentages testen på et genereret blockout mod dets layout-spec.
+✅ Opfyldt 2026-10-10: `./mf render` på dust2 på ~6 s (7 billeder); Review på dust2 PASS (kun minor-fund om mørke tunneller). To ødelagte varianter (`uv run python -m mapforge.refmaps_variants`: T-spawns oven i CT-spawns; site 2 flyttet ind i CT-spawn) består validering, men fanges begge som **critical** af Review – uden simulering.
 
 ## Fase 3b – Decide (tørkørsel)
 **Mål:** Decide-trinnet virker på rigtige input, før der findes en generator at anvende planen på.

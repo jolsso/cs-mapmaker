@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0, 1, 1b færdig · fase 3 i gang</b></span>
+    <span>status <b>fase 0, 1, 1b, 3 færdig · fase 3b næste</b></span>
     <span>opdateret <b>2026-10-10</b></span>
   </div>
   <div class="facts">
@@ -228,7 +228,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
             <rect x="170" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
             <rect x="320" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
             <rect x="470" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
-            <rect x="620" y="50" width="128" height="96" rx="4"/>
+            <rect x="620" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
             <rect x="770" y="50" width="128" height="96" rx="4"/>
             <rect x="920" y="50" width="128" height="96" rx="4"/>
             <rect x="440" y="270" width="190" height="66" rx="4"/>
@@ -477,10 +477,10 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       </div>
     </li>
 
-    <li class="phase next">
+    <li class="phase done">
       <div class="phase-no"><small>Fase</small>3</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Render</h3><span class="chip next">i gang</span></div>
+        <div class="phase-head"><h3>Render</h3><span class="chip done">færdig</span></div>
         <ul>
           <li class="ok">Egen renderer (BSP + moderngl, headless i containeren): top-down med teksturer og rigtigt kompileret lys, tage over spillerhøjde skåret væk, spawns og sites tegnet på (dust2: 5 s)</li>
           <li class="ok">Lysstyrke: lightmap under hver gangbar celle; mørke zoner (luma &lt; 10, ≥ 64×64 units) som rød kontur. dust2 har 4 (tunneller, CT-dør)</li>
@@ -488,16 +488,16 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <li class="ok">Kameraer: perspektiv fra hver spawn og angribernes view ind på hvert site (korteste gåsti fra T-spawn); egne kameraer i <code>config/cameras/&lt;map&gt;.yaml</code></li>
                     <li>Klient-screenshots flyttet til fase 7 (egne renders har allerede lys)</li>
           <li class="ok">Review-trin: errors i validering stopper uden Claude-kald; ellers ser Claude billederne mod tjeklisten (og layout-spec'en). dust2 bestod på 23 s og fandt selv en fejl i T-spawn-kameraet, som er rettet</li>
-          <li>Accept: et bevidst ødelagt referencemap skal fanges af Review</li>
+          <li class="ok">To ødelagte dust2-varianter (T-spawns oven i CT; site 2 flyttet ind i CT-spawn) består validering, men fanges begge som critical af Review</li>
         </ul>
         <p class="accept"><b>Accept:</b> <code>./mf render</code> laver alle billeder for de_dust2 på under 5 min, Review består på dust2, og et bevidst ødelagt referencemap fanges uden simulering. Efter fase 2 gentages testen på et genereret blockout.</p>
       </div>
     </li>
 
-    <li class="phase">
+    <li class="phase next">
       <div class="phase-no"><small>Fase</small>3b</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Decide (tørkørsel)</h3><span class="chip">senere</span></div>
+        <div class="phase-head"><h3>Decide (tørkørsel)</h3><span class="chip next">næste</span></div>
         <ul>
           <li>Input-kontrakt samles i <code>runs/&lt;map&gt;/&lt;iteration&gt;/</code> + <code>stage.json</code></li>
           <li><code>plan.json</code>-skema; ikke-tilladte ændringer og låste beslutninger afvises</li>
