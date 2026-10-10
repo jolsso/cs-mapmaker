@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0 færdig · fase 1 i gang</b></span>
+    <span>status <b>fase 0–1 færdig · fase 2 næste</b></span>
     <span>opdateret <b>2026-10-10</b></span>
   </div>
   <div class="facts">
@@ -219,7 +219,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <g fill="none" stroke="currentColor" stroke-width="1.5">
             <rect x="20" y="50" width="150" height="96" rx="4"/>
             <rect x="200" y="50" width="150" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
-            <rect x="380" y="50" width="150" height="96" rx="4"/>
+            <rect x="380" y="50" width="150" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
             <rect x="560" y="50" width="150" height="96" rx="4"/>
             <rect x="740" y="50" width="150" height="96" rx="4"/>
             <rect x="920" y="50" width="150" height="96" rx="4"/>
@@ -283,7 +283,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       </svg>
     </div>
     <div class="legend">
-      <span><span class="swatch built"></span>bygget (fase 0)</span>
+      <span><span class="swatch built"></span>bygget (fase 0–1)</span>
       <span><span class="swatch plain"></span>planlagt</span>
       <span>stiplet = genvej når et hårdt krav fejler</span>
     </div>
@@ -433,24 +433,25 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       </div>
     </li>
 
-    <li class="phase next">
+    <li class="phase done">
       <div class="phase-no"><small>Fase</small>1</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Compile + validering</h3><span class="chip next">i gang</span></div>
+        <div class="phase-head"><h3>Compile + validering</h3><span class="chip done">færdig</span></div>
         <ul>
-          <li>Compile-log-parser → <code>compile.json</code> (errors, warnings, leak-koordinater)</li>
-          <li>BSP-parser: entities, planes, faces, clipnodes, lighting</li>
-          <li>Validator: limits, off-grid, korridorbredder, spawns, bomb targets, buyzones</li>
-          <li>Bevidst ødelagte testmaps, som validatoren skal fange</li>
+          <li class="ok">Compile-log-parser → <code>compile.json</code>, også når compile fejler (leak-entity, hullets position, polylinje)</li>
+          <li class="ok">.map-parser (Valve 220) med brush-geometri</li>
+          <li class="ok">BSP v30-parser: alle lumps, hull-opslag, lightmaps</li>
+          <li class="ok">Validator → <code>validation.json</code>: limits, off-grid, ugyldige brushes, spawns (antal og fastklemte), bomb targets, buyzones, smalle gange, lave lofter</li>
+          <li class="ok">7 bevidst ødelagte testmaps; 34 tests grønne i Docker</li>
         </ul>
-        <p class="accept"><b>Accept:</b> alle fejlmaps fanges med korrekt årsag. Claude kan rette et leak alene ud fra <code>compile.json</code>.</p>
+        <p class="accept"><b>Accept:</b> alle fejlmaps fanges med korrekt årsag. Claude kan rette et leak alene ud fra <code>compile.json</code>. Opfyldt: 7/7 fanges, og en frisk agent med kun mappet og <code>compile.json</code> lukkede hullet i første forsøg.</p>
       </div>
     </li>
 
-    <li class="phase">
+    <li class="phase next">
       <div class="phase-no"><small>Fase</small>2</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Generator + blockout</h3><span class="chip">senere</span></div>
+        <div class="phase-head"><h3>Generator + blockout</h3><span class="chip next">næste</span></div>
         <ul>
           <li>Layout-spec i YAML: rum, korridorer, trapper, sites, spawns</li>
           <li>Generator med forseglet ydre skal; round-trip læs → ændr → skriv</li>

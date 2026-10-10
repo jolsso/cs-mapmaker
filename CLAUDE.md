@@ -44,7 +44,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf compile MAP=<navn>       # CSG→BSP→VIS→RAD (PROFILE=fast|final, default fast)
 ./mf test                     # pytest (inkl. compile-smoke-test med Linux-binaries)
 ./mf lint                     # ruff check + format --check
-./mf validate MAP=<navn>      # geometri, limits, leaks       (Fase 1)
+./mf validate MAP=<navn>      # compile + validering → build/<map>/validation.json (exit 1 ved errors)
 ./mf render MAP=<navn>        # top-down + kameraviews        (Fase 3)
 ./mf simulate MAP=<navn>      # HLDS + YaPB, N runder         (Fase 4)
 ./mf analyze MAP=<navn>       # heatmaps + metrikker          (Fase 5)

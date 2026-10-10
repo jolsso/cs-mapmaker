@@ -16,13 +16,14 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 ## Fase 1 – Deterministisk loop (compile + validering)
 **Mål:** Fejl fanges og forklares automatisk.
 
-- [ ] Compile-log-parser → `compile.json` (errors, warnings, leak-koordinater)
-- [ ] BSP-parser (entities, planes, faces, clipnodes, lighting)
-- [ ] Validator: limits, off-grid, korridorbredder, spawns-tælling, bomb targets, buyzones
-- [ ] Bevidst ødelagte testmaps (leak, ukonveks brush, manglende spawn) → validator fanger dem alle
-- [ ] `pytest` dækker parser og validator
+- [x] Compile-log-parser → `compile.json` (errors, warnings, leak-koordinater)
+- [x] BSP-parser (entities, planes, faces, clipnodes, lighting)
+- [x] Validator: limits, off-grid, korridorbredder, spawns-tælling, bomb targets, buyzones
+- [x] Bevidst ødelagte testmaps (leak, ukonveks brush, manglende spawn) → validator fanger dem alle (`tests/fixtures/maps/`, 7 stk.)
+- [x] `pytest` dækker parser og validator
 
 **Accept:** Alle fejltestmaps fanges med korrekt årsag. Claude kan rette et leak-map ud fra `compile.json` alene.
+✅ Opfyldt 2026-10-10: 7/7 fixtures fanges (`tests/test_validate.py`). En frisk agent fik kun det utætte map (uden kommentarer) + `compile.json`, tilføjede den manglende væg ud fra `leak.first_point`/`leak.line`, og resultatet compilede uden leak og validerede med 0 errors.
 
 ## Fase 2 – Generator + blockout
 **Mål:** Fra YAML-layout til spilbart graybox-map.

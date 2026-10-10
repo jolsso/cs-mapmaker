@@ -50,3 +50,41 @@ wad:
   # client needs no external WAD.
   include:
     - mapforge_dev.wad
+
+validate:
+  grid: 8                 # every brush vertex must lie on this grid (CLAUDE.md: 16/8-grid)
+  world_bounds: 4096      # |coordinate| limit for brush vertices
+  limit_error_pct: 90     # FITNESS.md hard requirement: no engine limit above 90 %
+  limit_warn_pct: 75
+  # Engine limits from HLSDK utils/common/bspfile.h (MAX_MAP_*). Stricter than SDHLT's own
+  # table in places (e.g. models 400 vs 512), so these are what we check against.
+  engine_limits:
+    models: 400
+    planes: 32767
+    vertexes: 65535
+    nodes: 32767
+    texinfo: 8192
+    faces: 65535
+    clipnodes: 32767
+    visleafs: 8192
+    marksurfaces: 65535
+    edges: 256000
+    surfedges: 512000
+    textures: 512
+    entities: 1024
+    entdata_bytes: 131072
+    lighting_bytes: 2097152
+    visibility_bytes: 2097152
+  # Rows of the compiler's own limit table that have no BSP-count equivalent above.
+  compiler_table_rows: [AllocBlock]
+  # Entity rules (FITNESS.md). Per-map overrides: maps/<map>/validate.yaml (key `rules`).
+  rules:
+    spawns_per_team: 10
+    buyzones_per_team: 1
+    bomb_targets: {de: 2}   # by map type = name prefix before "_" (de_dust -> de)
+  corridors:
+    min_width: 64         # CLAUDE.md: corridors/doors min. 64 wide
+    min_height: 96        # CLAUDE.md: 96-128 high (rule of thumb)
+    cell: 8               # horizontal sampling step (units)
+    z_step: 4             # vertical sampling step (units)
+    max_step: 18          # max step height between neighbouring cells

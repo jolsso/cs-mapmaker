@@ -1,0 +1,4 @@
+# test_box is a minimal compile test, not a playable de_ map.
+rules:
+  spawns_per_team: 2
+  buyzones_per_team: 0

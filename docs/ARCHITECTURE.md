@@ -35,14 +35,36 @@ Værten skal kun have Docker. Alt deterministisk kører i containere, der deler 
 - Producerer konvekse brushes på grid, forseglet ydre skal, entities.
 - Skal kunne round-trippe: læse en eksisterende .map, ændre, skrive tilbage.
 
-### Compile (`compile/`)
+### Compile (`mapforge/compile/`) – bygget
 - Profiler: `fast` (hurtig iteration, lav rad-kvalitet) og `final` (`-extra`, flere bounces).
-- Parser compile-log til struktureret JSON (warnings, errors, leak-koordinater fra pointfile).
+- Skriver altid `build/<map>/compile.log` og `compile.json` – også når compile fejler.
+- `compile.json`: `ok`, `failure`, `failed_step`, `steps` (exit code, tid), `errors`, `warnings`, `leak` (hull, entity + origin, `first_point` = hvor leak-linjen forlader spilområdet, `line` = polylinjen fra `.lin`), `limits` (compilerens egen tabel), `textures_referenced`, `wads_required`.
 
-### Validate (`validate/`)
-- BSP-parser (lumps: entities, planes, faces, lighting, clipnodes, leafs).
-- Tjek mod limits og design-normer i CLAUDE.md.
-- Lysstyrkekort: sample lighting-lump pr. face → top-down grid → flag mørke spilområder.
+### .map-parser (`mapforge/mapfile/`) – bygget
+- Valve 220-parser (entities, brushes, faces med tekstur-akser og linjenumre).
+- Brush-geometri fra face-planer: vertices, polygon pr. face, åben/tom/redundant-detektion.
+
+### BSP-parser (`mapforge/bsp/`) – bygget
+- BSP v30, alle 15 lumps; struct-layouts fra HLSDK `bspfile.h`.
+- Vektoriseret `point_contents` i hull 0–3 (hull 1 = stående spiller 32×32×72), face-polygoner, lightmaps pr. face.
+
+### Validate (`mapforge/validate/`) – bygget
+`./mf validate MAP=<navn>` compiler og skriver `build/<map>/validation.json`: `ok`, `summary` (errors/warnings), `findings` (rule, severity, message, source, location, .map-linje, details) og `stats` (limits, walkable, entities).
+
+| Rule | Severity | Kilde | Tjek |
+|---|---|---|---|
+| `leak`, `compile_failed` | error | compile.json | FITNESS hårdt krav |
+| `invalid_brush`, `redundant_face`, `degenerate_face` | error | .map | brushes skal være lukkede og konvekse |
+| `off_grid`, `out_of_bounds` | error | .map | vertices på 8-grid, inden for ±4096 |
+| `limit` | error > 90 %, warning > 75 % | .bsp | HLSDK `MAX_MAP_*` + AllocBlock fra compileren |
+| `spawn_count`, `bomb_targets`, `buyzone_count` | error | .bsp (.map hvis compile fejlede) | FITNESS; per-map override i `maps/<map>/validate.yaml` |
+| `spawn_stuck` | error | .bsp | stående hull passer ikke ved spawn-origin |
+| `narrow_passage`, `low_ceiling` | warning | .bsp | gangbare celler (hull 1) med fri bredde < 64 eller loftshøjde < 96 |
+
+Begrænsninger:
+- Korridorbredde måles langs x- og y-aksen, så diagonale gange vurderes for bredt (lempeligt, aldrig falsk alarm).
+- "Alle spawns kan nå begge sites" kræver sites fra layout-spec/YAPB-graf og kommer i fase 2/4.
+- Lysstyrkekort (mørke zoner) bygger på `Bsp.face_lightmap` og kommer i fase 3.
 
 ### Render (`render/`)
 - **Geometri:** newbspguy exportobj → Blender `--background` script med faste kameraer. ⚠️ VERIFICÉR exportobj-kvalitet (markeret WIP i originalt bspguy).

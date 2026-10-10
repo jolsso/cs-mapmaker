@@ -33,9 +33,12 @@ tasks:
       - uv run python -m mapforge.compile.run --map {{.MAP}} --profile {{.PROFILE}}
 
   validate:
-    desc: Geometry, limits, leaks (Phase 1)
+    desc: Compile + validate a map -> build/<map>/validation.json (MAP=<name>, PROFILE=fast|final)
+    requires:
+      vars: [MAP]
+    deps: [setup]
     cmds:
-      - cmd: echo "not implemented (Phase 1)" && exit 1
+      - uv run python -m mapforge.validate.run --map {{.MAP}} --profile {{.PROFILE}}
 
   render:
     desc: Top-down + camera views (Phase 3)

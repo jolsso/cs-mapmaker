@@ -1,8 +1,9 @@
 import struct
 
 import pytest
+from conftest import needs_compilers
 
-from mapforge.compile.run import CompileError, compile_map, prepare_map, tool_paths
+from mapforge.compile.run import CompileError, compile_map, prepare_map
 from mapforge.config import load_config
 from mapforge.wad.dev_textures import main as make_dev_wad
 
@@ -28,16 +29,8 @@ def test_prepare_map_missing_wad(tmp_path):
         prepare_map(src, tmp_path / "out.map", [tmp_path])
 
 
-def _compilers_present() -> bool:
-    try:
-        tool_paths(load_config())
-    except CompileError:
-        return False
-    return True
-
-
 @pytest.mark.slow
-@pytest.mark.skipif(not _compilers_present(), reason="compilers not fetched")
+@needs_compilers
 def test_test_box_compiles():
     make_dev_wad()
     bsp = compile_map(load_config(), "test_box", "fast")
