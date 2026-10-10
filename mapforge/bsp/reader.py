@@ -83,6 +83,7 @@ class Texture:
     width: int
     height: int
     embedded: bool  # pixel data inside the BSP (vs. loaded from a WAD at runtime)
+    offset: int = -1  # of the miptex in the textures lump (-1 = missing entry)
 
 
 @dataclass
@@ -103,6 +104,14 @@ class Bsp:
     surfedges: np.ndarray
     models: np.ndarray
     entity_bytes: int
+    texture_lump: bytes = b""
+
+    def texture_pixels(self, index: int) -> tuple[np.ndarray, np.ndarray] | None:
+        """(indices (h, w) uint8, palette (256, 3) uint8) of an embedded texture, else None."""
+        tex = self.textures[index]
+        if not tex.embedded:
+            return None
+        return miptex_pixels(self.texture_lump, tex.offset)
 
     def counts(self) -> dict[str, int]:
         """Object counts per lump (texture/lighting/visibility/entities in bytes)."""
@@ -204,11 +213,12 @@ def _textures(raw: bytes) -> list[Texture]:
     offsets = struct.unpack_from(f"<{count}i", raw, 4)
     out = []
     for off in offsets:
-        if off < 0:
+        if off < 0:  # keep the slot: texinfo.miptex indexes this list
+            out.append(Texture(name="", width=16, height=16, embedded=False))
             continue
         name = raw[off : off + 16].split(b"\0", 1)[0].decode("ascii", "replace")
         width, height, mip0 = struct.unpack_from("<III", raw, off + 16)
-        out.append(Texture(name=name, width=width, height=height, embedded=mip0 != 0))
+        out.append(Texture(name=name, width=width, height=height, embedded=mip0 != 0, offset=off))
     return out
 
 
@@ -236,4 +246,18 @@ def read_bsp(path: Path) -> Bsp:
         surfedges=_array(lumps["surfedges"], np.dtype("<i4")),
         models=_array(lumps["models"], DMODEL),
         entity_bytes=len(lumps["entities"]),
+        texture_lump=lumps["textures"],
     )
+
+
+def miptex_pixels(data: bytes, offset: int) -> tuple[np.ndarray, np.ndarray]:
+    """Mip level 0 indices and the palette of a miptex starting at `offset` in `data`.
+
+    Layout (BSP textures lump and WAD3 lumps alike): name[16], u32 w, h, offsets[4]
+    (relative to the miptex), 4 mip levels, u16 palette size, 256 * RGB.
+    """
+    width, height, mip0, _, _, mip3 = struct.unpack_from("<II4I", data, offset + 16)
+    pixels = np.frombuffer(data, dtype=np.uint8, count=width * height, offset=offset + mip0)
+    pal_at = offset + mip3 + (width // 8) * (height // 8) + 2
+    palette = np.frombuffer(data, dtype=np.uint8, count=768, offset=pal_at).reshape(256, 3)
+    return pixels.reshape(height, width).copy(), palette.copy()

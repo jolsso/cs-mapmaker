@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0, 1, 1b færdig · fase 3 næste</b></span>
+    <span>status <b>fase 0, 1, 1b færdig · fase 3 i gang</b></span>
     <span>opdateret <b>2026-10-10</b></span>
   </div>
   <div class="facts">
@@ -227,7 +227,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
             <rect x="20" y="50" width="128" height="96" rx="4"/>
             <rect x="170" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
             <rect x="320" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
-            <rect x="470" y="50" width="128" height="96" rx="4"/>
+            <rect x="470" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
             <rect x="620" y="50" width="128" height="96" rx="4"/>
             <rect x="770" y="50" width="128" height="96" rx="4"/>
             <rect x="920" y="50" width="128" height="96" rx="4"/>
@@ -480,9 +480,10 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
     <li class="phase next">
       <div class="phase-no"><small>Fase</small>3</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Render</h3><span class="chip next">næste</span></div>
+        <div class="phase-head"><h3>Render</h3><span class="chip next">i gang</span></div>
         <ul>
-          <li>Egen renderer (BSP + moderngl, headless i containeren): top-down og kameraer med teksturer og rigtigt kompileret lys</li>
+          <li class="ok">Egen renderer (BSP + moderngl, headless i containeren): top-down med teksturer og rigtigt kompileret lys, tage over spillerhøjde skåret væk, spawns og sites tegnet på (dust2: 5 s)</li>
+          <li>Kameraer: perspektiv fra spawns og ind på sites</li>
           <li>Lysstyrkekort fra lighting-lump, liste over mørke zoner</li>
           <li>Klient-screenshots flyttet til fase 7 (egne renders har allerede lys)</li>
           <li>Review-trin: Claude ser billederne mod tjeklisten (og layout-spec'en, når mappet har en) før simulering; fejl går direkte til Decide</li>

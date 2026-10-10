@@ -111,3 +111,11 @@ reference_maps:
   dirs:
     - build/refmaps
     - /refmaps/hl/cstrike/maps
+
+render:
+  # WADs for textures not embedded in the .bsp. The map's own mod dir (<bsp>/../*.wad) is
+  # always searched first; then these (missing dirs are skipped).
+  wad_dirs:
+    - assets/wads
+    - /refmaps/hl/cstrike
+    - /refmaps/hl/valve

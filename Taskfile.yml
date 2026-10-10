@@ -51,9 +51,11 @@ tasks:
       - uv run python -m mapforge.refmaps --list
 
   render:
-    desc: Top-down + camera views (Phase 3)
+    desc: Render a map -> build/<map>/renders/ (MAP=<name>, SOURCE=map|reference)
+    requires:
+      vars: [MAP]
     cmds:
-      - cmd: echo "not implemented (Phase 3)" && exit 1
+      - uv run python -m mapforge.render.run --map {{.MAP}} --source {{.SOURCE | default "map"}}
 
   simulate:
     desc: HLDS + YaPB, N rounds (Phase 4)

@@ -9,7 +9,9 @@ FROM python:3.11-slim-trixie@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8b
 COPY --from=uv /uv /uvx /usr/local/bin/
 
 # unar: unpack third-party reference maps (RAR with filters) from test_maps/.
-RUN apt-get update && apt-get install -y --no-install-recommends unar \
+# Mesa EGL + libGL (llvmpipe): offscreen OpenGL for the renderer, no GPU or display needed.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        unar libegl1 libegl-mesa0 libgl1 libgl1-mesa-dri libgbm1 \
     && rm -rf /var/lib/apt/lists/*
 
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv \

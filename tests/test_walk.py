@@ -23,4 +23,3 @@ def test_flood_fill_covers_the_room(box):
     standing = g.stance == STAND
     assert standing.sum() == 124 * 124  # same cells as the room's walkable area (1024-32)^2/64
     assert np.all(g.feet[standing, 2] == 0)  # everyone stands on the floor
-
