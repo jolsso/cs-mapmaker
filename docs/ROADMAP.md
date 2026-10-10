@@ -69,7 +69,7 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 
 - [ ] Layout-spec-format (YAML) dokumenteret (Review i fase 3 bruger det til egne maps)
 - [ ] Generator: rum, korridorer, trapper/ramper, sites, spawns, ydre skal
-- [ ] Round-trip: læs .map → ændr → skriv
+- [x] Round-trip: læs .map → ændr → skriv (`mapforge/mapfile/writer.py`)
 - [ ] Første de_-blockout genereret og compileret uden fejl
 
 **Accept:** Et 2-site blockout passerer Fase 1-validering, inkl. nåbarhed.
