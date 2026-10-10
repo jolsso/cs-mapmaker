@@ -63,6 +63,9 @@ Værten skal kun have Docker. Alt deterministisk kører i containere, der deler 
 - **Referencemaps:** din Half-Life-installation mountes read-only på `/refmaps/hl` (`HL_DIR` i `.env`); `test_maps/*.rar` pakkes ud i `build/refmaps/` med `unar` i forge-imaget. Bruges kun til test/kalibrering og committes aldrig.
 - **Undtagelse:** CS 1.6-klienten til screenshots med rigtige lightmaps kører på værten (GPU).
 
+## Lokalt website (`mapforge/site/`)
+`build/site/` genereres fra repoets data og viser alt ét sted: forside med projekter (ét pr. map, grupperet i egne maps og referencemaps, med status pr. fase), arkitektur og roadmap (docs/overview.html), og én side pr. map med compile, validering (fund, nåbarhed, limits), alle renders, review, og iterationer (plan, politik-tjek, NOTES.md). Genbygges automatisk efter validate/render/review/decide (`site.auto_refresh`) og med `./mf site`. Serveres lokalt med `docker compose up -d site` på `http://localhost:8080` (kun 127.0.0.1) – billeder af Valve-/community-maps forlader aldrig maskinen.
+
 ## Komponenter
 
 ### Generator (`generator/`)

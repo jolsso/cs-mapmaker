@@ -142,4 +142,8 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    from mapforge.site.build import refresh_site  # lazy: avoids an import cycle
+
+    code = main()
+    refresh_site()  # keep the local website (build/site) current
+    sys.exit(code)

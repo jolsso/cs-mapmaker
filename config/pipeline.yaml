@@ -142,3 +142,7 @@ review:
 decide:
   # Roadmap phase the plan is checked for (lighting changes need >= 7).
   phase: 3
+
+site:
+  # Rebuild build/site/ at the end of validate / render / review / decide.
+  auto_refresh: true

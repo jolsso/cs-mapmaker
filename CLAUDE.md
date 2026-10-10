@@ -20,7 +20,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 5. **Log hver iteration** i `runs/<map>/<iteration>/` med: .map-diff, compile-log, metrikker (JSON), renders/screenshots, og en kort `NOTES.md` om hvad der blev ændret og hvorfor.
 6. **Små, målrettede ændringer pr. iteration.** Ændr én ting ad gangen når det er muligt, så effekten kan måles.
 7. **Commit efter hver feature** (lokalt; push kun på forespørgsel). Rækkefølge: `./mf test` + `./mf lint` grønne → docs/ROADMAP opdateret → oversigtssiden genudgivet → commit. Saml ikke en hel fase i ét commit.
-8. **Opdatér oversigtssiden** `docs/overview.html` (arkitektur + roadmap) efter hver implementeret roadmap-feature, og genudgiv den til samme artifact-URL: https://claude.ai/artifact/B1mxnr1kLUJGD8de4ruDfX
+8. **Opdatér oversigtssiden** `docs/overview.html` (arkitektur + roadmap) efter hver implementeret roadmap-feature, og genudgiv den til samme artifact-URL: https://claude.ai/artifact/B1mxnr1kLUJGD8de4ruDfX. Genbyg det lokale website (`./mf site`), så det også viser den nye arkitektur/roadmap. Billeder af Valve-/community-maps hører kun hjemme på det lokale website, aldrig i artifacten.
 9. **Stop ved gates** (se ROADMAP.md) og skriv en opsummering til mennesket i stedet for at fortsætte.
 
 ## GoldSrc-fakta (design-normer)
@@ -53,6 +53,8 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf review MAP=<navn> -- --answer   # trin 2: scor svaret → build/<map>/review.json
 ./mf decide MAP=<navn> -- --emit     # ny runs/<map>/<NNN>/ med input-kontrakt + decide-prompt
 ./mf decide MAP=<navn> -- --answer   # tjek plan.json mod config/fitness.yaml → decision.json
+./mf site                     # genbyg lokalt website build/site/ (sker også automatisk efter validate/render/review/decide)
+docker compose up -d site     # PÅ VÆRTEN: serverer websitet på http://localhost:8080 (kun 127.0.0.1)
 ./mf simulate MAP=<navn>      # HLDS + YaPB, N runder         (Fase 4)
 ./mf analyze MAP=<navn>       # heatmaps + metrikker          (Fase 5)
 ./mf loop MAP=<navn>          # fuld iteration                (Fase 6)

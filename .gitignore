@@ -33,3 +33,6 @@ __pycache__/
 
 # Local docker compose settings
 /.env
+
+# Playwright MCP scratch (screenshots/snapshots)
+/.playwright-mcp/

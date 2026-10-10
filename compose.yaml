@@ -11,3 +11,15 @@ services:
       # Local Half-Life install (official maps + WADs), read-only. Set HL_DIR in .env
       # (see .env.example); without it an empty placeholder dir is mounted.
       - ${HL_DIR:-./build/no-hl-install}:/refmaps/hl:ro
+
+  # Local website (build/site/, rebuilt by the pipeline): `docker compose up -d site`,
+  # then http://localhost:8080. Bound to 127.0.0.1 only: nothing leaves this machine.
+  site:
+    image: mapforge/forge:dev
+    working_dir: /work
+    volumes:
+      - .:/work:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    command: ["python", "-m", "http.server", "8080", "--directory", "/work/build/site"]
+    restart: unless-stopped

@@ -1,0 +1,57 @@
+/* MapForge local site: one reading column on a faint 16-unit grid; accent = DEV texture orange. */
+:root {
+  --bg: #e9e8e4; --surface: #f6f5f2; --ink: #23262b; --muted: #5d636b; --line: #c4c3bd;
+  --grid: rgba(35, 38, 43, 0.045); --accent: #c25e14; --accent-soft: rgba(194, 94, 20, 0.12);
+  --ok: #2f7a4a; --ok-soft: rgba(47, 122, 74, 0.12); --bad: #b3361f; --bad-soft: rgba(179, 54, 31, 0.1);
+  --warn: #9a6a00; --font: "Segoe UI", system-ui, sans-serif; --mono: ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark; --bg: #1b1d20; --surface: #24272b; --ink: #e4e2dd; --muted: #9da2a8;
+    --line: #3d4146; --grid: rgba(228, 226, 221, 0.035); --accent: #f0904a;
+    --accent-soft: rgba(240, 144, 74, 0.14); --ok: #6cc08a; --ok-soft: rgba(108, 192, 138, 0.13);
+    --bad: #f07a5a; --bad-soft: rgba(240, 122, 90, 0.12); --warn: #e0b84a;
+  }
+}
+body {
+  margin: 0; background-color: var(--bg); color: var(--ink); font: 15px/1.55 var(--font);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 24px 64px; display: grid; gap: 32px; }
+nav { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+nav .brand { font-weight: 700; font-size: 18px; margin-right: 12px; }
+nav a { color: var(--ink); text-decoration: none; }
+nav a:hover, nav a.on { color: var(--accent); }
+h1, h2, h3 { margin: 0; line-height: 1.2; text-wrap: balance; }
+h1 { font-size: 30px; } h2 { font-size: 22px; } h3 { font-size: 17px; }
+section { display: grid; gap: 12px; }
+.eyebrow { font: 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.muted { color: var(--muted); }
+code, pre { font-family: var(--mono); font-size: .9em; }
+pre { white-space: pre-wrap; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; margin: 0; overflow-x: auto; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 8px; }
+.chip { font: 12px var(--mono); padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.ok { color: var(--ok); border-color: var(--ok); background: var(--ok-soft); }
+.chip.bad { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); }
+.chip.todo { border-style: dashed; }
+.chip.run { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.table { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+th, td { text-align: left; padding: 7px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 12px var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+figure { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: grid; gap: 6px; }
+figure img { width: 100%; display: block; border-radius: 3px; }
+figcaption { font-size: 13px; color: var(--muted); }
+.phases { display: flex; flex-wrap: wrap; gap: 6px; }
+.thumb { width: 160px; max-width: 100%; border-radius: 4px; display: block; }
+.sev-critical { color: var(--bad); font-weight: 600; } .sev-major { color: var(--warn); font-weight: 600; }
+.sev-error { color: var(--bad); font-weight: 600; } .sev-warning { color: var(--warn); }
+details > summary { cursor: pointer; color: var(--accent); }
+.notes h1, .notes h2, .notes h3 { font-size: 16px; margin-top: 6px; }
+.notes ul { margin: 0; padding-left: 20px; }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr; } h1 { font-size: 24px; } }
