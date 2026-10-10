@@ -95,6 +95,7 @@ doors:
   - {name: d_ct_a1, between: [ct_spawn, ct_to_a], width: 192}
   - {name: d_ct_a2, between: [ct_to_a, a_site], width: 192}
   - {name: d_ct_b2, between: [ct_to_b, b_site], width: 192, offset: -32}
+  - {name: d_ct_spawn_ct_to_b, between: [ct_spawn, ct_to_b], width: 128}
 stairs:
   # A site is 32 higher: steps near the end of every approach (gives the defender height)
   - {name: a_steps_long, area: long_ec_n, axis: +y, rise: 32, step: 16, run: 32, start: 640}
@@ -114,7 +115,6 @@ cover:
   # iteration 5: post-plant cover where T enters (tunnel/short) and a low platform between pillars
   - {name: b_platform, area: b_site, pos: [-1664, 1680], size: [192, 128, 32]}
   - {name: b_box_se, area: b_site, pos: [-1440, 1424], size: [64, 64, 64]}
-  - {name: ct_b_box, area: ct_to_b, pos: [-704, 1792], size: [64, 64, 64]}
   # iteration 6: screen wall inside B's CT door (review: CT spawn still saw onto B) and a crate
   # in mid_s (long open line from T spawn into mid)
   - {name: b_ct_screen, area: b_site, pos: [-1408, 1728], size: [32, 256, 128]}
