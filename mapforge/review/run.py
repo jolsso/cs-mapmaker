@@ -30,6 +30,10 @@ from mapforge.config import Config, load_config
 SEVERITIES = ("critical", "major", "minor")
 BLOCKING = ("critical", "major")
 
+# Rubric criteria (config/review/checklist.md, DESIGN_GUIDE.md §9): scored 1-5, not part of pass.
+RUBRIC = ("napkin", "chokepoints", "play_styles", "mid_decision", "site_depth", "identity",
+          "irregularity", "readability", "rotation_risk", "exploits")  # fmt: skip
+
 SCHEMA = {
     "type": "object",
     "properties": {
@@ -47,8 +51,20 @@ SCHEMA = {
                 "required": ["severity", "where", "what", "image"],
             },
         },
+        "rubric": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string", "enum": list(RUBRIC)},
+                    "score": {"type": "integer", "minimum": 1, "maximum": 5},
+                    "reason": {"type": "string"},
+                },
+                "required": ["id", "score", "reason"],
+            },
+        },
     },
-    "required": ["summary", "findings"],
+    "required": ["summary", "findings", "rubric"],
 }
 
 
@@ -177,6 +193,16 @@ def check_answer(answer: Any) -> dict[str, Any]:
             raise RuntimeError(f"finding {i} lacks string field(s): {missing}")
         if f["severity"] not in SEVERITIES:
             raise RuntimeError(f"finding {i}: severity must be one of {SEVERITIES}")
+    rubric = answer.get("rubric", [])
+    if not isinstance(rubric, list):
+        raise RuntimeError("answer.rubric must be a list")
+    for r in rubric:
+        if (
+            r.get("id") not in RUBRIC
+            or not isinstance(r.get("score"), int)
+            or not 1 <= r["score"] <= 5
+        ):
+            raise RuntimeError(f"rubric item {r!r}: id in {RUBRIC}, score 1-5")
     return answer
 
 
@@ -243,6 +269,7 @@ def review_map(
             else:
                 raise RuntimeError(f"unknown review mode {mode!r}")
             findings = answer["findings"]
+            result["rubric"] = answer.get("rubric", [])
             result.update(
                 passed=not any(f["severity"] in BLOCKING for f in findings),
                 summary=answer["summary"],

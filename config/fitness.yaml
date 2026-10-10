@@ -14,7 +14,7 @@ locked:
   geometry_frozen: false # true after Gate B
 
 # Bot-data targets (>= 100 rounds per measurement). Changed 2026-10-10 after the design
-# research (docs/DESIGN_GUIDE.md §8): YaPB cannot see a map, so bot numbers are sanity checks and
+# research (docs/DESIGN_GUIDE.md §9): YaPB cannot see a map, so bot numbers are sanity checks and
 # bug finders, not the balance verdict (that is the human playtest at Gate C). The structural
 # design norms are hard validator rules (config/pipeline.yaml -> validate).
 targets:

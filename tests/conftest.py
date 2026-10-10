@@ -27,4 +27,6 @@ def fixture_cfg(tmp_path) -> Config:
     data = copy.deepcopy(cfg.data)
     data["paths"]["maps_dir"] = str(FIXTURE_MAPS)
     data["paths"]["build_dir"] = str(tmp_path / "build")
+    # the fixtures are single test rooms; the design rules (tests/test_design.py) would flag them
+    data["validate"]["design"]["off"] = True
     return Config(root=cfg.root, data=data)

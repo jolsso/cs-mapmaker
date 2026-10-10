@@ -72,9 +72,24 @@ def _vec(v: Any, n: int, grid: int, what: str) -> list[int]:
     return out
 
 
-def _guard_area(area: Any) -> None:
+def soul_elements(lay: Any) -> set[str]:
+    """Names the layout's soul fields point at (landmarks, irregularities, chokes): the loop must
+    not optimise them away (DESIGN_GUIDE.md §9, "lås sjælselementer")."""
+    names = set()
+    for key, field in (("landmarks", "element"), ("irregularities", "element"), ("chokes", "door")):
+        for item in lay.get(key, []) or []:
+            if isinstance(item, dict) and item.get(field):
+                names.add(str(item[field]))
+    return names
+
+
+def _guard_area(area: Any, lay: Any = None) -> None:
     if area.get("role") in LOCKED_ROLES or area.get("protected"):
         raise ValueError(f"area {area['name']!r} is locked (role {area.get('role')}, FITNESS)")
+    if lay is not None and area["name"] in soul_elements(lay):
+        raise ValueError(
+            f"area {area['name']!r} is a landmark/irregularity in the layout spec (locked)"
+        )
 
 
 def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
@@ -83,14 +98,14 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
     grid = int(lay.get("grid", 16))
     if t == "move_corridor":
         area = _find(lay["areas"], str(p["target"]), "area")
-        _guard_area(area)
+        _guard_area(area, lay)
         dx, dy = _vec(p["delta"], 2, grid, "delta")
         x0, y0, x1, y1 = area["rect"]
         area["rect"] = _flow([x0 + dx, y0 + dy, x1 + dx, y1 + dy])
         return f"{area['name']} moved by [{dx}, {dy}]"
     if t == "resize_corridor":
         area = _find(lay["areas"], str(p["target"]), "area")
-        _guard_area(area)
+        _guard_area(area, lay)
         (d,) = _vec(p["length_delta"], 1, grid, "length_delta")
         x0, y0, x1, y1 = area["rect"]
         along_x = (x1 - x0) >= (y1 - y0)
@@ -116,8 +131,8 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         return f"cover {name} {size} at {pos} in {area['name']}"
     if t == "remove_cover":
         cover = _find(lay.get("cover", []), str(p["target"]), "cover")
-        if cover.get("protected"):
-            raise ValueError(f"cover {cover['name']!r} is protected")
+        if cover.get("protected") or cover["name"] in soul_elements(lay):
+            raise ValueError(f"cover {cover['name']!r} is protected (landmark/irregularity)")
         lay["cover"].remove(cover)
         return f"cover {cover['name']} removed"
     if t == "adjust_opening":
@@ -154,13 +169,13 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         if not hits:
             raise ValueError(f"no door between {a!r} and {b!r}")
         door = hits[0]
-        if door.get("protected"):
+        if door.get("protected") or door["name"] in soul_elements(lay):
             raise ValueError(f"door {door['name']!r} is protected (locked topology)")
         lay["doors"].remove(door)
         return f"door {door['name']} between {a} and {b} removed"
     if t == "remove_area":
         area = _find(lay["areas"], str(p["target"]), "area")
-        _guard_area(area)
+        _guard_area(area, lay)
         name = area["name"]
         lay["areas"].remove(area)
         for key in ("doors",):

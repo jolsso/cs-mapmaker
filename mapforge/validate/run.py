@@ -95,6 +95,22 @@ def validate_map(cfg: Config, map_name: str, reference_bsp: Path | None = None) 
             vcfg["timings"],
             checks.INFO if reference_bsp is not None else checks.WARNING,
         )
+        from mapforge.validate.design import design_findings, design_stats
+
+        layout_file = cfg.path("maps_dir") / map_name / "layout.yaml"
+        layout = (
+            yaml.safe_load(layout_file.read_text(encoding="utf-8"))
+            if reference_bsp is None and layout_file.is_file()
+            else None
+        )
+        # design rules need a real de_ map: two teams' spawns and bomb sites
+        if (
+            checks.map_type(map_name) == "de"
+            and {"T", "CT"} <= set(teams)
+            and not vcfg["design"].get("off")
+        ):
+            stats["design"] = design_stats(bsp, graph, origins, teams, layout)
+            findings += design_findings(stats["design"], vcfg["design"], reference_bsp is not None)
         corridor_findings, stats["walkable"] = checks.check_corridors(
             graph,
             bsp,

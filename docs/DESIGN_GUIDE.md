@@ -58,6 +58,26 @@ Regler:
 ## 8. Stilretninger at overveje
 - **Realistiske steder** (Steam-guide "RF series"): maps bygget efter virkelige bygninger/kvarterer (Skt. Petersborg, Moskva) med fototeksturer. Passer til projektets oprindelige idé om virkelige steder (fx Skjern) – en mulig retning for tema ved Gate A / art pass.
 
+## 9. Struktur før metrik (designforskning 2026-10-10)
+
+Kilde: en Deep Research-rapport (Claude) om hvad der gør CS-maps gode, med primærkilder fra Dave Johnston (Dust/Dust2), World of Level Design (Galuzin), Exodus' Steam-guide, TWHL, Ølsted, Ma & Risi (2015, FPSEvolver), Liapis et al. (2013, Sentient Sketchbook), de Donato, Lanzi & Loiacono (2026, MAP-Elites) og Volcano/FMPONE (Cache). Hovedbudskab: bot-metrikker måler symptomer; maps der holder har en simpel, læsbar struktur, få og velplacerede chokepoints, plads til flere spillestile, landemærker og en arkitektonisk idé.
+
+**Konsekvenser for MapForge (implementeret):**
+- **Mål:** T-winrate på bots er et sanity-bånd (35–65 %), ikke balance-dommen – den ligger ved Gate C (mennesker). Døde zoner og første kontakt er diagnostik uden vægt (`config/fitness.yaml`). YaPB "cannot see a map and analyze what they see": bots bruges til at finde fejl (umappede områder, stuck-spots, kill-hotspots), ikke til at kalibrere balance.
+- **Validator-regler** (`mapforge/validate/design.py`, kalibreret på officielle maps i CALIBRATION.md):
+  - Rotationstid site↔site (Exodus: "probably the most important timing", 10–15 s, aldrig > 20 s; C4-timer 35 s).
+  - Ingen sigtelinje spawn↔spawn og ikke fra T-spawn ind på et site (Ølsted; Exodus).
+  - Territorium: intet hold når > 85 % af mappet først (Ølsted); officielle maps giver CT 58–71 % (sites tættere på forsvarerne).
+  - Sigtelinje-fordeling: både lange (AWP, ≥ 1500 u) og korte (CQB, < 500 u) kampe (Johnston: "a place for close-quarters battles, and a place for long, drawn-out AWP fights"; TWHL: mange lange korridorer favoriserer AWP).
+  - Layout-graf: 2–3 indgange pr. site med en CT-retake-vej; ingen 4-vejskryds (Ølsted: "too many choices"); kompleksitet C = trevejskryds + rumindgange.
+- **Review-rubrik** (`config/review/checklist.md`): servietprøven, chokepoints, spillestile, mid som beslutning, site-dybde, identitet, irregularitet, læsbarhed, rotation, exploits – score 1–5.
+- **Sjæl i spec'en** (LAYOUT_SPEC.md): `concept`, `archetype`, `landmarks`, `chokes`, `irregularities`, `intended_strategies`, `style_rules`. Landemærker og bevidste brud låses mod optimering (Johnston: Dust2's karakter kom af skæve kasser, en halvspiral-trappe, et hul i væggen – "lose the arches and you get a deathmatch arena").
+- **Gate C** (GATE_C.md): struktureret playtest med spørgeskema; menneskelig præference er den egentlige fitness.
+
+**Ikke implementeret endnu (P5, større arbejde):** arketype-skabeloner (tre-lane / asymmetrisk / stablet), flere kandidater ved Gate A, MAP-Elites-arkiv over adfærdsdimensioner og "makro-mutationer" mod lokale optima.
+
+**Forbehold:** mange tal (5–12 s til choke, 10–15 s rotation, 128–256 u korridorer) er CS:GO-tommelfingerregler fra én guide; vi kalibrerer derfor alle tærskler på 1.6-maps. At proxy-metrikkerne korrelerer med menneskelig oplevelse er en hypotese, der skal testes ved Gate C.
+
 ## Kilder
 - TWHL: [Tutorial: Counter-Strike mapping](https://twhl.info/wiki/page/Tutorial%3A_Counter-Strike_mapping)
 - GameBanana: [A beginners guide to CS 1.6 mapping](https://gamebanana.com/tuts/11020)
@@ -67,3 +87,4 @@ Regler:
 - Valve Developer Community: [GoldSrc Dimensions](https://developer.valvesoftware.com/wiki/GoldSrc_Dimensions), [VIS optimization](https://developer.valvesoftware.com/wiki/VIS_optimization)
 - TWHL: [Total Map Optimisation Part 1 (wpoly, epoly)](https://twhl.info/wiki/page/Total_Map_Optimisation_Part_1_%28wpoly%2C_epoly%29/5903)
 - ReGameDLL_CS: [`regamedll/dlls/weapons.h`](https://github.com/rehlds/ReGameDLL_CS/blob/master/regamedll/dlls/weapons.h) (våbenhastigheder)
+- Designforskning (§9): Dave Johnston (Dust/Dust2-artikler og interviews), Exodus "The dos and don'ts of Counter-Strike level design" (Steam-guide), TWHL "Map Layout Theory for CS", Ølsted, Ma & Risi (2015) "Interactive evolution of levels for a competitive multiplayer FPS" (IEEE CEC), Liapis, Yannakakis & Togelius (2013) "Sentient Sketchbook", de Donato, Lanzi & Loiacono (2026) arXiv 2605.30570, Hullett & Whitehead (2010) "Design Patterns in FPS Levels", YaPB-dokumentationen (graph/camp-noder).

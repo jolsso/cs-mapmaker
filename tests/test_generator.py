@@ -96,6 +96,7 @@ def test_generated_map_compiles_and_validates(tmp_path):
     base = load_config()
     data = copy.deepcopy(base.data)
     data["paths"].update(maps_dir=str(tmp_path / "maps"), build_dir=str(tmp_path / "build"))
+    data["validate"]["design"]["off"] = True  # a tiny test layout, not a playable map
     cfg = Config(root=base.root, data=data)
     write_map(
         generate(layout()).mapfile, tmp_path / "maps" / "de_gen_small" / "src" / "de_gen_small.map"

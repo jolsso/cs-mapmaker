@@ -221,3 +221,12 @@ button.on, button.primary { background: var(--accent-soft); border-color: var(--
 .nowline { margin: 4px 0 0; color: var(--accent); font: 600 13px var(--mono); }
 @keyframes nowpulse { 50% { box-shadow: 0 0 0 5px var(--accent-soft), 0 0 18px var(--accent); } }
 @keyframes nowbob { 50% { transform: translate(-50%, -3px); } }
+
+/* review rubric */
+.rubric { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 6px 24px; }
+.rub { display: grid; grid-template-columns: 150px auto 20px; gap: 2px 10px; align-items: center; }
+.rub p { grid-column: 1 / -1; margin: 0 0 6px; }
+.rubbar { display: flex; gap: 3px; }
+.rubbar i { width: 26px; height: 8px; border-radius: 3px; background: var(--track); }
+.rubbar.s1 i.on, .rubbar.s2 i.on { background: var(--bad); } .rubbar.s3 i.on { background: var(--warn); }
+.rubbar.s4 i.on, .rubbar.s5 i.on { background: var(--ok); }

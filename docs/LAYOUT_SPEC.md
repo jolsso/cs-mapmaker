@@ -71,6 +71,27 @@ spawns:
 buyzones: true                # func_buyzone over hvert spawn-område
 ```
 
+## Sjæl: koncept, landemærker, chokes, brud (DESIGN_GUIDE.md §9)
+Felter, som generatoren ignorerer, men som Review (rubrikken) og Decide læser, og som loopet ikke må optimere væk:
+
+```yaml
+concept: "Mid-tungt map: mid_top er nøglen, B er et tæt indendørs fort"   # én sætning (servietprøven)
+archetype: three_lane            # three_lane | asymmetric | stacked
+landmarks:                       # ét unikt, navngiveligt træk pr. zone → callouts
+  - {name: Søjlerne, element: b_pillar_w, zone: b_site, function: "callout; bryder sigtelinjen CT-dør → tunnel"}
+chokes:                          # ét pr. hovedvej, før sitet
+  - {name: Long-døren, door: d_long_n2, type: doorway, engagement: long, utility: smoke}
+irregularities:                  # bevidste brud på grid-rytmen, med gameplay-formål
+  - {element: b_platform, purpose: "lav platform giver post-plant-højde"}
+intended_strategies:             # mindst 3 T-planer og 2 CT-setups, som playtest/Review tester imod
+  T: ["rush B gennem tunnelerne", "mid-kontrol → split A short + long", "fake A long, rotér via mid_to_b"]
+  CT: ["2-1-2 (A, mid_top, B)", "stack A, retake B via ct_to_b"]
+style_rules:                     # regler art pass (fase 7) bindes af, fx Johnstons trim-regler
+  - "trim aldrig på gulv/loft, højst to gange pr. væg"
+```
+
+Navne i `landmarks[].element`, `irregularities[].element` og `chokes[].door` er låst: `apply.py` afviser at flytte, fjerne eller ændre dem (som `protected`).
+
 ## Beskyttede elementer
 `protected: true` på et område, en dør eller et cover betyder, at loopet aldrig flytter, ændrer størrelse på eller fjerner det (låst topologi, fx chokepoint-dørene i de_forge01). Områder med `role: site`, `t_spawn` eller `ct_spawn` er altid låste (site-placeringer, FITNESS).
 

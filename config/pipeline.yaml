@@ -103,6 +103,21 @@ validate:
     min_t_s: 14          # T faster than this: map too compact for chokepoints/rotations
     max_t_s: 26          # slower: long, empty rounds
     min_ct_lead_s: 3     # defenders must reach the site a few seconds before attackers
+  # Design rules from the design research (docs/DESIGN_GUIDE.md §9; mapforge/validate/design.py).
+  # Thresholds calibrated on the official maps (docs/CALIBRATION.md). Our maps: severity as given;
+  # reference maps: info.
+  design:
+    rotation_s: [6, 20]           # site <-> site on foot; officials 6.2 (nuke) - 17.3 s (inferno); Exodus: never > 20
+    territory_max_share: 0.85     # Ølsted: no team may reach > 85 % of the map first (error)
+    max_t_share: 0.55             # officials: T reaches 29-54 % first (sites closer to CT) (warning)
+    spawn_to_spawn: error         # Ølsted/Exodus: spawns must not see each other
+    t_spawn_to_site: warning      # attackers must not see a site from their spawn
+    long_sightline_units: 1500    # an AWP lane must exist (Johnston: CQB + AWP)
+    close_sightline_units: 500
+    min_share_long: 0.05          # share of spots whose longest view >= long; officials 6.7-62 %
+    min_share_close: 0.008        # ... and < close; officials 0.9-6.0 %
+    site_entrances: [2, 3]        # per site (Dot Esports/WoLD); layout.yaml only
+    four_way: warning             # Ølsted: no 4-way junctions on routes; layout.yaml only
   # Checked only on reachable cells of the walkable graph.
   corridors:
     min_width: 64         # CLAUDE.md: corridors/doors min. 64 wide

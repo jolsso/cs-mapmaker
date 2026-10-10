@@ -101,6 +101,6 @@ def test_emit_writes_prompt_and_schema(cfg):
     assert "topdown.png" in prompt and "planes 80 %" in prompt
     assert "Review-tjekliste" in prompt and "ingen layout-spec" in prompt
     assert json.loads((build / "review_schema.json").read_text())["required"] == [
-        "summary", "findings",
+        "summary", "findings", "rubric",
     ]  # fmt: skip
     assert not (build / "review.json").exists()  # nothing decided yet

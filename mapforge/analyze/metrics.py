@@ -7,11 +7,21 @@ sum of distances (config/fitness.yaml -> weights); 0 = all targets met.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 import numpy as np
 
 from mapforge.simulate.stats import wilson
+
+WEAPON_CLASS = {
+    **dict.fromkeys(["awp", "scout", "g3sg1", "sg550"], "sniper"),
+    **dict.fromkeys(["ak47", "m4a1", "galil", "famas", "sg552", "aug"], "rifle"),
+    **dict.fromkeys(["mp5navy", "tmp", "p90", "mac10", "ump45"], "smg"),
+    **dict.fromkeys(["m3", "xm1014"], "shotgun"),
+    **dict.fromkeys(["glock18", "usp", "p228", "deagle", "elite", "fiveseven"], "pistol"),
+    "m249": "mg", "knife": "knife", "grenade": "grenade", "hegrenade": "grenade",
+}  # fmt: skip
 
 
 def bootstrap_median(values: list[float], resamples: int, confidence: float = 0.95, seed: int = 0):
@@ -192,6 +202,18 @@ def compute(
          if (r["run_id"], r["round"]) in contact_by else None}
         for r in sorted(valid, key=lambda r: (r["run_id"], r["round"]))
     ]  # fmt: skip
+    # engagements: kill distance (attacker -> victim) and weapon class (DESIGN_GUIDE §9: short,
+    # medium and long fights should all exist)
+    dist = {"close": 0, "mid": 0, "long": 0}
+    wclass: dict[str, int] = {}
+    for e in data["events"]:
+        if e["type"] != "kill" or (e["run_id"], e["round"]) not in keys or not e["actor_team"]:
+            continue
+        if "ax" in e:
+            dd = math.hypot(e["ax"] - e["tx"], e["ay"] - e["ty"])
+            dist["close" if dd < 500 else "mid" if dd < 1500 else "long"] += 1
+        c = WEAPON_CLASS.get(e.get("weapon", ""), "other")
+        wclass[c] = wclass.get(c, 0) + 1
     reasons: dict[str, int] = {}
     for r in valid:
         reasons[r["reason"]] = reasons.get(r["reason"], 0) + 1
@@ -206,6 +228,7 @@ def compute(
         "targets_met": all(metrics[k]["distance"] == 0 for k in metrics if k in scored),
         "diagnostics": sorted(k for k in metrics if k not in scored),
         "round_reasons": reasons,
+        "engagements": {"by_distance": dist, "by_weapon_class": dict(sorted(wclass.items(), key=lambda kv: -kv[1]))},
         "plants": {"A": plants_a, "other": len(plants) - plants_a,
                    "by_site": {s: plants.count(s) for s in sorted(set(plants))}},
         "kills": {"total": kc["kills"], "per_round": round(kc["kills"] / n, 2) if n else None,

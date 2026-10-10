@@ -351,6 +351,20 @@ def analyze_section(b: Path, out: Path) -> str:
                      + charts.histogram([r["contact_s"] for r in series if r.get("contact_s") is not None], 14,
                                         m["metrics"]["first_contact_s"].get("target"), "Første kontakt")
                      + "</div>")  # fmt: skip
+    eng = m.get("engagements") or {}
+    if eng.get("by_distance"):
+        dd = eng["by_distance"]
+        segs = [
+            ("tæt < 500 u", dd.get("close", 0), "ct"),
+            ("mellem", dd.get("mid", 0), "bar"),
+            ("lang > 1500 u", dd.get("long", 0), "t"),
+        ]
+        wc = [
+            (k, v, "muted" if i else "bar")
+            for i, (k, v) in enumerate((eng.get("by_weapon_class") or {}).items())
+        ]
+        boxes.append("<div class='chartbox'><h3>Kills efter kampafstand</h3>" + charts.stacked(segs, "Kampafstand")
+                     + "<h3>Kills efter våbenklasse</h3>" + charts.stacked(wc[:6], "Våbenklasse") + "</div>")  # fmt: skip
     parts.append(f"<div class='charts'>{''.join(boxes)}</div>")
     d = m.get("delta")
     if d:
@@ -594,6 +608,21 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
                      f"<span class='muted'>({e(str(r.get('executor') or r.get('stage')))})</span></p>"
                      f"<div class='card'>{e(r.get('summary', ''))}</div>")  # fmt: skip
         parts.append(_findings_table(r.get("findings", []), ("severity", "where", "what", "image")))
+        if r.get("rubric"):
+            names = {"napkin": "Servietprøven", "chokepoints": "Chokepoints", "play_styles": "Spillestile",
+                     "mid_decision": "Mid som beslutning", "site_depth": "Site-dybde", "identity": "Identitet",
+                     "irregularity": "Irregularitet", "readability": "Læsbarhed", "rotation_risk": "Rotation og risiko",
+                     "exploits": "Exploits"}  # fmt: skip
+            rows = "".join(
+                f"<div class='rub'><span>{e(names.get(x['id'], x['id']))}</span><div class='rubbar s{int(x['score'])}'>"
+                + "".join(f"<i class='{'on' if k < x['score'] else ''}'></i>" for k in range(5))
+                + f"</div><b>{int(x['score'])}</b><p class='muted small'>{e(x.get('reason', ''))}</p></div>"
+                for x in r["rubric"]
+            )  # fmt: skip
+            avg = sum(x["score"] for x in r["rubric"]) / len(r["rubric"])
+            parts.append(
+                f"<div class='chartbox'><h3>Design-rubrik (1–5) · gennemsnit {avg:.1f}</h3><div class='rubric'>{rows}</div></div>"
+            )
     else:
         parts.append("<p class='muted'>Ikke reviewet endnu.</p>")
     parts.append("</section>")

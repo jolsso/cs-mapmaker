@@ -23,6 +23,22 @@ Kig på hvert billede og vurdér punkterne. Rapportér kun det, du faktisk kan s
 12. Spilområder er ikke så mørke, at spillere ikke kan ses (topdown_dark.png + data).
 13. Teksturer ser korrekte ud (ingen checkerboard = manglende tekstur, ingen grove strækninger). Dev-teksturer på et graybox-blockout er forventet.
 
+## Rubrik (score 1–5 pr. kriterie, i feltet `rubric`)
+Ud over fundene scorer du ti kriterier fra designforskningen (DESIGN_GUIDE.md §9). 1 = mangler helt, 3 = acceptabelt, 5 = forbilledligt. Begrund kort og henvis til det, du ser (billede, layout-spec eller validatorens tal). Rubrikken afgør ikke pass/fail, men et kriterie på 1 bør også stå som fund.
+
+| id | Kriterie |
+|---|---|
+| `napkin` | **Servietprøven:** kan layoutet beskrives i én sætning (fx "figure-of-eight med arme og ben")? |
+| `chokepoints` | Chokepoints før målene, 1–2 indgange, synlige fra ét forsvarspunkt, timing (CT lidt før T). |
+| `play_styles` | Findes der både en AWP-zone, en nærkampszone og en lurk/stealth-rute? (validator: `sightlines`) |
+| `mid_decision` | Er mid en reel beslutning (kontrol over mindst to ruter), uden at tab af mid koster begge sites? |
+| `site_depth` | Post-plant-positioner, retake-vinkler, cover både over og under hovedhøjde. |
+| `identity` | Har hver zone et unikt, navngiveligt træk (callout)? Er temaet/konceptet funktionelt? (spec: `concept`, `landmarks`) |
+| `irregularity` | Mindst 2–3 bevidste brud på grid-rytmen med gameplay-formål (skæv kasse, trappe, hul i væg)? |
+| `readability` | Kontrast mellem væg/gulv/loft og mellem spiller og baggrund; lys. |
+| `rotation_risk` | Rotationstid (validator: `rotation`) og risikable genveje / "around the world"-ruter. |
+| `exploits` | Spawn-sigtelinjer, boosts ind på spawn, uangribelige positioner (5 = ingen fundet). |
+
 ## Alvorlighed
 - **critical:** gør mappet uspilleligt eller meningsløst (site i spawn, spawns oven i hinanden, en rute mangler helt).
 - **major:** alvorligt balance- eller flowproblem, der skal rettes før simulering (site med kun én T-indgang, mid direkte ind i spawn, kæmpe sigtelinje ind på et site, T når et site før CT kan stille op).

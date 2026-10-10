@@ -91,6 +91,25 @@ Konsekvenser:
 - **Opfølgning samme dag:** 96 var heller ikke sikker. På iteration 003 af de_tilt01 (kun en kasse fjernet) efterlod 96 hele vestsiden umappet, mens 80 og 112 dækkede begge sites. Analysen er deterministisk pr. .bsp + afstand, men følsom over for små geometriændringer. Løsning: smoke verificerer grafen, og ved et site uden besøg laves grafen om med næste afstand (`graph_distances: [96, 80, 112, 128]`).
 - Smoke: 3 runder er for få til "begge sites nået", fordi bots ofte vælger samme site flere runder i træk. Smoke spiller nu op til 6 runder mere, før et site erklæres unået (`smoke_extra_rounds`).
 
+## Design-regler (fase 6, designforskning)
+
+`mapforge/validate/design.py` på de 9 officielle maps (2026-10-10):
+
+| Map | Rotation A↔B | Spawn↔spawn / T-spawn→site | T-territorium | Lange sigtelinjer (≥ 1500 u) | Nærkamp (< 500 u) | Median længste sigt |
+|---|---:|---|---:|---:|---:|---:|
+| de_dust2 | 13,5 s | 0 / 0 | 41 % | 19 % | 3,1 % | 1104 |
+| de_inferno | 17,3 s | 0 / 0 | 40 % | 7 % | 5,6 % | 960 |
+| de_nuke | 6,2 s | 0 / 0 | 29 % | 19 % | 3,8 % | 1056 |
+| de_train | 9,9 s | 0 / 0 | 41 % | 34 % | 6,0 % | 1152 |
+| de_aztec | 14,4 s | 0 / 0 | 45 % | 48 % | 1,3 % | 1440 |
+| de_cbble | 16,5 s | 0 / 0 | 46 % | 39 % | 5,9 % | 1368 |
+| de_dust | 14,5 s | 0 / 0 | 47 % | 39 % | 1,4 % | 1344 |
+| de_vertigo | 9,3 s | 0 / 0 | 54 % | 23 % | 1,6 % | 1008 |
+| de_cold | 12,6 s | 0 / 0 | 45 % | 62 % | 0,9 % | 2112 |
+| **de_forge01** | 12,6 s | 0 / 0 | **56 %** | 49 % | **0,1 %** | 1464 |
+
+Valgt: rotation 6–20 s; spawn-sigtelinjer = 0 (ingen officielle har dem); T-territorium ≤ 55 % (warning) og ≤ 85 % (error, Ølsted); lange sigtelinjer ≥ 5 %; nærkamp ≥ 0,8 %. En øvre grænse for lange sigtelinjer understøttes ikke (aztec/cold 48–62 %). de_forge01 falder uden for på to punkter: T når mest af mappet først, og der er næsten ingen nærkampssteder – begge strukturelle fund, bot-tallene ikke viste.
+
 ## Åbne punkter til mennesket
 
 - **Design-normerne er strengere end Valves egne maps.** Officielle maps har typisk passager på 40–56 units og mange lofter under 96. **Besluttet 2026-10-10: behold 64 / 96** for vores egne maps – bevidst lidt strengere end Valve (luft til bots og læsbarhed); det er warnings, så smalle steder kan stadig vælges bevidst.
