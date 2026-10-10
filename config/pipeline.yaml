@@ -126,3 +126,11 @@ render:
     - assets/wads
     - /refmaps/hl/cstrike
     - /refmaps/hl/valve
+
+review:
+  # Runs on the host (`claude` CLI + your login). null = Claude Code's default model.
+  model: null
+  timeout_s: 600
+  # login: use the claude.ai login (an ANTHROPIC_API_KEY in the environment is ignored for
+  # this call); api_key: use ANTHROPIC_API_KEY as is.
+  auth: login

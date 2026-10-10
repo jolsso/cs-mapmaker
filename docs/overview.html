@@ -487,7 +487,8 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <li class="ok">Heatmap-overlay (til fase 5); testet med T's korteste ruter på dust2: B-tunneller og mid → short A</li>
           <li class="ok">Kameraer: perspektiv fra hver spawn og angribernes view ind på hvert site (korteste gåsti fra T-spawn); egne kameraer i <code>config/cameras/&lt;map&gt;.yaml</code></li>
                     <li>Klient-screenshots flyttet til fase 7 (egne renders har allerede lys)</li>
-          <li>Review-trin: Claude ser billederne mod tjeklisten (og layout-spec'en, når mappet har en) før simulering; fejl går direkte til Decide</li>
+          <li class="ok">Review-trin: errors i validering stopper uden Claude-kald; ellers ser Claude billederne mod tjeklisten (og layout-spec'en). dust2 bestod på 23 s og fandt selv en fejl i T-spawn-kameraet, som er rettet</li>
+          <li>Accept: et bevidst ødelagt referencemap skal fanges af Review</li>
         </ul>
         <p class="accept"><b>Accept:</b> <code>./mf render</code> laver alle billeder for de_dust2 på under 5 min, Review består på dust2, og et bevidst ødelagt referencemap fanges uden simulering. Efter fase 2 gentages testen på et genereret blockout.</p>
       </div>

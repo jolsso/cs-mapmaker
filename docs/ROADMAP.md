@@ -48,7 +48,7 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 - [ ] Klient-screenshot-script (`+map`, kamera, `screenshot`) ⚠️ VERIFICÉR hvordan kamera positioneres scriptet – flyttet til fase 7 (art pass); egne renders har allerede lys
 - [x] Heatmap-overlay-funktion (bruges i Fase 5) – `mapforge/render/overlay.py`, på `topdown_raw.png` via view i `index.json`
 - [x] `renders/index.json`: kamera, formål og fil pr. billede (+ lysstyrke, manglende teksturer, view til overlays)
-- [ ] Review-trin (pre-sim-gate): deterministiske checks + Claude ser billederne mod tjekliste (og layout-spec, når mappet har en) → `review.json`; fail går direkte til Decide uden simulering (ARCHITECTURE.md → 5 Review)
+- [x] Review-trin (pre-sim-gate): deterministiske checks + Claude ser billederne mod tjekliste (og layout-spec, når mappet har en) → `review.json`; fail går direkte til Decide uden simulering (ARCHITECTURE.md → 5 Review)
 
 **Accept:** `./mf render` producerer alle billeder for de_dust2 på < 5 min uden manuelle trin, og Review på dust2 består. Et bevidst ødelagt referencemap (fx med en blokeret forbindelse) fanges af Review uden at simulere. Efter fase 2 gentages testen på et genereret blockout mod dets layout-spec.
 

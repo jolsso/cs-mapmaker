@@ -49,6 +49,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf validate MAP=de_dust2 SOURCE=reference   # kun .bsp fra referencemaps (ingen compile/.map)
 ./mf refmaps                  # pak test_maps/*.rar ud og list referencemaps
 ./mf render MAP=<navn>        # top-down (lys + kun lys) → build/<map>/renders/ + index.json (SOURCE=reference for referencemaps)
+uv run task review MAP=<navn> # PÅ VÆRTEN (kræver `claude`): pre-sim-gate → build/<map>/review.json
 ./mf simulate MAP=<navn>      # HLDS + YaPB, N runder         (Fase 4)
 ./mf analyze MAP=<navn>       # heatmaps + metrikker          (Fase 5)
 ./mf loop MAP=<navn>          # fuld iteration                (Fase 6)

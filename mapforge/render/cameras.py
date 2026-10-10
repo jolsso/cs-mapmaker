@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from mapforge.bsp.reader import Bsp
+from mapforge.bsp.reader import CONTENTS_SOLID, Bsp
 from mapforge.validate.checks import spawn_origins
 from mapforge.validate.walk import WalkGraph, bomb_sites, nodes_touching
 
@@ -27,6 +27,29 @@ class CameraSpec:
         return {"name": self.name, "eye": [round(v, 1) for v in self.eye],
                 "target": [round(v, 1) for v in self.target], "fov": self.fov,
                 "purpose": self.purpose}  # fmt: skip
+
+
+def free_distance(bsp: Bsp, eye: np.ndarray, dirs: np.ndarray, max_dist: float = 4096,
+                  step: float = 16) -> np.ndarray:  # fmt: skip
+    """Distance along each unit direction (n, 3) until hull 0 hits solid."""
+    ts = np.arange(step, max_dist + step, step)
+    pts = eye[None, None, :] + dirs[:, None, :] * ts[None, :, None]
+    solid = (bsp.point_contents(pts.reshape(-1, 3)) == CONTENTS_SOLID).reshape(len(dirs), -1)
+    hit = solid.any(axis=1)
+    return np.where(hit, ts[np.argmax(solid, axis=1)], max_dist)
+
+
+def best_view(bsp: Bsp, eye: np.ndarray, prefer: np.ndarray, n: int = 24) -> np.ndarray:
+    """Target point in the horizontal direction with the longest free sight line from eye;
+    near-ties go to the direction closest to `prefer`."""
+    yaw = np.linspace(0, 2 * np.pi, n, endpoint=False)
+    dirs = np.column_stack([np.cos(yaw), np.sin(yaw), np.zeros(n)])
+    dist = free_distance(bsp, eye, dirs)
+    to = prefer[:2] - eye[:2]
+    to = to / (np.linalg.norm(to) or 1)
+    score = dist * (1 + 0.25 * (dirs[:, :2] @ to))
+    best = int(np.argmax(score))
+    return eye + dirs[best] * min(float(dist[best]), 1024)
 
 
 def _t(v: np.ndarray) -> tuple[float, float, float]:
@@ -49,8 +72,10 @@ def auto_cameras(
         if not seed_feet:
             continue
         eye = np.mean(seed_feet, axis=0) + [0, 0, EYE]
-        purpose = f"{team} spawn at eye height, looking towards the map centre"
-        cams.append(CameraSpec(f"spawn_{team.lower()}", _t(eye), _t(centre), fov, purpose))
+        target = best_view(bsp, eye, centre)
+        purpose = (f"{team} spawn at eye height, looking along the longest open sight line "
+                   "(towards the map centre on near-ties)")  # fmt: skip
+        cams.append(CameraSpec(f"spawn_{team.lower()}", _t(eye), _t(target), fov, purpose))
 
     t_seeds = [
         graph.seeds[i] for i, t in enumerate(teams) if t == "T" and graph.seeds[i] is not None

@@ -57,6 +57,13 @@ tasks:
     cmds:
       - uv run python -m mapforge.render.run --map {{.MAP}} --source {{.SOURCE | default "map"}}
 
+  review:
+    desc: Review gate (HOST ONLY, needs `claude`) -> build/<map>/review.json (MAP=<name>)
+    requires:
+      vars: [MAP]
+    cmds:
+      - uv run python -m mapforge.review.run --map {{.MAP}} {{.CLI_ARGS}}
+
   simulate:
     desc: HLDS + YaPB, N rounds (Phase 4)
     cmds:
