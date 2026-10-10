@@ -148,7 +148,7 @@ review:
 
 decide:
   # Roadmap phase the plan is checked for (lighting changes need >= 7).
-  phase: 3
+  phase: 6
 
 site:
   # Rebuild build/site/ at the end of validate / render / review / decide.
@@ -157,7 +157,7 @@ site:
 simulate:
   # HLDS + YaPB servers (docker/hlds/, built by mapforge.simulate through the Docker socket).
   image: mapforge/hlds
-  servers: 2                # parallel servers per batch
+  servers: 4                # parallel servers per batch (16 cores: ~1 core per server at timescale 4)
   bind: 127.0.0.1           # spectator ports: bind:<base_port + i>/udp (connect localhost:27015)
   base_port: 27015
   maxplayers: 12            # 10 bots + HLTV + one free slot for a spectator

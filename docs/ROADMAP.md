@@ -114,11 +114,11 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 ## Fase 6 – Autonomt loop
 **Mål:** Iterationer kører selv inden for rammer.
 
-- [ ] Orchestrator med budget, stopkriterier, rollback ved forværring
-- [ ] To-hastigheds-loop: hurtige iterationer (til og med Review) gentages, indtil Review består; først da simuleres
-- [ ] Decide fra fase 3b kobles på generatoren: `plan.json` anvendes, og resultatet går gennem loopet
-- [ ] Ændringer begrænset til tilladte parametre (ikke låste beslutninger)
-- [ ] `runs/`-log med NOTES.md pr. iteration
+- [x] Orchestrator med budget, stopkriterier, rollback ved forværring (`mapforge/loop/run.py`, tilstand i `runs/<map>/loop.json`, oversigt i `runs/<map>/LOOP.md`)
+- [x] To-hastigheds-loop: hurtige iterationer (til og med Review) gentages, indtil Review består; først da simuleres
+- [x] Decide fra fase 3b kobles på generatoren: `plan.json` anvendes (`mapforge/loop/apply.py`), og resultatet går gennem loopet
+- [x] Ændringer begrænset til tilladte parametre (ikke låste beslutninger): politik-tjek + låste roller/`protected` i apply
+- [x] `runs/`-log med NOTES.md pr. iteration
 
 **Accept:** Loopet forbedrer et bevidst ubalanceret map mod målintervallerne uden at bryde låste beslutninger.
 

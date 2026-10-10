@@ -66,9 +66,13 @@ cover:                        # kasser/vægge inde i et område
 sites: {A: a_site, B: b_site} # område pr. bomb site (func_bomb_target, 32 units inde fra væggene)
 spawns:
   T:  {area: t_spawn, count: 16}   # standard 16 (spillets maks.); gitter med 64 units mellemrum, 8 units over gulvet, vendt mod midten
+                                   # offset: [dx, dy] (valgfri) flytter klyngens centrum inde i området (Decide: move_spawn)
   CT: {area: ct_spawn, count: 16}
 buyzones: true                # func_buyzone over hvert spawn-område
 ```
 
+## Beskyttede elementer
+`protected: true` på et område, en dør eller et cover betyder, at loopet aldrig flytter, ændrer størrelse på eller fjerner det (låst topologi, fx chokepoint-dørene i de_forge01). Områder med `role: site`, `t_spawn` eller `ct_spawn` er altid låste (site-placeringer, FITNESS).
+
 ## Hvad Decide kan ændre (fase 6)
-Værktøjskassen i `config/fitness.yaml` peger på navne i spec'en: `move_corridor`/`resize_corridor` → et områdes `rect`; `adjust_opening` → en dørs `width`/`height`; `add_cover`/`remove_cover` → `cover`; `move_spawn` → spawn-område; `add_connection`/`remove_connection` → `doors`. Derfor skal alle navne være unikke.
+Værktøjskassen i `config/fitness.yaml` peger på navne i spec'en: `move_corridor`/`resize_corridor` → et områdes `rect`; `adjust_opening` → en dørs `width`/`height`; `add_cover`/`remove_cover` → `cover`; `move_spawn` → spawn-område; `add_connection`/`remove_connection` → `doors`. Derfor skal alle navne være unikke. Ændringerne anvendes af `mapforge/loop/apply.py` med round-trip-YAML (kommentarer bevares); hver ændring prøve-genereres, og en ændring, der ikke kan bygges (fx en dør mister sin fælles væg), springes over med begrundelse.

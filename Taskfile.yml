@@ -105,9 +105,11 @@ tasks:
       - uv run python -m mapforge.analyze.run --map {{.MAP}} {{.CLI_ARGS}}
 
   loop:
-    desc: Full iteration (Phase 6)
+    desc: Autonomous loop (MAP=<name>; -- --init [--force-sim] | --status); exit 3 = awaiting a Review/Decide answer
+    requires:
+      vars: [MAP]
     cmds:
-      - cmd: echo "not implemented (Phase 6)" && exit 1
+      - uv run python -m mapforge.loop.run --map {{.MAP}} {{.CLI_ARGS}}
 
   test:
     desc: Run pytest

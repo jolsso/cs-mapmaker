@@ -18,7 +18,7 @@ targets:
   t_winrate: [0.45, 0.55]
   site_split_a: [0.35, 0.65]   # share of plants on site A
   first_contact_s: [15, 25]
-  dead_zone_share: [0, 0.05]
+  dead_zone_share: [0, 0.20]   # bot data: YaPB follows its graph (dust2: 16 %); human target was 5 %
   max_kill_cell_share: [0, 0.10]
   round_length_median_s: [50, 100]
 min_rounds: 100

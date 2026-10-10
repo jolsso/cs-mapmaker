@@ -43,7 +43,8 @@ def stage_of(build: Path) -> dict[str, Any]:
         return json.loads(p.read_text(encoding="utf-8")) if p.is_file() else None
 
     compile_, validation, review, metrics = (
-        load("compile.json"), load("validation.json"), load("review.json"), load("metrics.json")
+        load("compile.json"), load("validation.json"), load("review.json"),
+        load("analysis/metrics.json"),
     )  # fmt: skip
     stage: dict[str, Any] = {
         "compile_ok": None if compile_ is None else compile_.get("ok"),
@@ -72,26 +73,32 @@ def stage_of(build: Path) -> dict[str, Any]:
 
 
 def collect(cfg: Config, map_name: str, run_dir: Path) -> dict[str, Any]:
-    """Copy the current build's inputs into run_dir; return a manifest of what is there."""
+    """Copy the current build's inputs into run_dir (unless already there); return a manifest.
+
+    The loop (phase 6) fills run_dir itself as it goes; a standalone Decide copies from build/.
+    """
     build = cfg.path("build_dir") / map_name
-    files: list[str] = []
-    for name in ("compile.json", "validation.json", "review.json", "metrics.json"):
-        if (build / name).is_file():
+    for name in (
+        "compile.json",
+        "compile.log",
+        "validation.json",
+        "review.json",
+        "simulation.json",
+    ):
+        if (build / name).is_file() and not (run_dir / name).exists():
             shutil.copy2(build / name, run_dir / name)
-            files.append(name)
     renders = build / "renders"
-    if (renders / "index.json").is_file():
+    if (renders / "index.json").is_file() and not (run_dir / "renders").exists():
         shutil.copytree(renders, run_dir / "renders",
                         ignore=shutil.ignore_patterns("demo_*", "topdown_raw.png"))  # fmt: skip
-        files += [f"renders/{p.name}" for p in sorted((run_dir / "renders").iterdir())]
+    if (build / "analysis" / "metrics.json").is_file() and not (run_dir / "analysis").exists():
+        shutil.copytree(build / "analysis", run_dir / "analysis")
     map_dir = cfg.path("maps_dir") / map_name
-    if (map_dir / "layout.yaml").is_file():
+    if (map_dir / "layout.yaml").is_file() and not (run_dir / "layout.yaml").exists():
         shutil.copy2(map_dir / "layout.yaml", run_dir / "layout.yaml")
-        files.append("layout.yaml")
     src = map_dir / "src" / f"{map_name}.map"
-    if src.is_file():
+    if src.is_file() and not (run_dir / src.name).exists():
         shutil.copy2(src, run_dir / src.name)
-        files.append(src.name)
         prev = [p / src.name for p in iterations(cfg, map_name) if p != run_dir]
         prev = [p for p in prev if p.is_file()]
         if prev:
@@ -101,8 +108,19 @@ def collect(cfg: Config, map_name: str, run_dir: Path) -> dict[str, Any]:
                 fromfile=f"previous/{src.name}", tofile=f"current/{src.name}",
             )  # fmt: skip
             (run_dir / "map.diff").write_text("".join(diff), encoding="utf-8")
-            files.append("map.diff")
+    skip = {"decide_prompt.md", "plan_schema.json", "plan.json", "NOTES.md", "decision.json",
+            "applied.json", "layout_next.yaml", "stage.json"}  # fmt: skip
+    files = sorted(
+        p.relative_to(run_dir).as_posix()
+        for p in run_dir.rglob("*")
+        if p.is_file() and p.name not in skip
+        and p.relative_to(run_dir).parts[0] != "sim"  # raw CSV/demos: too big to read
+    )  # fmt: skip
+    if (run_dir / "sim" / "simulation.json").is_file():
+        files.append("sim/simulation.json")
     stage = stage_of(build)
+    if (run_dir / "analysis" / "metrics.json").is_file():
+        stage.update(metrics=True, reached="simulate", why="measured", next="improve or stop")
     (run_dir / "stage.json").write_text(json.dumps(stage, indent=2), encoding="utf-8")
     files.append("stage.json")
     notes = [

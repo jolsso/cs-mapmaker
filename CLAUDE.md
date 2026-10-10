@@ -63,7 +63,9 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 docker compose up -d site     # PÅ VÆRTEN: serverer websitet på http://localhost:8080 (kun 127.0.0.1)
 ./mf simulate MAP=<navn>      # HLDS + YaPB-bots: smoke + batches → build/<map>/simulation.json (-- --smoke-only | --watch | --rounds N; SOURCE=reference)
 ./mf analyze MAP=<navn>       # simulation → build/<map>/analysis/ (metrics.json, report.md, heatmaps, delta) (-- --baseline FILE)
-./mf loop MAP=<navn>          # fuld iteration                (Fase 6)
+./mf loop MAP=<navn> -- --init [--force-sim]   # start det autonome loop (runs/<map>/loop.json)
+./mf loop MAP=<navn>          # fortsæt; exit 3 = venter på et Review/Decide-svar (se nedenfor)
+./mf loop MAP=<navn> -- --status
 ```
 Fallback til debugging på værten: `uv run task <navn>` (samme tasks, Windows-binaries i `tools/`). Kun Docker-vejen tæller for acceptkriterier.
 - Imaget er Debian trixie: SDHLT 1.3.0's Linux-binaries kræver glibc ≥ 2.38 (bookworm har 2.36).
@@ -78,6 +80,7 @@ Den visuelle vurdering laves **i Claude Code-sessionen**, ikke af et separat API
 2. Start en **subagent** (frisk kontekst, kun Read/Write) med prompt-filen; den læser alle billeder og skriver `build/<map>/review_answer.json` efter skemaet.
 3. `./mf review MAP=<navn> -- --answer` validerer svaret og afgør pass/fail (ingen `critical`/`major`). Pass-reglen ligger i koden, ikke i modellen.
 Decide følger samme mønster: `./mf decide -- --emit` → en subagent læser `runs/<map>/<NNN>/decide_prompt.md` og skriver `plan.json` + `NOTES.md` → `./mf decide -- --answer`.
+**Loopet** (`./mf loop`) bruger samme mønster: når det stopper med exit 3 ("AWAITING review/decide"), start en frisk subagent med den nævnte prompt-fil, lad den skrive svar-filen, og kør `./mf loop MAP=<navn>` igen. Gentag til loopet stopper (exit 0); læs `runs/<map>/LOOP.md`. Ved en gate eller eskalering: stop og skriv en opsummering til mennesket.
 Ubemandede kørsler (uden åben session) kan bruge `uv run task review MAP=<navn> -- --headless` på værten (`claude -p`, samme prompt/skema/regel).
 
 ## Compiler

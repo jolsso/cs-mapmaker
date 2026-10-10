@@ -6,7 +6,7 @@ Usage:
 
 The Claude Code session (or a subagent) reads <run>/decide_prompt.md and writes plan.json and
 NOTES.md. --answer checks the plan against config/fitness.yaml (mapforge.decide.policy) and
-writes <run>/decision.json. Nothing is applied here: that is the orchestrator's job (phase 6).
+writes <run>/decision.json. Nothing is applied here: the loop (mapforge.loop) applies it.
 Exit 0 = plan accepted as is, 1 = changes rejected / plan invalid, 2 = could not run.
 """
 
@@ -43,7 +43,11 @@ def toolbox_text(fitness: dict[str, Any]) -> str:
 
 
 def emit(cfg: Config, map_name: str) -> Path:
-    run_dir = new_iteration(cfg, map_name)
+    return emit_into(cfg, map_name, new_iteration(cfg, map_name))
+
+
+def emit_into(cfg: Config, map_name: str, run_dir: Path, loop: str = "") -> Path:
+    """Write decide_prompt.md (+ schema) for run_dir; `loop` = context from the orchestrator."""
     manifest = collect(cfg, map_name, run_dir)
     root = cfg.root
     rel_run = _rel(run_dir, root)
@@ -57,6 +61,7 @@ def emit(cfg: Config, map_name: str) -> Path:
         files=files,
         notes=notes,
         toolbox=toolbox_text(load_fitness(root)),
+        loop=loop or "(enkeltstående Decide, ikke en del af et loop)",
     )
     (run_dir / "decide_prompt.md").write_text(prompt, encoding="utf-8")
     (run_dir / "plan_schema.json").write_text(json.dumps(PLAN_SCHEMA, indent=2), encoding="utf-8")

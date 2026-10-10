@@ -1,0 +1,87 @@
+from pathlib import Path
+
+import yaml
+
+from mapforge.config import load_config
+from mapforge.loop.apply import apply_plan
+from mapforge.loop.run import Loop
+
+LAYOUT = (Path(__file__).resolve().parent.parent / "maps" / "de_forge01" / "layout.yaml").read_text(
+    encoding="utf-8"
+)
+
+
+def test_apply_keeps_comments_and_applies_valid_changes():
+    new, applied, failed = apply_plan(
+        LAYOUT,
+        [
+            {
+                "type": "add_cover",
+                "params": {"zone": "mid_top", "position": [0, 656], "size": [64, 64, 64]},
+            },
+            {"type": "adjust_opening", "params": {"target": "d_mid_b1", "width": 160}},
+            {"type": "move_spawn", "params": {"team": "CT", "delta": [64, 0]}},
+        ],
+    )
+    assert [a["type"] for a in applied] == [
+        "add_cover",
+        "adjust_opening",
+        "move_spawn",
+    ] and not failed
+    assert "# chokepoint A long" in new  # comments survive the round trip
+    data = yaml.safe_load(new)
+    assert any(c["name"] == "mid_top_cover" for c in data["cover"])
+    assert next(d for d in data["doors"] if d["name"] == "d_mid_b1")["width"] == 160
+    assert data["spawns"]["CT"]["offset"] == [64, 0]
+
+
+def test_apply_refuses_locked_and_ungeneratable_changes():
+    _, applied, failed = apply_plan(
+        LAYOUT,
+        [
+            {"type": "move_corridor", "params": {"target": "a_site", "delta": [16, 0]}},
+            {"type": "remove_connection", "params": {"from": "long_ec_n", "to": "a_site"}},
+            {"type": "move_corridor", "params": {"target": "mid_to_b", "delta": [16, 0]}},
+            {"type": "adjust_opening", "params": {"target": "d_mid_b1", "width": 100}},
+        ],
+    )
+    reasons = [f["reason"] for f in failed]
+    assert not applied and len(failed) == 4
+    assert "locked" in reasons[0] and "protected" in reasons[1]
+    assert "wall" in reasons[2] and "grid" in reasons[3]
+
+
+def _loop(tmp_path) -> Loop:
+    loop = Loop(load_config(), "de_x")
+    loop.root = tmp_path
+    loop.state = {"iteration": "003", "first_iteration": "001", "history": [{"iteration": "003", "reached": "simulate"}],
+                  "started_ts": __import__("time").time(), "rollback": False, "best": None,
+                  "counters": {"hard_fail": 0, "review_fail": 0, "since_best": 0, "targets_met": 0, "measured": 0}}  # fmt: skip
+    return loop
+
+
+def test_evaluate_tracks_best_and_rollback(tmp_path):
+    loop = _loop(tmp_path)
+    loop._evaluate({"score": 0.5, "metrics": {}}, 1)
+    assert loop.state["best"]["score"] == 0.5 and not loop.state["rollback"]
+    loop.state["iteration"] = "004"
+    loop._evaluate({"score": 0.9, "delta": {"verdict": "værre"}, "metrics": {}}, 1)
+    assert loop.state["best"]["iteration"] == "003" and loop.state["rollback"]
+    assert loop.state["counters"]["since_best"] == 1
+    loop.state["iteration"] = "005"
+    loop._evaluate(
+        {"score": 0.2, "delta": {"verdict": "bedre"}, "targets_met": True, "metrics": {}}, 1
+    )
+    assert loop.state["best"]["iteration"] == "005" and not loop.state["rollback"]
+
+
+def test_stop_reasons(tmp_path):
+    loop = _loop(tmp_path)
+    assert loop.stop_reason(changed=True) is None
+    assert "ingen ændringer" in loop.stop_reason(changed=False)
+    loop.state["counters"]["targets_met"] = 2
+    assert "Gate B" in loop.stop_reason(changed=True)
+    loop.state["counters"].update(targets_met=0, hard_fail=3)
+    assert "hårde krav" in loop.stop_reason(changed=True)
+    loop.state["counters"].update(hard_fail=0, measured=6, since_best=5)
+    assert "plateau" in loop.stop_reason(changed=True)

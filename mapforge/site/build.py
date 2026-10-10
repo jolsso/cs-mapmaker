@@ -337,6 +337,41 @@ def analyze_section(b: Path, out: Path) -> str:
     return "".join(parts)
 
 
+def loop_section(cfg: Config, name: str) -> str:
+    """The autonomous loop (runs/<map>/loop.json): status, score per iteration, history."""
+    from mapforge.runs import runs_root
+
+    st = _load(runs_root(cfg, name) / "loop.json")
+    if not st:
+        return ""
+    best = st.get("best") or {}
+    running = st.get("status") == "running"
+    chip = (
+        "<span class='chip run'>kører</span>"
+        if running
+        else f"<span class='chip ok'>stoppet</span> <span class='muted'>{e(str(st.get('stop_reason')))}</span>"
+    )
+    wait = st.get("awaiting")
+    wait_html = (f"<p class='muted'>Venter på <b>{e(wait['step'])}</b>: <code>{e(wait['prompt'])}</code> → <code>{e(wait['answer'])}</code></p>"
+                 if wait and running else "")  # fmt: skip
+    hist = st.get("history", [])
+    trend = charts.trend([(h["iteration"], h.get("score")) for h in hist], "Score pr. iteration")
+    rows = "".join(
+        f"<tr><td>{e(h['iteration'])}{' ★' if h['iteration'] == best.get('iteration') else ''}</td><td>{e(str(h.get('reached')))}</td>"
+        f"<td>{e(str(h.get('review', '–')))}</td><td class='num'>{h.get('score', '–')}</td><td class='num'>{_pct(h.get('t_winrate'))}</td>"
+        f"<td class='num'>{_pct(h.get('site_split_a'))}</td><td>{e(str(h.get('verdict') or '–'))}</td>"
+        f"<td>{e('; '.join(h.get('applied', [])) or '–')}</td></tr>"
+        for h in hist
+    )  # fmt: skip
+    c = st.get("counters", {})
+    return (f"<section id='loop' class='panel'><h2><span class='no'>∞</span>Autonomt loop</h2><p>{chip} "
+            f"<span class='muted'>iteration {e(st.get('iteration', ''))} · trin {e(st.get('step', ''))} · bedste {e(str(best.get('iteration', '–')))} "
+            f"(score {best.get('score', '–')}) · målinger {c.get('measured', 0)}</span></p>{wait_html}"
+            + (f"<div class='chartbox'><h3>Score pr. iteration</h3>{trend}</div>" if trend else "")
+            + "<div class='table'><table><tr><th>iteration</th><th>nåede</th><th>review</th><th>score</th><th>T-winrate</th>"
+            f"<th>A-plants</th><th>ift. bedste</th><th>anvendte ændringer</th></tr>{rows}</table></div></section>")  # fmt: skip
+
+
 def _copy(src: Path, dst: Path) -> None:
     dst.parent.mkdir(parents=True, exist_ok=True)
     if not dst.exists() or dst.stat().st_mtime < src.stat().st_mtime:
@@ -458,6 +493,7 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
 
     parts.append(simulate_section(b))
     parts.append(analyze_section(b, out))
+    parts.append(loop_section(cfg, name))
 
     parts.append(
         "<section id='decide' class='panel'><h2><span class='no'>8</span>Decide – iterationer</h2>"

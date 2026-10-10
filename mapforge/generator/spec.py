@@ -170,6 +170,9 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         spawns[team] = {
             "area": need(sp["area"], f"spawns.{team}"),
             "count": int(sp.get("count", 16)),  # 16 per team is the game maximum (DESIGN_GUIDE §4)
+            # shift of the spawn cluster inside its area (Decide: move_spawn); spawns fill the
+            # grid outwards from area centre + offset
+            "offset": _ints(sp.get("offset", [0, 0]), 2, f"spawns.{team}.offset"),
         }
     names = [d.name for d in doors] + [s.name for s in stairs] + [c.name for c in cover]
     dup = {n for n in names if names.count(n) > 1 or n in areas}

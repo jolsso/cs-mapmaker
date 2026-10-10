@@ -9,6 +9,7 @@ dependencies = [
     "numpy>=1.26",
     "pillow>=10",
     "pyyaml>=6.0",
+    "ruamel-yaml>=0.18",
 ]
 
 [dependency-groups]
@@ -35,8 +36,10 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 "mapforge/site/build.py" = ["E501"]
 "mapforge/site/charts.py" = ["E501"]
 "mapforge/analyze/run.py" = ["E501"]
+"mapforge/loop/run.py" = ["E501"]
 # fixture rows read better one per line
 "tests/test_analyze.py" = ["E501"]
+"tests/test_loop.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

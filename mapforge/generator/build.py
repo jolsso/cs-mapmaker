@@ -147,7 +147,9 @@ def _stair_boxes(layout: Layout) -> list[Box]:
     return out
 
 
-def _spawn_points(area: Area, count: int, facing: tuple[float, float]) -> list[str]:
+def _spawn_points(
+    area: Area, count: int, facing: tuple[float, float], offset: tuple[int, int] = (0, 0)
+) -> list[str]:
     x0, y0, x1, y1 = area.rect
     margin, spacing = 48, 64
     cols = max(1, (x1 - x0 - 2 * margin) // spacing + 1)
@@ -155,7 +157,7 @@ def _spawn_points(area: Area, count: int, facing: tuple[float, float]) -> list[s
     if cols * rows < count:
         raise SpecError(f"spawn area {area.name} fits {cols * rows} spawns, needs {count}")
     pts = []
-    cxm, cym = (x0 + x1) / 2, (y0 + y1) / 2
+    cxm, cym = (x0 + x1) / 2 + offset[0], (y0 + y1) / 2 + offset[1]
     grid = sorted(
         (
             (x0 + margin + c * spacing, y0 + margin + r * spacing)
@@ -261,7 +263,7 @@ def generate(layout: Layout) -> Generated:
     centre = ((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2)
     for team, cls in (("T", "info_player_deathmatch"), ("CT", "info_player_start")):
         sp = layout.spawns[team]
-        for p in _spawn_points(areas[sp["area"]], sp["count"], centre):
+        for p in _spawn_points(areas[sp["area"]], sp["count"], centre, sp.get("offset", (0, 0))):
             origin, angles = p.split("|")
             ents.append(entity({"classname": cls, "origin": origin, "angles": angles}))
 

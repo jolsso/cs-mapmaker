@@ -18,7 +18,7 @@ Loopet optimerer kun efter det, der står her. Tærsklerne spejles maskinlæsbar
 | T-winrate | 45–55 % | Primær balance-metrik |
 | Site-fordeling A/B (bomb plants) | 35–65 % | Begge sites skal bruges |
 | Tid til første kontakt | 15–25 s | Fra rundestart |
-| Døde zoner | < 5 % af gangbart areal med ~0 trafik | Ubrugt plads |
+| Døde zoner | < 20 % af gangbart areal med ~0 trafik | Ubrugt plads. Hævet fra 5 % 2026-10-10: bots følger deres navigationsgraf, og selv de_dust2 har 16 % (CALIBRATION.md) |
 | Kill-koncentration | Ingen enkelt celle > 10 % af alle kills | Fanger "death traps" |
 | Rundelængde (median) | 50–100 s | Afhænger af mp_roundtime |
 

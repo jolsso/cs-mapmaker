@@ -138,9 +138,11 @@ Begrænsninger:
 - Delta mod forrige analyserede version (historikken) eller `--baseline`: en ændring tæller kun, når intervallerne ikke overlapper; vurderingen ser på afstanden til målet.
 - Output: `build/<map>/analysis/{metrics.json,report.md,heatmaps/}`; kopieres til historikken og vises på websitet.
 
-### Orchestrator (`orchestrator/`)
-- Kører loop, håndterer stopkriterier og budget, skriver `runs/`.
-- Kalder Claude Code headless med prompt + metrics + billeder, modtager ændringsplan.
+### Loop (`mapforge/loop/`) – bygget (fase 6)
+- **Orchestrator** (`run.py`): tilstandsmaskine i `runs/<map>/loop.json` (+ `LOOP.md`). Pr. iteration `runs/<map>/<NNN>/`: build (generate → compile + validate → render) → review → [simulate → analyze] → decide → apply. Fejler validate eller review, springes simuleringen over (hurtigt loop). Review og Decide besvares i Claude Code-sessionen af en frisk subagent pr. prompt; loopet skriver prompten og stopper med exit 3, og næste `./mf loop` samler svaret op.
+- **Måling og rollback:** analyse mod bedste måling (`--baseline`). Ny bedste = lavere score og ikke "værre" ud over støjen. Er en måling "værre", anvendes næste plan på den bedste versions layout (rollback).
+- **Stopkriterier** (`config/fitness.yaml` → stop/budget): mål ramt 2 målinger i træk (→ Gate B), plateau 5 målinger, hårde krav fejler 3 i træk, review fejler 5 i træk, max iterationer/wall clock, Decide eskalerer, eller Decide foreslår intet uden at målene er ramt.
+- **Apply** (`apply.py`): værktøjskassens ændringer på `layout.yaml` (round-trip-YAML), hver prøve-genereret; låste roller (site/spawns) og `protected` afvises. `applied.json` viser anvendt/sprunget over/afvist af politik.
 
 ## Repo-struktur
 

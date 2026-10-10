@@ -6,6 +6,9 @@ Iteration: {run_dir}
 ## Hvor iterationen stoppede
 {stage}
 
+## Loopet
+{loop}
+
 ## Filer i iterationen (læs dem med Read; stierne er relative til repoet)
 {files}
 
@@ -17,6 +20,8 @@ Tidligere iterationers noter (seneste først): {notes}
 {toolbox}
 
 En ændring med en anden type, for store værdier eller som rører en låst beslutning, bliver afvist automatisk. Hvis det rigtige fix ligger uden for værktøjskassen (fx et bomb site skal flyttes, eller topologien er forkert), så foreslå ingen ændringer, men sæt `escalate: true` og forklar i `escalation_reason`, hvad mennesket skal tage stilling til.
+
+Hvordan ændringerne anvendes (`mapforge/loop/apply.py`, docs/LAYOUT_SPEC.md): `target`/`zone`/`from`/`to` er navne fra `layout.yaml`. `move_corridor` flytter et områdes `rect` med `delta` [dx, dy]; `resize_corridor` forlænger/forkorter områdets lange akse med `length_delta` (`end: start|end`); `add_cover` tager `zone`, `position` [x, y], `size` [w, d, h] (multipla af 8); `remove_cover` tager coverets navn; `adjust_opening` tager dørens navn + `width` (multiplum af 16, ≥ 64); `move_spawn` tager `team` (T/CT) + `delta` – spawn-klyngen forskydes inde i spawn-området; `add_connection`/`remove_connection` tager to områdenavne (en ny dør kræver, at områderne ligger præcis én væg fra hinanden). Områder med rolle site/t_spawn/ct_spawn og alt med `protected: true` er låst. En ændring, der ikke kan genereres (fx døre mister deres fælles væg), springes over med en begrundelse i `applied.json`.
 
 `params.target`/`zone` skal pege på noget genkendeligt: et navn fra layout-spec, hvis den findes, ellers en beskrivelse + grove koordinater (fx "site 2, nordlig indgang ca. [1150, 2460]").
 
