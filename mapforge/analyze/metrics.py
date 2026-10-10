@@ -175,10 +175,24 @@ def compute(
         k: metrics[k]["distance"] for k in weights if metrics.get(k, {}).get("distance") is not None
     }
     score = sum(weights[k] * d for k, d in parts.items()) if parts else None
+    # per-round series for charts (site), in play order
+    contact_by: dict[tuple, float] = {}
+    for e in data["events"]:
+        key = (e["run_id"], e["round"])
+        if key in keys and e["type"] == "first_contact":
+            contact_by[key] = min(contact_by.get(key, float("inf")), e["t"])
+    series = [
+        {"run": r["run_id"], "round": r["round"], "winner": r["winner"], "reason": r["reason"],
+         "site": r["plant_site"], "length_s": round(r["end_time"] - r["start_time"], 1),
+         "contact_s": round(contact_by[(r["run_id"], r["round"])], 1)
+         if (r["run_id"], r["round"]) in contact_by else None}
+        for r in sorted(valid, key=lambda r: (r["run_id"], r["round"]))
+    ]  # fmt: skip
     reasons: dict[str, int] = {}
     for r in valid:
         reasons[r["reason"]] = reasons.get(r["reason"], 0) + 1
     return {
+        "series": series,
         "rounds": n,
         "min_rounds": int(fitness.get("min_rounds", 100)),
         "enough_rounds": n >= int(fitness.get("min_rounds", 100)),

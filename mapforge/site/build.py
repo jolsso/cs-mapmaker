@@ -19,6 +19,7 @@ from typing import Any
 from mapforge.config import Config, load_config
 from mapforge.history import versions
 from mapforge.runs import iterations, stage_of
+from mapforge.site import charts
 
 PHASES = [  # (key, label, built?)
     ("compile", "2 Compile", True), ("validate", "3 Validate", True),
@@ -26,6 +27,10 @@ PHASES = [  # (key, label, built?)
     ("simulate", "6 Simulate", True), ("analyze", "7 Analyze", True),
     ("decide", "8 Decide", True),
 ]  # fmt: skip
+# cache-buster for the stylesheet: browsers keep style.css otherwise
+CSS_VERSION = (
+    __import__("hashlib").sha256(Path(__file__).with_name("style.css").read_bytes()).hexdigest()[:8]
+)
 SKIP_BUILD_DIRS = {"refmaps", "site", "no-hl-install"}
 
 e = html.escape
@@ -61,14 +66,17 @@ def _page(title: str, body: str, depth: int, active: str, maps: list[str]) -> st
              f"<a href='{up}architecture.html' class='{'on' if active == 'arch' else ''}'>"
              "Arkitektur &amp; roadmap</a>"]  # fmt: skip
     if active not in ("home", "arch"):
-        links.append(f"<span class='muted'>›</span> <a class='on'>{e(active)}</a>")
+        links.append(f"<span class='crumb'>›</span><a class='on'>{e(active)}</a>")
     return (
         f"<!doctype html><html lang='da'><head><meta charset='utf-8'>"
         f"<meta name='viewport' content='width=device-width, initial-scale=1'>"
-        f"<title>{e(title)}</title><link rel='stylesheet' href='{up}style.css'></head><body>"
-        f"<div class='wrap'><nav><span class='brand'>MapForge</span>{''.join(links)}</nav>"
-        f"{body}<p class='muted'>Genereret {time.strftime('%Y-%m-%d %H:%M')} af "
-        f"<code>mapforge.site.build</code> fra repoets data.</p></div></body></html>"
+        f"<title>{e(title)}</title><link rel='stylesheet' href='{up}style.css?v={CSS_VERSION}'>"
+        "<link rel='icon' href='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E"
+        "%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%23f2a93b%22/%3E%3C/svg%3E'></head><body>"
+        f"<header class='topbar'><div class='in'><a class='brand' href='{up}index.html'><span class='mark'>MF</span>"
+        f"MapForge</a><nav>{''.join(links)}</nav></div></header>"
+        f"<main class='wrap'>{body}<footer>Genereret {time.strftime('%Y-%m-%d %H:%M')} af "
+        f"<code>mapforge.site.build</code> fra repoets data · kun lokalt (127.0.0.1)</footer></main></body></html>"
     )
 
 
@@ -118,57 +126,136 @@ def map_status(cfg: Config, name: str) -> dict[str, Any]:
     }  # fmt: skip
 
 
+def _state_cls(built: bool, state: bool | None) -> str:
+    return "todo" if not built else ("ok" if state else "bad" if state is False else "todo")
+
+
+def stepper(st: dict[str, Any], link: bool = True) -> str:
+    """Pipeline phases as a segmented bar (green passed, red failed, dashed not run)."""
+    tag = "a" if link else "span"
+    steps = "".join(
+        f"<{tag} class='step {_state_cls(built, st.get(k))}'"
+        + (f" href='#{k}'" if link else "")
+        + f" title='{e(label)}'><i></i>{e(label.split()[1])}</{tag}>"
+        for k, label, built in PHASES
+    )
+    return f"<div class='stepper'>{steps}</div>"
+
+
+def _pct(v: float | None) -> str:
+    return "–" if v is None else f"{v:.0%}"
+
+
+def kpis(b: Path) -> str:
+    """Headline numbers of a map: balance, sites, contact, round length, score, review."""
+    m = _load(b / "analysis" / "metrics.json") or {}
+    met = m.get("metrics", {})
+    v = _load(b / "validation.json") or {}
+    tiles = []
+
+    def tile(value: str, label: str, cls: str = "") -> None:
+        tiles.append(f"<div class='kpi {cls}'><b>{value}</b><span>{e(label)}</span></div>")
+
+    def ok(key: str) -> str:
+        d = met.get(key, {}).get("distance")
+        return "" if d is None else "ok" if d == 0 else "bad"
+
+    if met:
+        tile(_pct(met["t_winrate"]["value"]), f"T-winrate · mål {_pct(met['t_winrate']['target'][0])}–"
+             f"{_pct(met['t_winrate']['target'][1])}", ok("t_winrate"))  # fmt: skip
+        tile(_pct(met["site_split_a"]["value"]), "plants på A", ok("site_split_a"))
+        fc = met["first_contact_s"]["value"]
+        tile("–" if fc is None else f"{fc:.0f} s", "første kontakt", ok("first_contact_s"))
+        rl = met["round_length_median_s"]["value"]
+        tile("–" if rl is None else f"{rl:.0f} s", "rundelængde", ok("round_length_median_s"))
+        tile(
+            f"{m.get('score')}",
+            f"score · {m.get('rounds')} runder",
+            "ok" if m.get("targets_met") else "",
+        )
+    for t in v.get("stats", {}).get("timings", [])[:2]:
+        ts = (t.get("T") or {}).get("median_s")
+        if ts is not None:
+            tile(f"{ts:.0f} s", f"T → site {t.get('site')}", "t")
+    if not tiles:
+        return ""
+    return f"<div class='kpis'>{''.join(tiles)}</div>"
+
+
 def simulate_section(b: Path) -> str:
-    """Simulation summary (build/<map>/simulation.json): rounds, win rate, plants, demos."""
+    """Simulation run (build/<map>/simulation.json): smoke checks, batches, demos."""
     sim = _load(b / "simulation.json")
-    parts = ["<section id='simulate'><h2>6 Simulate</h2>"]
+    parts = ["<section id='simulate' class='panel'><h2><span class='no'>6</span>Simulate</h2>"]
     if not sim:
         parts.append(
             "<p class='muted'>Ikke simuleret endnu (<code>./mf simulate MAP=…</code>).</p></section>"
         )
         return "".join(parts)
     smoke = sim.get("smoke") or {}
-    parts.append(f"<p>{_chip(sim.get('ok'), 'OK', 'fejlet')} <span class='muted'>{e(str(sim.get('stop_reason')))}"
-                 f" · {sim.get('wall_s')} s · {sim.get('servers')} server(e) · timescale {sim.get('timescale')}"
-                 f" · {sim.get('bots_per_team')} mod {sim.get('bots_per_team')} bots</span></p>")  # fmt: skip
-    if smoke:
-        checks = smoke.get("checks", {})
-        sites = checks.get("sites_reached", {}).get("samples_per_site", {})
-        parts.append(f"<p>Smoke: {_chip(smoke.get('ok'), 'OK', 'fejlet')} "
-                     f"<span class='muted'>gyldige runder {checks.get('valid_rounds', {}).get('value')}"
-                     f" · bots i bevægelse {checks.get('bots_move', {}).get('value')}/{checks.get('bots_move', {}).get('of')}"
-                     f" · samples pr. site {e(json.dumps(sites))}</span></p>")  # fmt: skip
     summ = sim.get("summary") or {}
-    if summ:
-        rows = []
-        for key, label in (("t_winrate", "T-winrate"), ("site_split_a", "andel plants på A")):
-            m = summ.get(key, {})
-            rows.append(f"<tr><td>{label}</td><td>{m.get('value')}</td><td>{m.get('ci')}</td>"
-                        f"<td>{m.get('target')}</td><td>{m.get('n')}</td><td>{e(str(m.get('relation')))}</td></tr>")  # fmt: skip
-        parts.append(f"<p class='muted'>{summ.get('rounds')} gyldige runder af {summ.get('rounds_logged')} logget"
-                     f" · {summ.get('plants')} plants · schema-fejl {summ.get('schema_errors')}</p>"
-                     "<table><tr><th>metrik</th><th>værdi</th><th>95 %-interval</th><th>mål</th><th>n</th>"
-                     "<th>ift. mål</th></tr>" + "".join(rows) + "</table>")  # fmt: skip
+    parts.append(
+        f"<p>{_chip(sim.get('ok'), 'OK', 'fejlet')} <span class='muted'>{e(str(sim.get('stop_reason')))}</span></p>"
+    )
+    tiles = [
+        (f"{summ.get('rounds', 0)}", "gyldige runder"),
+        (f"{(sim.get('wall_s') or 0) / 60:.1f} min", "wall clock"),
+        (f"{sim.get('timescale')}×", "spiltid pr. realtid"),
+        (f"{sim.get('servers')}", "servere parallelt"),
+        (f"{sim.get('bots_per_team')} v {sim.get('bots_per_team')}", "YaPB-bots"),
+        (f"{len(sim.get('demos') or [])}", "HLTV-demoer"),
+    ]
+    parts.append("<div class='kpis'>" + "".join(f"<div class='kpi'><b>{e(v)}</b><span>{e(lbl)}</span></div>"
+                                                 for v, lbl in tiles) + "</div>")  # fmt: skip
+    if smoke:
+        c = smoke.get("checks", {})
+        vr, bm, sr = c.get("valid_rounds", {}), c.get("bots_move", {}), c.get("sites_reached", {})
+        sites = sr.get("samples_per_site", {})
+        items = [("gyldige runder", vr.get("ok"), f"{vr.get('value')}/{vr.get('want')}"),
+                 ("bots bevæger sig", bm.get("ok"), f"{bm.get('value')}/{bm.get('of')}"),
+                 ("begge sites nået", sr.get("ok"), " · ".join(f"{k}: {v}" for k, v in sites.items())),
+                 ("CSV-skema", not smoke.get("schema_errors"), f"{len(smoke.get('schema_errors') or [])} fejl")]  # fmt: skip
+        parts.append("<div class='card'><h3>Smoke-kørsel</h3><div class='phases'>"
+                     + "".join(f"{_chip(ok, e(n), e(n))} <span class='muted small'>{e(str(val))}</span> " for n, ok, val in items)
+                     + "</div></div>")  # fmt: skip
+    groups = [g for g in sim.get("groups", []) if g.get("servers")]
+    if groups:
+        rows = "".join(f"<tr><td>{e(g['name'])}</td><td class='num'>{len(g['servers'])}</td>"
+                       f"<td class='num'>{sum(s.get('rounds_wanted', 0) for s in g['servers'])}</td>"
+                       f"<td class='num'>{max(s.get('wall_s') or 0 for s in g['servers']):.0f} s</td>"
+                       f"<td>{_chip(all(s.get('done') for s in g['servers']), 'færdig', 'afbrudt')}</td></tr>" for g in groups)  # fmt: skip
+        parts.append("<details><summary>Kørsler pr. gruppe</summary><div class='table'><table><tr><th>gruppe</th>"
+                     f"<th>servere</th><th>runder</th><th>tid</th><th></th></tr>{rows}</table></div></details>")  # fmt: skip
     demos = sim.get("demos") or []
     if demos:
-        parts.append(f"<p class='muted'>Demoer ({len(demos)}): kopiér til <code>cstrike/</code> og afspil med "
-                     f"<code>playdemo &lt;navn&gt;</code> – {e(', '.join(Path(d).name for d in demos))}</p>")  # fmt: skip
+        parts.append(f"<p class='muted small'>Demoer: kopiér til <code>cstrike/</code> og afspil med <code>playdemo &lt;navn&gt;</code> "
+                     f"(klienten skal have samme .bsp) – {e(', '.join(Path(d).name for d in demos))}</p>")  # fmt: skip
     parts.append("</section>")
     return "".join(parts)
 
 
 ANALYZE_NAMES = {
     "t_winrate": "T-winrate", "site_split_a": "Andel plants på A",
-    "first_contact_s": "Første kontakt (median, s)", "dead_zone_share": "Døde zoner",
-    "max_kill_cell_share": "Kill-koncentration", "round_length_median_s": "Rundelængde (median, s)",
+    "first_contact_s": "Første kontakt (median)", "dead_zone_share": "Døde zoner",
+    "max_kill_cell_share": "Kill-koncentration", "round_length_median_s": "Rundelængde (median)",
+}  # fmt: skip
+# scale max, unit, digits, shown as percent
+ANALYZE_SCALES = {
+    "t_winrate": (1.0, "%", 0, True), "site_split_a": (1.0, "%", 0, True),
+    "first_contact_s": (40.0, " s", 1, False), "dead_zone_share": (0.3, "%", 0, True),
+    "max_kill_cell_share": (0.2, "%", 0, True), "round_length_median_s": (150.0, " s", 0, False),
 }  # fmt: skip
 
 
+def _verdict_chip(verdict: str) -> str:
+    state = True if verdict == "bedre" else False if verdict == "værre" else None
+    return _chip(state, "bedre", "værre", e(verdict))
+
+
 def analyze_section(b: Path, out: Path) -> str:
-    """Metrics with intervals, delta and heatmaps (build/<map>/analysis/)."""
+    """Metrics as bullet charts, round charts, delta and heatmaps (build/<map>/analysis/)."""
     a = b / "analysis"
     m = _load(a / "metrics.json")
-    parts = ["<section id='analyze'><h2>7 Analyze</h2>"]
+    parts = ["<section id='analyze' class='panel'><h2><span class='no'>7</span>Analyze</h2>"]
     if not m:
         parts.append(
             "<p class='muted'>Ikke analyseret endnu (<code>./mf analyze MAP=…</code>).</p></section>"
@@ -180,35 +267,72 @@ def analyze_section(b: Path, out: Path) -> str:
         else f" – for få til en fuld måling (FITNESS: {m.get('min_rounds')})"
     )
     parts.append(f"<p>{_chip(m.get('targets_met'), 'alle mål ramt', 'mål ikke ramt')} "
-                 f"<span class='muted'>score {m.get('score')} (0 = alle mål) · {m.get('rounds')} gyldige runder{e(enough)}</span></p>")  # fmt: skip
-    rows = []
+                 f"<span class='muted'>score <b>{m.get('score')}</b> (0 = alle mål) · {m.get('rounds')} gyldige runder{e(enough)}</span></p>")  # fmt: skip
+    bullets = []
     for k, v in m.get("metrics", {}).items():
-        ci = "–" if v["ci"][0] is None else f"{v['ci'][0]}–{v['ci'][1]}"
-        ok = v.get("distance") == 0
-        rows.append(f"<tr><td>{e(ANALYZE_NAMES.get(k, k))}</td><td>{v['value']}</td><td>{ci}</td><td>{v['target']}</td>"
-                    f"<td>{_chip(ok, 'inden for', 'uden for')}</td><td>{v['n']}</td></tr>")  # fmt: skip
-    parts.append("<table><tr><th>metrik</th><th>værdi</th><th>95 %-interval</th><th>mål</th><th></th><th>n</th></tr>"
-                 + "".join(rows) + "</table>")  # fmt: skip
-    parts.append(f"<p class='muted'>Rundeårsager {e(json.dumps(m.get('round_reasons', {})))} · plants "
-                 f"{e(json.dumps(m.get('plants', {}).get('by_site', {})))} · kills pr. runde {m.get('kills', {}).get('per_round')}</p>")  # fmt: skip
+        hi, unit, digits, pct = ANALYZE_SCALES.get(k, (None, "", 2, False))
+        f = 100.0 if pct else 1.0
+
+        def sc(x, f=f):
+            return None if x is None else x * f
+
+        target = [sc(t) for t in v["target"]] if v.get("target") else None
+        bullets.append(charts.bullet(ANALYZE_NAMES.get(k, k), sc(v["value"]), target,
+                                     [sc(c) for c in v["ci"]], 0.0, sc(hi) if hi else None, unit, digits))  # fmt: skip
+    parts.append("<div class='chartbox'><h3>Metrikker mod mål (grønt bånd = mål, streg = 95 %-interval)</h3>"
+                 f"<div class='bullets'>{''.join(bullets)}</div></div>")  # fmt: skip
+    series = m.get("series") or []
+    boxes = []
+    if series:
+        tw = m["metrics"]["t_winrate"].get("target")
+        boxes.append("<div class='chartbox'><h3>T-winrate undervejs (felt = hvem vandt runden)</h3>"
+                     + charts.running_rate([r["winner"] == "T" for r in series], tw, "Løbende T-winrate") + "</div>")  # fmt: skip
+        counts: dict[tuple, int] = {}
+        for r in series:
+            counts[(r["winner"], r["reason"])] = counts.get((r["winner"], r["reason"]), 0) + 1
+        segs = [("T eliminering", counts.get(("T", "elimination"), 0), "t"),
+                ("T bombe", counts.get(("T", "bomb"), 0), "t2"),
+                ("CT eliminering", counts.get(("CT", "elimination"), 0), "ct"),
+                ("CT defuse", counts.get(("CT", "defuse"), 0), "ct2"),
+                ("CT tid", counts.get(("CT", "time"), 0), "ct3")]  # fmt: skip
+        by_site = m.get("plants", {}).get("by_site", {})
+        site_segs = [
+            (f"site {s}", n, "bar" if i == 0 else "muted")
+            for i, (s, n) in enumerate(sorted(by_site.items()))
+        ]
+        no_plant = len(series) - sum(by_site.values())
+        boxes.append("<div class='chartbox'><h3>Rundeudfald</h3>" + charts.stacked(segs, "Rundeudfald")
+                     + "<h3>Bombe plantet</h3>"
+                     + charts.stacked([*site_segs, ("ingen plant", no_plant, "track")], "Plants pr. site")
+                     + "</div>")  # fmt: skip
+        boxes.append("<div class='chartbox'><h3>Rundelængde</h3>"
+                     + charts.histogram([r["length_s"] for r in series], 14,
+                                        m["metrics"]["round_length_median_s"].get("target"), "Rundelængde")
+                     + "</div>")  # fmt: skip
+        boxes.append("<div class='chartbox'><h3>Første kontakt</h3>"
+                     + charts.histogram([r["contact_s"] for r in series if r.get("contact_s") is not None], 14,
+                                        m["metrics"]["first_contact_s"].get("target"), "Første kontakt")
+                     + "</div>")  # fmt: skip
+    parts.append(f"<div class='charts'>{''.join(boxes)}</div>")
     d = m.get("delta")
     if d:
-        drows = "".join(f"<tr><td>{e(ANALYZE_NAMES.get(k, k))}</td><td>{v['before']}</td><td>{v['after']}</td>"
-                        f"<td>{v['change']:+}</td><td>{e(v['verdict'])}</td></tr>" for k, v in d["metrics"].items())  # fmt: skip
-        parts.append(f"<h3>Delta mod {e(d.get('baseline', ''))}: {e(d['verdict'])}</h3><table><tr><th>metrik</th>"
-                     f"<th>før</th><th>efter</th><th>ændring</th><th>vurdering</th></tr>{drows}</table>")  # fmt: skip
+        drows = "".join(f"<tr><td>{e(ANALYZE_NAMES.get(k, k))}</td><td class='num'>{v['before']}</td><td class='num'>{v['after']}</td>"
+                        f"<td class='num'>{v['change']:+}</td><td>{_verdict_chip(v['verdict'])}</td></tr>"
+                        for k, v in d["metrics"].items())  # fmt: skip
+        parts.append(f"<div class='card'><h3>Delta mod {e(d.get('baseline', ''))}: {e(d['verdict'])}</h3><div class='table'><table><tr><th>metrik</th>"
+                     f"<th>før</th><th>efter</th><th>ændring</th><th>vurdering</th></tr>{drows}</table></div></div>")  # fmt: skip
     if m.get("heatmaps"):
-        parts.append("<div class='grid'>")
+        parts.append("<h3>Heatmaps</h3><div class='grid'>")
         for h in m["heatmaps"]:
             src = a / h["file"]
             if src.is_file():
                 _copy(src, out / "img" / "analysis" / Path(h["file"]).name)
                 f = f"img/analysis/{Path(h['file']).name}"
                 parts.append(f"<figure><a href='{e(f)}' target='_blank'><img src='{e(f)}' loading='lazy' alt=''></a>"
-                             f"<figcaption><b>{e(Path(h['file']).name)}</b> – {e(h['purpose'])} (n={h['n']})</figcaption></figure>")  # fmt: skip
+                             f"<figcaption><b>{e(h['purpose'])}</b> · n={h['n']}</figcaption></figure>")  # fmt: skip
         parts.append("</div>")
     parts.append(
-        "<p class='muted'>Rapport: <code>build/…/analysis/report.md</code>. Tallene beskriver YaPB-bots, ikke mennesker.</p></section>"
+        "<p class='muted small'>Rapport: <code>build/…/analysis/report.md</code>. Tallene beskriver YaPB-bots, ikke mennesker.</p></section>"
     )
     return "".join(parts)
 
@@ -237,20 +361,20 @@ def _findings_table(findings: list[dict], cols: tuple[str, ...]) -> str:
 def map_page(cfg: Config, name: str, out: Path) -> str:
     b = cfg.path("build_dir") / name
     st = map_status(cfg, name)
-    parts = [f"<section><span class='eyebrow'>Projekt</span><h1>{e(name)}</h1>"]
     src = {"reference": "referencemap (kun .bsp, ikke vores)", "map": "vores eget map"}.get(
         st["source"] or "", "ikke valideret endnu"
     )
     nxt = f"Næste trin: <b>{e(st['next'] or '-')}</b> – {e(st['why'] or '')}"
-    parts.append(f"<p class='muted'>{e(src)} · {nxt}</p><div class='phases'>")
-    for key, label, built in PHASES:
-        state = st.get(key)
-        cls = "todo" if not built else ("ok" if state else "bad" if state is False else "todo")
-        parts.append(f"<a href='#{key}' class='chip {cls}'>{label}</a>")
-    parts.append("</div></section>")
+    img = ""
+    if st["thumb"]:
+        _copy(b / "renders" / "topdown.png", out / "img" / "topdown.png")
+        img = "<a href='img/topdown.png' target='_blank'><img src='img/topdown.png' alt='top-down'></a>"
+    parts = [f"<section class='hero'><div>{img}</div><div class='side'><div><span class='eyebrow'>Projekt · "
+             f"{e(src)}</span><h1>{e(name)}</h1><p class='muted'>{nxt}</p></div>{stepper(st)}"
+             f"{kpis(b)}</div></section>"]  # fmt: skip
 
     compile_ = _load(b / "compile.json")
-    parts.append("<section id='compile'><h2>2 Compile</h2>")
+    parts.append("<section id='compile' class='panel'><h2><span class='no'>2</span>Compile</h2>")
     if compile_:
         parts.append(f"<p>{_chip(compile_.get('ok'))} {e(compile_.get('failure') or 'compile uden fejl')}"
                      f" · {compile_.get('seconds')} s · {e(str(compile_.get('compiler')))}</p>")  # fmt: skip
@@ -261,7 +385,7 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
     parts.append("</section>")
 
     v = _load(b / "validation.json")
-    parts.append("<section id='validate'><h2>3 Validate</h2>")
+    parts.append("<section id='validate' class='panel'><h2><span class='no'>3</span>Validate</h2>")
     if v:
         s = v["summary"]
         parts.append(f"<p>{_chip(v['ok'])} {s.get('errors', 0)} errors · {s.get('warnings', 0)} "
@@ -275,23 +399,23 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
                            f"<td class='num'>{x['spawns_reaching']}</td></tr>" for x in sites)  # fmt: skip
             parts.append("<h3>Nåbarhed</h3><div class='table'><table><tr><th>Site</th><th>Centrum"
                          f"</th><th>Spawns der når det</th></tr>{rows}</table></div>")  # fmt: skip
+        vt = cfg.data["validate"]
+        boxes = []
         timings = st_.get("timings", [])
         if timings:
-            rows = "".join(
-                f"<tr><td>site {e(str(t['site']))}</td><td class='num'>{t.get('T', {}).get('median_s')} s</td>"
-                f"<td class='num'>{t.get('CT', {}).get('median_s')} s</td><td class='num'>{t.get('ct_lead_s')} s</td></tr>"
-                for t in timings
-            )
-            parts.append(
-                "<h3>Løbetider (250 units/s)</h3><p class='muted'>Officielle maps: T 14–25 s, CT-forspring typisk 7–13 s (DESIGN_GUIDE.md).</p>"
-                f"<div class='table'><table><tr><th>Site</th><th>T</th><th>CT</th><th>CT-forspring</th></tr>{rows}</table></div>"
-            )
-        limits = sorted(st_.get("limits", []), key=lambda x: -x["pct"])[:6]
+            tc = vt.get("timings", {})
+            boxes.append("<div class='chartbox'><h3>Løbetider spawn → site (250 units/s)</h3>"
+                         + charts.timings(timings, (tc.get("min_t_s", 14), tc.get("max_t_s", 26)),
+                                          tc.get("min_ct_lead_s", 3))
+                         + "<p class='muted small'>Grønt bånd = T-mål. Tallet til højre = CT-forspring "
+                           "(officielle maps: typisk 7–13 s).</p></div>")  # fmt: skip
+        limits = st_.get("limits", [])
         if limits:
-            rows = "".join(f"<tr><td>{e(x['name'])}</td><td class='num'>{x['used']}/{x['max']}</td>"
-                           f"<td class='num'>{x['pct']:.1f} %</td></tr>" for x in limits)  # fmt: skip
-            parts.append("<h3>Højeste limits</h3><div class='table'><table><tr><th>Limit</th>"
-                         f"<th>Brugt</th><th>Fyldt</th></tr>{rows}</table></div>")  # fmt: skip
+            boxes.append("<div class='chartbox'><h3>Engine-limits (højeste)</h3>"
+                         + charts.limits(limits, vt.get("limit_warn_pct", 75), vt.get("limit_error_pct", 90))
+                         + "</div>")  # fmt: skip
+        if boxes:
+            parts.append(f"<div class='charts'>{''.join(boxes)}</div>")
         info = [f for f in v["findings"] if f["severity"] == "info"]
         if info:
             parts.append(f"<details><summary>{len(info)} design-norm-noter (info)</summary>"
@@ -302,7 +426,7 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
     parts.append("</section>")
 
     index = _load(b / "renders" / "index.json")
-    parts.append("<section id='render'><h2>4 Render</h2>")
+    parts.append("<section id='render' class='panel'><h2><span class='no'>4</span>Render</h2>")
     if index:
         bright = index.get("brightness", {})
         parts.append(f"<p class='muted'>{len(index['images'])} billeder på {index.get('seconds')} s · "
@@ -320,7 +444,7 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
     parts.append("</section>")
 
     r = _load(b / "review.json")
-    parts.append("<section id='review'><h2>5 Review</h2>")
+    parts.append("<section id='review' class='panel'><h2><span class='no'>5</span>Review</h2>")
     if r:
         stale = " <span class='chip bad'>forældet – billeder/validering ændret siden</span>" if st[
             "review_stale"] else ""  # fmt: skip
@@ -335,7 +459,9 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
     parts.append(simulate_section(b))
     parts.append(analyze_section(b, out))
 
-    parts.append("<section id='decide'><h2>8 Decide – iterationer</h2>")
+    parts.append(
+        "<section id='decide' class='panel'><h2><span class='no'>8</span>Decide – iterationer</h2>"
+    )
     runs = iterations(cfg, name)
     if not runs:
         parts.append("<p class='muted'>Ingen iterationer endnu.</p>")
@@ -456,10 +582,15 @@ def history_section(cfg: Config, name: str, mdir: Path, maps: list[str]) -> str:
             f"<figcaption><b>Version {e(v.name)}</b> · {e(meta.get('created', ''))}<br>{_version_chip(meta)}"
             f"{'<br>' + e(tim) if tim else ''}</figcaption></figure>"
         )
+    trend_pts = [
+        (v.name, ((_load(v / "meta.json") or {}).get("analysis") or {}).get("score")) for v in vers
+    ]
+    trend = charts.trend(trend_pts, "Score pr. version (bot-analyse)")
+    trend_html = f"<div class='chartbox'><h3>Score pr. version</h3>{trend}</div>" if trend else ""
     return (
-        f"<section id='history'><h2>Historik</h2><p class='muted'>{len(vers)} versioner, nyeste først. "
+        f"<section id='history' class='panel'><h2><span class='no'>H</span>Historik</h2>{trend_html}<p class='muted'>{len(vers)} versioner, nyeste først. "
         "En ny version oprettes, når mappet ændrer sig; klik for alle billeder og data.</p>"
-        f"<div class='grid'>{''.join(cards)}</div></section>"
+        f"<div class='grid small'>{''.join(cards)}</div></section>"
     )
 
 
@@ -483,32 +614,38 @@ def build_site(cfg: Config) -> Path:
         st = map_status(cfg, m)
         return sum(1 for k, _, built in PHASES if built and st.get(k))
 
-    def row(m: str) -> str:
+    def card(m: str) -> str:
         st = map_status(cfg, m)
-        chips = "".join(
-            f"<span class='chip {'todo' if not built else 'ok' if st[k] else 'bad' if st[k] is False else 'todo'}'"
-            f" title='{e(label)}'>{e(label.split()[1])}</span>"
-            for k, label, built in PHASES
-        )
-        thumb = ""
+        b = cfg.path("build_dir") / m
+        bg = ""
         if st["thumb"]:
-            _copy(
-                cfg.path("build_dir") / m / "renders" / "topdown.png",
-                out / "maps" / m / "img" / "topdown.png",
-            )
-            thumb = f"<img class='thumb' src='maps/{m}/img/topdown.png' alt=''>"
+            _copy(b / "renders" / "topdown.png", out / "maps" / m / "img" / "topdown.png")
+            bg = f" style=\"background-image:url('maps/{m}/img/topdown.png')\""
+        done = progress(m)
+        met = (_load(b / "analysis" / "metrics.json") or {}).get("metrics", {})
+        mini = []
+        if met.get("t_winrate", {}).get("value") is not None:
+            mini.append(f"<span>T-winrate <b>{_pct(met['t_winrate']['value'])}</b></span>")
+        if met.get("site_split_a", {}).get("value") is not None:
+            mini.append(f"<span>A-plants <b>{_pct(met['site_split_a']['value'])}</b></span>")
+        n_versions = len(versions(cfg, m))
+        if n_versions:
+            mini.append(f"<span>versioner <b>{n_versions}</b></span>")
+        badge = "<span class='chip run badge'>referencemap</span>" if st["source"] == "reference" else (
+            "<span class='chip ok badge'>eget map</span>")  # fmt: skip
         return (
-            f"<tr><td><a href='maps/{m}/index.html'>{thumb}</a></td><td><a href='maps/{m}/"
-            f"index.html'><b>{e(m)}</b></a></td><td><div class='phases'>{chips}</div></td>"
-            f"<td>{e(st['next'] or '-')}<br><span class='muted'>{e(st['why'] or '')}</span></td></tr>"
+            f"<a class='pcard' href='maps/{m}/index.html'><div class='img'{bg}>{badge}</div><div class='body'>"
+            f"<div style='display:flex;justify-content:space-between;align-items:center;gap:10px'>"
+            f"<div><div class='name'>{e(m)}</div><div class='muted small'>næste: {e(st['next'] or '-')}</div></div>"
+            f"{charts.ring(done / sum(1 for *_, bl in PHASES if bl), f'{done} faser bestået')}</div>"
+            f"{stepper(st, link=False)}<div class='mini'>{''.join(mini)}</div></div></a>"
         )
 
     own = [m for m in maps if map_status(cfg, m)["source"] != "reference"]
     refs = sorted((m for m in maps if m not in own), key=lambda m: (-progress(m), m))
-    head = "<tr><th></th><th>Map</th><th>Faser</th><th>Næste trin</th></tr>"
     rows = []
     for title, group, note in (
-        ("Egne maps", own, "Maps vi selv bygger (compile fra .map). Generatoren kommer i fase 2."),
+        ("Egne maps", own, "Maps vi selv genererer og compiler."),
         (
             "Referencemaps",
             refs,
@@ -516,14 +653,12 @@ def build_site(cfg: Config) -> Path:
         ),
     ):
         if group:
-            rows.append(
-                f"<h2>{title}</h2><p class='muted'>{note}</p><div class='table'><table>"
-                f"{head}{''.join(row(m) for m in group)}</table></div>"
-            )
+            rows.append(f"<section><h2>{title}</h2><p class='muted'>{note}</p>"
+                        f"<div class='cards'>{''.join(card(m) for m in group)}</div></section>")  # fmt: skip
     home = ("<section><span class='eyebrow'>Oversigt</span><h1>Projekter</h1><p class='muted'>Ét "
-            "projekt pr. map. Grøn = fasen er kørt og bestået, rød = kørt og fejlet, stiplet = ikke "
-            "kørt eller ikke bygget endnu. <a href='architecture.html'>Arkitektur og roadmap</a>.</p>"
-            f"{''.join(rows)}</section>")  # fmt: skip
+            "projekt pr. map. Bjælken viser pipelinens faser: grøn = kørt og bestået, rød = kørt og "
+            "fejlet, stiplet = ikke kørt. <a href='architecture.html'>Arkitektur og roadmap</a>.</p></section>"
+            f"{''.join(rows)}")  # fmt: skip
     (out / "index.html").write_text(_page("MapForge – projekter", home, 0, "home", maps),
                                     encoding="utf-8")  # fmt: skip
     for m in maps:
