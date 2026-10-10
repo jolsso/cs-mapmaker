@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-KINDS = {"point", "rect", "path"}
+KINDS = {"point", "rect", "path", "note"}  # note = text only, no position
 STATUSES = {"open", "done", "rejected", "needs_human"}
 MAX_TEXT = 500
 
@@ -47,6 +47,8 @@ def validate(item: dict[str, Any]) -> dict[str, Any]:
     if not text:
         raise ValueError("text is required")
     pts = item.get("points")
+    if kind == "note":
+        return {"kind": kind, "text": text, "points": []}
     if not isinstance(pts, list) or not pts or len(pts) > 500:
         raise ValueError("points: 1..500 [x, y] pairs")
     try:
@@ -90,6 +92,8 @@ def bbox(a: dict[str, Any], pad: float = 0) -> tuple[float, float, float, float]
 
 def touched_areas(a: dict[str, Any], layout: dict[str, Any]) -> list[str]:
     """Names of layout areas the annotation overlaps (a point/line gets 32 units of slack)."""
+    if not a["points"]:
+        return []
     x0, y0, x1, y1 = bbox(a, 0 if a["kind"] == "rect" else 32)
     hits = []
     for area in layout.get("areas", []):
@@ -106,8 +110,11 @@ def prompt_text(maps_dir: Path, map_name: str, layout: dict[str, Any] | None) ->
         return ""
     lines = []
     for a in items:
-        where = {"point": "punkt", "rect": "område", "path": "streg"}[a["kind"]]
+        where = {"point": "punkt", "rect": "område", "path": "streg", "note": "tekst"}[a["kind"]]
         pts = a["points"] if a["kind"] != "path" else [a["points"][0], a["points"][-1]]
+        if a["kind"] == "note":
+            lines.append(f'- **annotation:{a["id"]}** (tekst, hele mappet): "{a["text"]}"')
+            continue
         areas = ", ".join(touched_areas(a, layout)) if layout else ""
         lines.append(f"- **annotation:{a['id']}** ({where} {pts}{'; rammer: ' + areas if areas else ''}"
                      f"{'; status: venter på mennesket' if a['status'] == 'needs_human' else ''}): \"{a['text']}\"")  # fmt: skip

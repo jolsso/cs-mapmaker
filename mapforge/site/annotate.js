@@ -30,6 +30,7 @@
   function shape(a, color, label) {
     const pts = a.points.map(p => toPx(p[0], p[1]));
     ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
+    if (!pts.length) return;
     if (a.kind === "point") {
       const [x, y] = pts[0];
       ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.globalAlpha = .35; ctx.fill(); ctx.globalAlpha = 1; ctx.stroke();
@@ -63,6 +64,7 @@
   }
 
   cv.addEventListener("pointerdown", ev => {
+    if (tool === "note") return;
     const [px, py] = pos(ev), w = toWorld(px, py);
     drawing = true; cv.setPointerCapture(ev.pointerId);
     draft = { kind: tool, points: tool === "rect" ? [w, w] : [w] };
@@ -81,7 +83,8 @@
   cv.addEventListener("pointerup", () => { drawing = false; textEl.focus(); });
 
   root.querySelectorAll("[data-tool]").forEach(b => b.addEventListener("click", () => {
-    tool = b.dataset.tool; draft = null; draw();
+    tool = b.dataset.tool; draft = tool === "note" ? { kind: "note", points: [] } : null; draw();
+    if (tool === "note") textEl.focus();
     root.querySelectorAll("[data-tool]").forEach(x => x.classList.toggle("on", x === b));
   }));
 
@@ -98,7 +101,7 @@
 
   function renderList() {
     const label = { open: "åben", done: "udført", needs_human: "kræver dig", rejected: "afvist" };
-    const kind = { point: "punkt", rect: "område", path: "streg" };
+    const kind = { point: "punkt", rect: "område", path: "streg", note: "tekst" };
     list.innerHTML = items.length ? items.slice().reverse().map(a =>
       `<li class="st-${esc(a.status)}"><b>#${a.id}</b> <span class="chip">${kind[a.kind] || ""}</span>
        <span class="chip ${a.status === "done" ? "ok" : a.status === "needs_human" ? "bad" : "run"}">${label[a.status] || esc(a.status)}</span>
@@ -111,7 +114,7 @@
   }
 
   root.querySelector(".annsave").addEventListener("click", async () => {
-    if (!draft) { msg.textContent = "Tegn først på kortet (vælg punkt, område eller streg)."; return; }
+    if (!draft) { msg.textContent = "Tegn først på kortet – eller vælg \"Kun tekst\"."; return; }
     const text = textEl.value.trim();
     if (!text) { msg.textContent = "Skriv hvad du gerne vil have gjort."; textEl.focus(); return; }
     try {

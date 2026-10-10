@@ -67,7 +67,7 @@ pre code { border: 0; background: none; padding: 0; }
 .phases { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* pipeline stepper */
-.stepper { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.stepper { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
 .step { display: grid; gap: 6px; text-align: center; font: 500 11px var(--mono); color: var(--muted); text-decoration: none !important; }
 .step i { height: 6px; border-radius: 3px; background: var(--track); display: block; }
 .step.ok i { background: var(--ok); } .step.bad i { background: var(--bad); }
@@ -230,3 +230,25 @@ button.on, button.primary { background: var(--accent-soft); border-color: var(--
 .rubbar i { width: 26px; height: 8px; border-radius: 3px; background: var(--track); }
 .rubbar.s1 i.on, .rubbar.s2 i.on { background: var(--bad); } .rubbar.s3 i.on { background: var(--warn); }
 .rubbar.s4 i.on, .rubbar.s5 i.on { background: var(--ok); }
+
+/* version boxes on the map page */
+#versions > h2 { margin-bottom: 4px; }
+.vlist { display: grid; gap: 14px; }
+.ver { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+.ver.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-soft), var(--shadow); }
+.ver > summary { list-style: none; cursor: pointer; }
+.ver > summary::-webkit-details-marker { display: none; }
+.vhead { display: grid; grid-template-columns: 220px 1fr 28px; gap: 18px; padding: 14px 16px; align-items: start; }
+.vthumb img { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; background: #07090b; }
+.vmain { display: grid; gap: 12px; min-width: 0; padding-top: 14px; }
+.vtitle { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.vtitle h3 { font-size: 20px; }
+.vtoggle { font-size: 20px; color: var(--muted); transition: transform .2s; justify-self: end; }
+.ver[open] .vtoggle { transform: rotate(180deg); color: var(--accent); }
+.ver:hover { border-color: var(--line2); } .ver.current:hover { border-color: var(--accent); }
+.vbody { border-top: 1px solid var(--line); padding: 16px; display: grid; gap: 14px; background: var(--bg2); border-radius: 0 0 12px 12px; }
+.vbody .panel.phase { box-shadow: none; }
+.vbody .panel.phase h2 { font-size: 18px; }
+.vmain .kpis { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+.vmain .kpi b { font-size: 21px; }
+@media (max-width: 900px) { .vhead { grid-template-columns: 1fr; } }

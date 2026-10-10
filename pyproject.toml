@@ -41,6 +41,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 "mapforge/annotations.py" = ["E501"]
 "mapforge/validate/design.py" = ["E501"]
 "mapforge/analyze/metrics.py" = ["E501"]
+"mapforge/site/versions.py" = ["E501"]
 "mapforge/decide/policy.py" = ["E501"]
 "mapforge/decide/run.py" = ["E501"]
 # fixture rows read better one per line

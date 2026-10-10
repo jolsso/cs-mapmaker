@@ -59,8 +59,9 @@ def test_site_lists_versions_with_thumbnails_and_pages(tmp_path):
     snapshot(cfg, "de_h")
     out = build_site(cfg)
     page = (out / "maps" / "de_h" / "index.html").read_text(encoding="utf-8")
-    assert "Historik" in page and page.index("Version 002") < page.index(
-        "Version 001"
-    )  # newest first
-    assert (out / "maps" / "de_h" / "history" / "001.html").is_file()
-    assert (out / "maps" / "de_h" / "history" / "002" / "img" / "topdown.png").is_file()
+    # versions as boxes, newest first; the newest is the current one with all 8 phases inside
+    assert "Versioner" in page and page.index("Nuværende version 002") < page.index("Version 001")
+    assert (
+        page.count("class='ver") == 2 and "id='vcur-input'" in page and "id='v001-decide'" in page
+    )
+    assert (out / "maps" / "de_h" / "img" / "v002" / "topdown.png").is_file()

@@ -22,6 +22,7 @@ from mapforge.runs import iterations, stage_of
 from mapforge.site import charts
 
 PHASES = [  # (key, label, built?)
+    ("input", "1 Input", True),
     ("compile", "2 Compile", True), ("validate", "3 Validate", True),
     ("render", "4 Render", True), ("review", "5 Review", True),
     ("simulate", "6 Simulate", True), ("analyze", "7 Analyze", True),
@@ -119,8 +120,12 @@ def map_status(cfg: Config, name: str) -> dict[str, Any]:
     validation, review = _load(b / "validation.json"), _load(b / "review.json")
     index, compile_ = _load(b / "renders" / "index.json"), _load(b / "compile.json")
     sim, metrics = _load(b / "simulation.json"), _load(b / "analysis" / "metrics.json")
+    from mapforge import annotations
+
+    wishes = annotations.load(cfg.path("maps_dir"), name) if cfg.path("maps_dir").is_dir() else []
     stage = stage_of(b) if b.is_dir() else {}
     return {
+        "input": True if wishes else None,
         "compile": None if compile_ is None else compile_.get("ok"),
         "validate": None if validation is None else validation.get("ok"),
         "render": None if index is None else True,
@@ -164,7 +169,9 @@ def current_phase(cfg: Config, name: str, st: dict[str, Any]) -> tuple[str | Non
     return NEXT_PHASE.get(nxt or ""), (f"Næste trin: {nxt}" if nxt else "")
 
 
-def stepper(st: dict[str, Any], link: bool = True, current: str | None = None) -> str:
+def stepper(
+    st: dict[str, Any], link: bool = True, current: str | None = None, phases: list | None = None
+) -> str:
     """Pipeline phases as a segmented bar (green passed, red failed, dashed not run); the
     phase the work is at now gets a pulsing arrow."""
     tag = "a" if link else "span"
@@ -172,7 +179,7 @@ def stepper(st: dict[str, Any], link: bool = True, current: str | None = None) -
         f"<{tag} class='step {_state_cls(built, st.get(k))}{' now' if k == current else ''}'"
         + (f" href='#{k}'" if link else "")
         + f" title='{e(label)}{' – her er vi nu' if k == current else ''}'><i></i>{e(label.split()[1])}</{tag}>"
-        for k, label, built in PHASES
+        for k, label, built in (phases and [(k, lbl, True) for k, lbl in phases] or PHASES)
     )
     return f"<div class='stepper'>{steps}</div>"
 
@@ -288,7 +295,7 @@ def _verdict_chip(verdict: str) -> str:
     return _chip(state, "bedre", "værre", e(verdict))
 
 
-def analyze_section(b: Path, out: Path) -> str:
+def analyze_section(b: Path, out: Path, img_sub: str = "analysis") -> str:
     """Metrics as bullet charts, round charts, delta and heatmaps (build/<map>/analysis/)."""
     a = b / "analysis"
     m = _load(a / "metrics.json")
@@ -378,8 +385,8 @@ def analyze_section(b: Path, out: Path) -> str:
         for h in m["heatmaps"]:
             src = a / h["file"]
             if src.is_file():
-                _copy(src, out / "img" / "analysis" / Path(h["file"]).name)
-                f = f"img/analysis/{Path(h['file']).name}"
+                _copy(src, out / "img" / img_sub / Path(h["file"]).name)
+                f = f"img/{img_sub}/{Path(h['file']).name}"
                 parts.append(f"<figure><a href='{e(f)}' target='_blank'><img src='{e(f)}' loading='lazy' alt=''></a>"
                              f"<figcaption><b>{e(h['purpose'])}</b> · n={h['n']}</figcaption></figure>")  # fmt: skip
         parts.append("</div>")
@@ -450,13 +457,13 @@ def annotate_section(cfg: Config, name: str) -> str:
         return ""
     ann = {"map": name, "img": "img/topdown.png", "rect": view["world_rect"], "size": view["size"]}
     return (
-        "<section id='annotate' class='panel'><h2><span class='no'>✎</span>Dine ønsker til mappet</h2>"
-        "<p class='muted'>Tegn på kortet og skriv, hvad du vil have gjort – fx et <b>punkt</b> med \"flere kasser her\", "
+        "<section id='annotate' class='panel'><h2><span class='no'>1</span>Input – dine ønsker til mappet</h2>"
+        "<p class='muted'>Første fase i hver iteration: dit input. Skriv et ønske som <b>tekst</b> (hele mappet), eller tegn på kortet – fx et <b>punkt</b> med \"flere kasser her\", "
         "et <b>område</b> med \"fjern disse korridorer\" eller en <b>streg</b> med \"en rute som denne\". Loopets næste "
         "Decide behandler åbne ønsker først (låste beslutninger gælder stadig; konflikter eskaleres til dig), og ønsket "
         "markeres som udført, når ændringen er anvendt.</p>"
         "<div class='annwrap'><div><div class='phases tools'><button data-tool='point' class='on'>● Punkt</button>"
-        "<button data-tool='rect'>▭ Område</button><button data-tool='path'>✎ Streg</button></div>"
+        "<button data-tool='rect'>▭ Område</button><button data-tool='path'>✎ Streg</button><button data-tool='note'>¶ Kun tekst</button></div>"
         "<canvas class='anncanvas'></canvas></div><div class='annside'>"
         "<textarea rows='3' maxlength='500' placeholder='Hvad vil du gerne have gjort her?'></textarea>"
         "<div class='phases'><button class='annsave primary'>Gem ønske</button><button class='anncancel'>Annullér</button></div>"
@@ -524,114 +531,18 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
     if st["thumb"]:
         _copy(b / "renders" / "topdown.png", out / "img" / "topdown.png")
         img = "<a href='img/topdown.png' target='_blank'><img src='img/topdown.png' alt='top-down'></a>"
+    bar = stepper(st, current=cur).replace(
+        "href='#", "href='#vcur-"
+    )  # into the current version box
     parts = [f"<section class='hero'><div>{img}</div><div class='side'><div><span class='eyebrow'>Projekt · "
              f"{e(src)}</span><h1>{e(name)}</h1><p class='muted'>{nxt}</p></div>"
-             f"{stepper(st, current=cur)}<p class='nowline'>▸ {e(cur_text)}</p>"
+             f"{bar}<p class='nowline'>▸ {e(cur_text)}</p>"
              f"{kpis(b)}</div></section>"]  # fmt: skip
 
-    compile_ = _load(b / "compile.json")
-    parts.append("<section id='compile' class='panel'><h2><span class='no'>2</span>Compile</h2>")
-    if compile_:
-        parts.append(f"<p>{_chip(compile_.get('ok'))} {e(compile_.get('failure') or 'compile uden fejl')}"
-                     f" · {compile_.get('seconds')} s · {e(str(compile_.get('compiler')))}</p>")  # fmt: skip
-        if compile_.get("leak"):
-            parts.append(f"<pre>{e(json.dumps(compile_['leak'], indent=1)[:2000])}</pre>")
-    else:
-        parts.append("<p class='muted'>Intet compile (referencemaps compiles ikke af os).</p>")
-    parts.append("</section>")
+    from mapforge.site.versions import render_versions
 
-    v = _load(b / "validation.json")
-    parts.append("<section id='validate' class='panel'><h2><span class='no'>3</span>Validate</h2>")
-    if v:
-        s = v["summary"]
-        parts.append(f"<p>{_chip(v['ok'])} {s.get('errors', 0)} errors · {s.get('warnings', 0)} "
-                     f"warnings · {s.get('info', 0)} info</p>")  # fmt: skip
-        main = [f for f in v["findings"] if f["severity"] in ("error", "warning")]
-        parts.append(_findings_table(main, ("severity", "rule", "message", "location")))
-        st_ = v.get("stats", {})
-        sites = st_.get("reachability", {}).get("sites", [])
-        if sites:
-            rows = "".join(f"<tr><td>site {x.get('label', x['site'])}</td><td class='num'>{x['centre']}</td>"
-                           f"<td class='num'>{x['spawns_reaching']}</td></tr>" for x in sites)  # fmt: skip
-            parts.append("<h3>Nåbarhed</h3><div class='table'><table><tr><th>Site</th><th>Centrum"
-                         f"</th><th>Spawns der når det</th></tr>{rows}</table></div>")  # fmt: skip
-        vt = cfg.data["validate"]
-        boxes = []
-        timings = st_.get("timings", [])
-        if timings:
-            tc = vt.get("timings", {})
-            boxes.append("<div class='chartbox'><h3>Løbetider spawn → site (250 units/s)</h3>"
-                         + charts.timings(timings, (tc.get("min_t_s", 14), tc.get("max_t_s", 26)),
-                                          tc.get("min_ct_lead_s", 3))
-                         + "<p class='muted small'>Grønt bånd = T-mål. Tallet til højre = CT-forspring "
-                           "(officielle maps: typisk 7–13 s).</p></div>")  # fmt: skip
-        limits = st_.get("limits", [])
-        if limits:
-            boxes.append("<div class='chartbox'><h3>Engine-limits (højeste)</h3>"
-                         + charts.limits(limits, vt.get("limit_warn_pct", 75), vt.get("limit_error_pct", 90))
-                         + "</div>")  # fmt: skip
-        if boxes:
-            parts.append(f"<div class='charts'>{''.join(boxes)}</div>")
-        info = [f for f in v["findings"] if f["severity"] == "info"]
-        if info:
-            parts.append(f"<details><summary>{len(info)} design-norm-noter (info)</summary>"
-                         + _findings_table(info, ("severity", "rule", "message", "location"))
-                         + "</details>")  # fmt: skip
-    else:
-        parts.append("<p class='muted'>Ikke valideret endnu.</p>")
-    parts.append("</section>")
-
-    index = _load(b / "renders" / "index.json")
-    parts.append("<section id='render' class='panel'><h2><span class='no'>4</span>Render</h2>")
-    if index:
-        bright = index.get("brightness", {})
-        parts.append(f"<p class='muted'>{len(index['images'])} billeder på {index.get('seconds')} s · "
-                     f"{len(bright.get('dark_zones', []))} mørke zoner (luma &lt; {bright.get('dark_luma')})"
-                     f" · manglende teksturer: {e(', '.join(index.get('missing_textures', [])) or 'ingen')}</p>"
-                     "<div class='grid'>")  # fmt: skip
-        for im in index["images"]:
-            _copy(b / "renders" / im["file"], out / "img" / im["file"])
-            parts.append(f"<figure><a href='img/{e(im['file'])}' target='_blank'><img src='img/"
-                         f"{e(im['file'])}' loading='lazy' alt='{e(im['file'])}'></a><figcaption><b>"
-                         f"{e(im['file'])}</b> – {e(im['purpose'])}</figcaption></figure>")  # fmt: skip
-        parts.append("</div>")
-    else:
-        parts.append("<p class='muted'>Ikke renderet endnu.</p>")
-    parts.append("</section>")
-
-    r = _load(b / "review.json")
-    parts.append("<section id='review' class='panel'><h2><span class='no'>5</span>Review</h2>")
-    if r:
-        stale = " <span class='chip bad'>forældet – billeder/validering ændret siden</span>" if st[
-            "review_stale"] else ""  # fmt: skip
-        parts.append(f"<p>{_chip(r.get('passed'), 'bestået', 'fejlet')}{stale} "
-                     f"<span class='muted'>({e(str(r.get('executor') or r.get('stage')))})</span></p>"
-                     f"<div class='card'>{e(r.get('summary', ''))}</div>")  # fmt: skip
-        parts.append(_findings_table(r.get("findings", []), ("severity", "where", "what", "image")))
-        if r.get("rubric"):
-            names = {"napkin": "Servietprøven", "chokepoints": "Chokepoints", "play_styles": "Spillestile",
-                     "mid_decision": "Mid som beslutning", "site_depth": "Site-dybde", "identity": "Identitet",
-                     "irregularity": "Irregularitet", "readability": "Læsbarhed", "rotation_risk": "Rotation og risiko",
-                     "exploits": "Exploits"}  # fmt: skip
-            rows = "".join(
-                f"<div class='rub'><span>{e(names.get(x['id'], x['id']))}</span><div class='rubbar s{int(x['score'])}'>"
-                + "".join(f"<i class='{'on' if k < x['score'] else ''}'></i>" for k in range(5))
-                + f"</div><b>{int(x['score'])}</b><p class='muted small'>{e(x.get('reason', ''))}</p></div>"
-                for x in r["rubric"]
-            )  # fmt: skip
-            avg = sum(x["score"] for x in r["rubric"]) / len(r["rubric"])
-            parts.append(
-                f"<div class='chartbox'><h3>Design-rubrik (1–5) · gennemsnit {avg:.1f}</h3><div class='rubric'>{rows}</div></div>"
-            )
-    else:
-        parts.append("<p class='muted'>Ikke reviewet endnu.</p>")
-    parts.append("</section>")
-
-    parts.append(simulate_section(b).replace("</section>", live_block(cfg, name) + "</section>", 1))
-    parts.append(analyze_section(b, out))
+    parts.append(render_versions(cfg, name, out, cur, cur_text))
     parts.append(loop_section(cfg, name))
-
-    parts.append(iterations_section(cfg, name, out))
     return "".join(parts)
 
 
@@ -648,11 +559,22 @@ def iterations_section(cfg: Config, name: str, out: Path) -> str:
         parts.append("<p class='muted'>Ingen iterationer endnu.</p></section>")
         return "".join(parts)
     loop = _load(runs_root(cfg, name) / "loop.json") or {}
-    hist = {h["iteration"]: h for h in loop.get("history", [])}
-    best = (loop.get("best") or {}).get("iteration")
+    {h["iteration"]: h for h in loop.get("history", [])}
+    (loop.get("best") or {}).get("iteration")
     parts.append("<p class='muted'>Nyeste først. Hver iteration: billedet og målingen, Decides plan med begrundelse "
                  "(hvilke fund den adresserer, forventet effekt, risiko) og hvad loopet faktisk ændrede.</p><div class='timeline'>")  # fmt: skip
     for run in reversed(runs):
+        parts.append(iteration_card(cfg, name, run, out, loop))
+    parts.append("</div></section>")
+    return "".join(parts)
+
+
+def iteration_card(cfg: Config, name: str, run: Path, out: Path, loop: dict[str, Any]) -> str:
+    """One iteration: thumbnails, measurement, blocking review findings, Decide's plan with
+    rationale, what the loop applied, NOTES.md."""
+    hist = {h["iteration"]: h for h in loop.get("history", [])}
+    best = (loop.get("best") or {}).get("iteration")
+    if True:
         h = hist.get(run.name, {})
         plan, dec, applied = (
             _load(run / "plan.json"),
@@ -750,12 +672,10 @@ def iterations_section(cfg: Config, name: str, out: Path) -> str:
         notes = ""
         if (run / "NOTES.md").is_file():
             notes = f"<details open><summary>NOTES.md – Decides noter</summary><div class='notes'>{_md((run / 'NOTES.md').read_text(encoding='utf-8'))}</div></details>"
-        parts.append(f"<article class='iter' id='it{run.name}'><div class='iter-head'><h3>Iteration {e(run.name)}</h3>"
-                     f"<div class='phases'>{''.join(chips)}</div></div>"
-                     f"<div class='iter-body'><div class='thumbs'>{''.join(thumbs)}</div><div class='iter-text'>"
-                     f"{meas}{decision}{notes}</div></div></article>")  # fmt: skip
-    parts.append("</div></section>")
-    return "".join(parts)
+        return (f"<article class='iter' id='it{run.name}'><div class='iter-head'><h3>Iteration {e(run.name)}</h3>"
+                f"<div class='phases'>{''.join(chips)}</div></div>"
+                f"<div class='iter-body'><div class='thumbs'>{''.join(thumbs)}</div><div class='iter-text'>"
+                f"{meas}{decision}{notes}</div></div></article>")  # fmt: skip
 
 
 def _version_chip(meta: dict) -> str:
@@ -938,7 +858,7 @@ def build_site(cfg: Config) -> Path:
         mdir = out / "maps" / m
         mdir.mkdir(parents=True, exist_ok=True)
         body = map_page(cfg, m, mdir)
-        hist = annotate_section(cfg, m) + history_section(cfg, m, mdir, maps)
+        hist = annotate_section(cfg, m)
         if hist:  # right after the project header
             cut = body.index("</section>") + len("</section>")
             body = body[:cut] + hist + body[cut:]
