@@ -1,0 +1,10 @@
+# Server add-ons baked into the simulation image: name, URL, SHA256 (checked at build time).
+# The game itself (HLDS app 90, mod cstrike, branch steam_legacy) comes from SteamCMD; its
+# build id is recorded in /home/hlds/hlds/BUILD_INFO. Verified together 2026-10-10.
+# ReHLDS replaces the engine (Metamod-R needs it; it needs the steam_legacy files).
+rehlds    https://github.com/rehlds/ReHLDS/releases/download/3.15.0.896/rehlds-bin-3.15.0.896.zip                    997baeb7ef3842dab3e034d82dc651ebfe560c23b158adce660a6b97976b4e2b
+regamedll https://github.com/rehlds/ReGameDLL_CS/releases/download/5.30.0.814/regamedll-bin-5.30.0.814.zip           457f5c96a4d10280fcad47f106cbd5be86363a47df1ccab91c514e9d1bc6fd18
+metamod   https://github.com/rehlds/Metamod-R/releases/download/1.3.0.149/metamod-bin-1.3.0.149.zip                  ede7f59c4e0220afe8c02aa348a130cce527f87d36ffdb674e37a501ce57be94
+amxx_base https://www.amxmodx.org/amxxdrop/1.10/amxmodx-1.10.0-git5486-base-linux.tar.gz                             9f5041325cc656dcc292cafb9d2c9cb4deeedb57192d8a7ed43947530e04e5b7
+amxx_cs   https://www.amxmodx.org/amxxdrop/1.10/amxmodx-1.10.0-git5486-cstrike-linux.tar.gz                          686d875010792d84ac765d2f78af227ab7000c9b567995ea56b836e0a41fc7a7
+yapb      https://github.com/yapb/yapb/releases/download/4.4.957/yapb-4.4.957-linux.tar.xz                           8c095ac89b9b2ccc70a66a71d608e1a570b5268c57c6083ced8c06161533a4b1

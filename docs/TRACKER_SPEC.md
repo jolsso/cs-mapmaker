@@ -2,7 +2,7 @@
 
 AMX Mod X-plugin (`server/plugins/mapforge_tracker.sma`) der logger spillerposition og events til CSV for analyse.
 
-⚠️ VERIFICÉR alle AMXX-natives og event-navne mod AMXX-dokumentationen og den installerede version (amxmodx, fakemeta, hamsandwich, evt. ReAPI).
+✅ Natives og forwards verificeret mod AMX Mod X 1.10 (git5486) include-filerne, og pluginet compiler uden advarsler med den medfølgende `amxxpc` (2026-10-10). Bruger amxmodx, fakemeta og csx (`client_damage`, `client_death`, `bomb_planted/defused/explode`). Runder: logevent `Round_Start` (slut på freezetime = t 0), `TextMsg` `#Terrorists_Win`/`#CTs_Win`/`#Target_Bombed`/`#Bomb_Defused`/`#Target_Saved`/`#Round_Draw`; `Restart_Round_`/`Game_Commencing` kasserer den løbende runde.
 
 ## Krav
 - Påvirker ikke gameplay.
@@ -64,17 +64,20 @@ AMX Mod X-plugin (`server/plugins/mapforge_tracker.sma`) der logger spillerposit
 | plant_site | A / B / tom |
 | t_alive_end, ct_alive_end | int |
 | humans_on_team | int (0 = ren bot-runde; > 0 = ugyldig til metrikker) |
+| t_players, ct_players | int (spillere pr. hold ved rundestart; runden tæller kun med fulde hold) |
+
+`plant_site`: bogstavet fra `targetname` `site_<X>` på det bomb target, planteren står i; ellers tomt, og runneren udfylder det ud fra BSP'ens bomb sites (samme gruppering som validate). En runde tæller til metrikker, når den har en vinder, `humans_on_team == 0` og begge hold var fulde (`mapforge.simulate.records.valid_round`).
 
 ## Runner-integration
-1. Runner sætter `mf_run_id` og `mf_max_rounds` via server.cfg eller rcon.
+1. Runneren (`mapforge.simulate`) skriver `cstrike/mapforge.cfg` (cvars fra `config/pipeline.yaml` → `simulate.cvars` + `mf_run_id`, `mf_max_rounds`, `sys_timescale`); pluginet exec'er den i `plugin_cfg`, så dets egne cvars findes.
 2. Server kører; plugin flusher pr. runde.
-3. Ved `mf_max_rounds` nået: plugin skriver `DONE`-fil og runner stopper containeren.
-4. Runner validerer CSV mod skema (Python, fx pydantic/pandera) før analyse.
+3. Ved `mf_max_rounds` færdige runder: plugin skriver `DONE` og sender `quit`; containeren stopper selv, og runneren henter filerne (`get_archive`).
+4. Runneren validerer CSV mod skemaet (`mapforge.simulate.records`, kolonner + typer + tilladte værdier) før analyse.
 
 ## Bot-opsætning (server cfg)
 - YaPB: fuldt hold (fx 5v5), fast difficulty, `mp_autoteambalance 1`, `mp_freezetime` kort, `mp_roundtime` fast.
 - Seed eller variation: kør flere runs med forskellig difficulty for robusthed.
-- ⚠️ VERIFICÉR YaPB-cvars og kommandoer i yapb.readthedocs.io.
+- ✅ YaPB 4.4.957: cvars tjekket mod den medfølgende `addons/yapb/conf/yapb.cfg`. Grafen laves automatisk (`yb_graph_analyze_auto_start 1`, `..._auto_save 1`), når der ikke findes en; runneren cacher den pr. .bsp-hash i `build/<map>/yapb/`. Download/upload af grafer er slået fra (`yb_graph_url ""`, `yb_graph_url_upload ""`), så intet om vores maps forlader maskinen.
 
 ## Test
 - Plugin compiler med `amxxpc` i CI/Docker.

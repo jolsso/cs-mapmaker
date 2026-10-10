@@ -24,7 +24,7 @@ Simulering koster timer; alt hvad der kan ses eller beregnes uden bots skal fang
 | 3 Validate | `.map`, `.bsp`, `compile.json` | `validation.json` | Python (`mapforge.validate`) | sek. |
 | 4 Render | `.bsp`, WADs | `renders/*.png` + `renders/index.json` | Egen renderer: BSP-parser + moderngl (Mesa/EGL headless) med teksturer og kompilerede lightmaps | < 5 min |
 | 5 Review | renders, `validation.json`, layout-spec, review-tjekliste | `review.json` (pass/fail + fund) | Deterministiske pre-sim-checks + Claude (`claude -p`) ser billederne | ~1 min |
-| 6 Simulate | `.bsp`, YaPB-graf | CSV (TRACKER_SPEC.md) | HLDS + Metamod + AMXX + YaPB | min.–timer |
+| 6 Simulate | `.bsp`, YaPB-graf | CSV (TRACKER_SPEC.md), `simulation.json` | ReHLDS + Metamod-R + AMXX + YaPB i Docker | min.–timer |
 | 7 Analyze | CSV, renders | `metrics.json`, heatmaps | Python (pandas, numpy, matplotlib) | sek. |
 | 8 Decide | se input-kontrakt nedenfor | `plan.json` + `NOTES.md` | Claude Code headless (`claude -p`) | ~1 min |
 
@@ -59,7 +59,7 @@ Output: `plan.json` = `{ "changes": [{ "type": <tilladt ændring fra FITNESS.md>
 ## Eksekvering
 Værten skal kun have Docker. Alt deterministisk kører i containere, der deler repoet som én mount (`/work`) og kun taler sammen gennem filer:
 - **forge** (bygget, fase 0): Python, uv, go-task, SDHLT, Mesa/EGL. Generate, compile, validate, render, analyze, orchestrator.
-- **hlds ×N** (fase 4): HLDS + Metamod + AMXX + YaPB. Eget image; kræver lovligt ejede CS-filer.
+- **hlds ×N** (fase 4): HLDS + ReHLDS + Metamod-R + AMXX + YaPB (`docker/hlds/`). Startes af `simulate` i forge gennem værtens Docker-socket (Docker SDK); filer ind og ud med put/get_archive, ingen bind mounts.
 - **Referencemaps:** din Half-Life-installation mountes read-only på `/refmaps/hl` (`HL_DIR` i `.env`); `test_maps/*.rar` pakkes ud i `build/refmaps/` med `unar` i forge-imaget. Bruges kun til test/kalibrering og committes aldrig.
 - **Undtagelse:** CS 1.6-klienten til screenshots med rigtige lightmaps kører på værten (GPU).
 
@@ -122,11 +122,14 @@ Begrænsninger:
 - **Klient-screenshots** (fase 7, art pass): start klient med `+map <navn>`, sæt kamera, tag `screenshot` ⚠️ VERIFICÉR – det eneste billede med modeller og alle effekter.
 - Kamera-presets i `config/cameras/<map>.yaml` (spawns, sites, mid, key angles).
 
-### Simulate (`server/`)
-- Docker-image: HLDS (SteamCMD, app 90, mod cstrike) + ReHLDS/ReGameDLL_CS (valgfrit) + Metamod(-R) + AMX Mod X + YaPB.
-- Kræver lovligt ejede CS 1.6-filer.
-- YaPB-navigationsgraf genereres pr. map. ⚠️ VERIFICÉR kommando til automatisk graf-generering i YaPB-docs.
-- Kør flere servere parallelt for flere runder pr. time. ⚠️ VERIFICÉR om server kan køres hurtigere end realtid; antag realtid indtil bevist.
+### Simulate (`mapforge/simulate/`, `docker/hlds/`, `server/plugins/`) – bygget (fase 4)
+- **Image** (`docker/hlds/Dockerfile`): HLDS app 90 / cstrike fra SteamCMD (anonym login virker; branch `steam_legacy`, da ReHLDS ikke kan bruge 2024-anniversary-buildens Steam-API) + ReHLDS 3.15 + ReGameDLL 5.30 + Metamod-R 1.3 (kræver ReHLDS) + AMX Mod X 1.10 + YaPB 4.4.957. Add-ons pinnet med URL + SHA256 i `docker/hlds/addons.lock`; HLDS-buildid gemmes i `BUILD_INFO`. Tracker-pluginet compiles med `amxxpc` under build. Image-tag = hash af build-konteksten, så det kun genbygges ved ændringer. Intet af spillet committes.
+- **YaPB-graf:** auto-analyse ved første start på et nyt map (`yb_graph_analyze_auto_start/_save`); grafen caches pr. .bsp-sha256 i `build/<map>/yapb/` og kopieres ind ved næste kørsel. Download/upload af grafer er slået fra.
+- **Hurtigere end realtid:** ReHLDS skalerer spiltiden med `sys_timescale`; med `sys_ticrate 400` holdes ~100 server-frames pr. spilsekund. Målt ≈ 4× (de_forge01). `--watch` kører i realtid til spectators.
+- **Runner** (`mapforge/simulate/run.py`): smoke (3 runder, 1 server: gyldige runder, bots bevæger sig, begge sites nået, CSV-skema) → batches à 20 runder fordelt på 2 parallelle servere → stop ved `max_rounds` eller tidligt (`stats.py`): et resultat klart *uden for* målet (hele Wilson-intervallet) afgøres straks; *inden for* kræver `min_rounds`. Gyldig runde = vinder, ingen mennesker på hold, fulde hold.
+- **Spectator:** hver server udgiver UDP `127.0.0.1:27015+i`; `connect localhost:27015`. `yb_autovacate 0`, så en spectator ikke sparker en bot ud.
+- **Demo:** HLTV-proxy i samme container (`+delay 0 +record`), som standard på første server pr. batch; `.dem` hentes til `<out>/<gruppe>/<run>/demos/`.
+- Output: `build/<map>/sim/` (CSV, server.log, demoer) og `build/<map>/simulation.json`; loopet (fase 6) bruger `--out runs/<map>/<NNN>/sim`.
 
 ### Analyze (`analyze/`)
 - Heatmaps: position, kills, deaths, første kontakt.

@@ -11,6 +11,8 @@ services:
       # Local Half-Life install (official maps + WADs), read-only. Set HL_DIR in .env
       # (see .env.example); without it an empty placeholder dir is mounted.
       - ${HL_DIR:-./build/no-hl-install}:/refmaps/hl:ro
+      # `simulate` starts the HLDS server containers through the host's Docker (Docker SDK).
+      - /var/run/docker.sock:/var/run/docker.sock
 
   # Local website (build/site/, rebuilt by the pipeline): `docker compose up -d site`,
   # then http://localhost:8080. Bound to 127.0.0.1 only: nothing leaves this machine.

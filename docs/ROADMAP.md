@@ -81,15 +81,17 @@ Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 
 ## Fase 4 – Simulation
 **Mål:** Bots spiller mappet, og alt logges.
 
-- [ ] Docker: HLDS + Metamod + AMXX + YaPB starter headless
-- [ ] Automatisk YaPB-graf for nyt map
-- [ ] Tracker-plugin (se TRACKER_SPEC.md) skriver CSV
-- [ ] Runner: start server, kør N runder, stop, hent CSV
-- [ ] Smoke-kørsel (≈ 3 runder) før fuld simulering: server, graf, bots bevæger sig og når begge sites
+- [x] Docker: HLDS + Metamod + AMXX + YaPB starter headless (`docker/hlds/`: SteamCMD anonym, branch steam_legacy + ReHLDS 3.15 + ReGameDLL 5.30 + Metamod-R 1.3 + AMXX 1.10 + YaPB 4.4.957, pins i `addons.lock`)
+- [x] Automatisk YaPB-graf for nyt map (YaPB's auto-analyse; caches pr. .bsp-hash i `build/<map>/yapb/`)
+- [x] Tracker-plugin (se TRACKER_SPEC.md) skriver CSV (`server/plugins/mapforge_tracker.sma`, compiles i imaget)
+- [x] Runner: start server, kør N runder, stop, hent CSV (`mapforge/simulate/`, Docker SDK via socket, filer ind/ud med put/get_archive)
+- [x] Smoke-kørsel (≈ 3 runder) før fuld simulering: server, graf, bots bevæger sig og når begge sites (de_forge01: OK, 90 s)
 - [ ] Batches à ~20 runder med løbende konfidensinterval og tidligt stop, når resultatet er afgjort
 - [ ] Parallelle servere (mindst 2)
 - [ ] Spectator-adgang: hver server eksponerer sin UDP-port (27015, 27016, …), `mp_allowspectators 1`, `sv_lan 1`, én ledig slot ud over bots; join med `connect localhost:<port>`
 - [ ] Demo-optagelse pr. run, gemt i `runs/<map>/<iteration>/demos/`, afspilles med `playdemo` ⚠️ VERIFICÉR mekanisme (HLTV-proxy `record` vs. server-side plugin)
+
+Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4, `sys_ticrate 400`). Spectators kan følge med i realtid med `-- --watch`.
 
 **Accept:** 50 runder på blockout kører uden indgriben, CSV valideres mod skema. Du kan joine en kørende server som spectator uden at påvirke data, og et run kan genses som demo.
 

@@ -91,9 +91,11 @@ tasks:
       - uv run python -m mapforge.site.build
 
   simulate:
-    desc: HLDS + YaPB, N rounds (Phase 4)
+    desc: HLDS + YaPB bots play the map -> build/<map>/simulation.json (MAP=<name>, SOURCE=map|reference; -- --smoke-only|--watch|--rounds N)
+    requires:
+      vars: [MAP]
     cmds:
-      - cmd: echo "not implemented (Phase 4)" && exit 1
+      - uv run python -m mapforge.simulate.run --map {{.MAP}} --source {{.SOURCE | default "map"}} {{.CLI_ARGS}}
 
   analyze:
     desc: Heatmaps + metrics (Phase 5)

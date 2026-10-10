@@ -185,7 +185,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
   <div class="facts">
-    <span>status <b>fase 0–3b og Gate A færdig · fase 4 næste</b></span>
+    <span>status <b>fase 0–3b og Gate A færdig · fase 4 i gang</b></span>
     <span>opdateret <b>2026-10-10</b></span>
     <span>designguide <b>docs/DESIGN_GUIDE.md</b></span>
     <span>alle outputs: <b>http://localhost:8080</b> (lokalt website)</span>
@@ -353,8 +353,8 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <!-- hlds -->
           <rect x="740" y="54" width="310" height="126" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
           <text x="756" y="80" font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">hlds ×N</text>
-          <text x="826" y="80" font-size="11" style="fill:var(--muted)">eget image (fase 4)</text>
-          <text x="756" y="104">HLDS · Metamod · AMXX · YaPB</text>
+          <text x="826" y="80" font-size="11" style="fill:var(--muted)">eget image, startes af forge</text>
+          <text x="756" y="104">ReHLDS · Metamod-R · AMXX · YaPB</text>
           <text x="756" y="124">tracker-plugin skriver CSV</text>
           <text x="756" y="150" font-size="11" style="fill:var(--muted)">kræver dine CS-filer, aldrig i repoet</text>
 
@@ -386,7 +386,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
       <span><span class="swatch plain"></span>planlagt</span>
       <span><span class="swatch proposal"></span>Docker-grænsen</span>
     </div>
-    <figcaption>Containerne taler kun sammen gennem filer i den fælles mount. Ingen container kalder en anden direkte. Om orchestratoren selv starter hlds-containerne (via Docker-socket) eller kører på værten, afgøres i fase 6.</figcaption>
+    <figcaption>Containerne taler kun sammen gennem filer i den fælles mount. Ingen container kalder en anden direkte. Forge starter hlds-containerne gennem værtens Docker-socket og flytter filer ind og ud med Docker-API'et (ingen bind mounts).</figcaption>
   </figure>
 </section>
 
@@ -532,15 +532,16 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
     <li class="phase next">
       <div class="phase-no"><small>Fase</small>4</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Simulation</h3><span class="chip next">næste</span></div>
+        <div class="phase-head"><h3>Simulation</h3><span class="chip next">i gang</span></div>
         <ul>
-          <li>hlds-image: HLDS + Metamod + AMXX + YaPB, headless</li>
-          <li>Automatisk YaPB-navigationsgraf pr. map</li>
-          <li>Smoke-kørsel (≈ 3 runder) før fuld simulering, derefter batches med tidligt stop</li>
-          <li>Tracker-plugin skriver <code>positions</code>, <code>events</code>, <code>rounds</code>.csv</li>
-          <li>Mindst 2 servere parallelt</li>
+          <li class="ok">hlds-image: HLDS (SteamCMD anonym, steam_legacy) + ReHLDS + ReGameDLL + Metamod-R + AMXX + YaPB, headless; add-ons pinnet med SHA256</li>
+          <li class="ok">Automatisk YaPB-navigationsgraf pr. map (auto-analyse), cachet pr. .bsp-hash; ingen graf-upload</li>
+          <li class="ok">Tracker-plugin skriver <code>positions</code>, <code>events</code>, <code>rounds</code>.csv; skema tjekkes af runneren</li>
+          <li class="ok">Smoke-kørsel (3 runder): de_forge01 OK – 5 mod 5 bots, begge sites nået, plants på A og B</li>
+          <li class="ok">Hurtigere end realtid: ReHLDS <code>sys_timescale</code>, målt ≈ 4×</li>
+          <li>Batches à 20 runder med Wilson-interval og tidligt stop, 2 servere parallelt</li>
           <li>Spectator-adgang: <code>connect localhost:27015</code> fra din CS-klient; tracker logger kun bots</li>
-          <li>Demo-optagelse pr. run, så runder kan genses med <code>playdemo</code></li>
+          <li>Demo-optagelse pr. run (HLTV i containeren), genses med <code>playdemo</code></li>
         </ul>
         <p class="accept"><b>Accept:</b> 50 runder kører uden indgriben, og CSV valideres mod skemaet. Du kan kigge med som spectator uden at påvirke data, og et run kan genses som demo.</p>
       </div>
@@ -613,9 +614,10 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
         <tr><td>1b</td><td>Design-normerne (min. 64 bred, 96 høj) er strengere end Valves egne maps (typisk 40–56 brede passager). Sænke eller beholde?</td><td>Besluttet: behold 64 / 96 (bevidst strengere end Valve)</td></tr>
         <tr><td>3</td><td>Er newbspguy's <code>exportobj</code> god nok til renders?</td><td>Afklaret: nej (kun natlige builds, [WIP], ingen lightmaps) → egen renderer</td></tr>
         <tr><td>3</td><td>Hvordan placeres klientens kamera fra et script?</td><td>Åben</td></tr>
-        <tr><td>4</td><td>Kommando til automatisk YaPB-graf</td><td>Åben</td></tr>
-        <tr><td>4</td><td>Kan HLDS køre hurtigere end realtid?</td><td>Åben, antag realtid</td></tr>
-        <tr><td>4</td><td>AMXX-natives og events til tracker-plugin; YaPB-cvars</td><td>Åben</td></tr>
+        <tr><td>4</td><td>Kommando til automatisk YaPB-graf</td><td>Afklaret: YaPB 4.4 analyserer selv et map uden graf (<code>yb_graph_analyze_auto_start</code>) og gemmer den</td></tr>
+        <tr><td>4</td><td>Kan HLDS køre hurtigere end realtid?</td><td>Afklaret: ja, med ReHLDS <code>sys_timescale</code> (målt ≈ 4×)</td></tr>
+        <tr><td>4</td><td>AMXX-natives og events til tracker-plugin; YaPB-cvars</td><td>Afklaret mod AMXX 1.10-includes og YaPB 4.4.957's yapb.cfg</td></tr>
+        <tr><td>4</td><td>Kan SteamCMD hente cstrike uden dine CS-filer?</td><td>Afklaret: ja, anonymt (branch steam_legacy til ReHLDS)</td></tr>
       </tbody>
     </table>
   </div>

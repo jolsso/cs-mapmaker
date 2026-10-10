@@ -61,7 +61,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf history MAP=<navn> NOTE="…"   # gem/opdatér version i history/<map>/ (sker automatisk efter render og review)
 ./mf site                     # genbyg lokalt website build/site/ (sker også automatisk efter validate/render/review/decide)
 docker compose up -d site     # PÅ VÆRTEN: serverer websitet på http://localhost:8080 (kun 127.0.0.1)
-./mf simulate MAP=<navn>      # HLDS + YaPB, N runder         (Fase 4)
+./mf simulate MAP=<navn>      # HLDS + YaPB-bots: smoke + batches → build/<map>/simulation.json (-- --smoke-only | --watch | --rounds N; SOURCE=reference)
 ./mf analyze MAP=<navn>       # heatmaps + metrikker          (Fase 5)
 ./mf loop MAP=<navn>          # fuld iteration                (Fase 6)
 ```
@@ -69,6 +69,7 @@ Fallback til debugging på værten: `uv run task <navn>` (samme tasks, Windows-b
 - Imaget er Debian trixie: SDHLT 1.3.0's Linux-binaries kræver glibc ≥ 2.38 (bookworm har 2.36).
 - Compilerne bages ind i imaget under `/opt/tools` (`MAPFORGE_TOOLS_DIR`), venv ligger i `/opt/venv` – intet i containeren skriver til repoets `.venv` eller `tools/`.
 - **Referencemaps** (officielle fra din Half-Life-installation via `HL_DIR` i `.env`, community-maps i `test_maps/`) bruges kun til test og kalibrering. De er ophavsretsbeskyttede/ukendt licens: mountes read-only, pakkes ud i `build/refmaps/`, og intet fra dem må committes.
+- **Simulate** starter HLDS-containere fra forge via værtens Docker-socket (`/var/run/docker.sock` i `compose.yaml`). HLDS-imaget (`docker/hlds/`) bygges automatisk første gang (SteamCMD henter ~1 GB anonymt). Add-on-pins i `docker/hlds/addons.lock`.
 - Projektet er ikke en installeret pakke (`[tool.uv] package = false`); moduler køres fra repo-roden.
 
 ## Review og Decide i sessionen (standard)

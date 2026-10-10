@@ -23,7 +23,7 @@ from mapforge.runs import iterations, stage_of
 PHASES = [  # (key, label, built?)
     ("compile", "2 Compile", True), ("validate", "3 Validate", True),
     ("render", "4 Render", True), ("review", "5 Review", True),
-    ("simulate", "6 Simulate", False), ("analyze", "7 Analyze", False),
+    ("simulate", "6 Simulate", True), ("analyze", "7 Analyze", False),
     ("decide", "8 Decide", True),
 ]  # fmt: skip
 SKIP_BUILD_DIRS = {"refmaps", "site", "no-hl-install"}
@@ -101,6 +101,7 @@ def map_status(cfg: Config, name: str) -> dict[str, Any]:
     b = cfg.path("build_dir") / name
     validation, review = _load(b / "validation.json"), _load(b / "review.json")
     index, compile_ = _load(b / "renders" / "index.json"), _load(b / "compile.json")
+    sim = _load(b / "simulation.json")
     stage = stage_of(b) if b.is_dir() else {}
     return {
         "compile": None if compile_ is None else compile_.get("ok"),
@@ -108,12 +109,51 @@ def map_status(cfg: Config, name: str) -> dict[str, Any]:
         "render": None if index is None else True,
         "review": None if stage.get("review_passed") is None else stage["review_passed"],
         "review_stale": review is not None and stage.get("review_passed") is None,
-        "simulate": None, "analyze": None,
+        "simulate": None if sim is None else sim.get("ok"), "analyze": None,
         "decide": True if iterations(cfg, name) else None,
         "source": None if validation is None else validation.get("source"),
         "next": stage.get("next"), "why": stage.get("why"),
         "thumb": "topdown.png" if index else None,
     }  # fmt: skip
+
+
+def simulate_section(b: Path) -> str:
+    """Simulation summary (build/<map>/simulation.json): rounds, win rate, plants, demos."""
+    sim = _load(b / "simulation.json")
+    parts = ["<section id='simulate'><h2>6 Simulate</h2>"]
+    if not sim:
+        parts.append(
+            "<p class='muted'>Ikke simuleret endnu (<code>./mf simulate MAP=…</code>).</p></section>"
+        )
+        return "".join(parts)
+    smoke = sim.get("smoke") or {}
+    parts.append(f"<p>{_chip(sim.get('ok'), 'OK', 'fejlet')} <span class='muted'>{e(str(sim.get('stop_reason')))}"
+                 f" · {sim.get('wall_s')} s · {sim.get('servers')} server(e) · timescale {sim.get('timescale')}"
+                 f" · {sim.get('bots_per_team')} mod {sim.get('bots_per_team')} bots</span></p>")  # fmt: skip
+    if smoke:
+        checks = smoke.get("checks", {})
+        sites = checks.get("sites_reached", {}).get("samples_per_site", {})
+        parts.append(f"<p>Smoke: {_chip(smoke.get('ok'), 'OK', 'fejlet')} "
+                     f"<span class='muted'>gyldige runder {checks.get('valid_rounds', {}).get('value')}"
+                     f" · bots i bevægelse {checks.get('bots_move', {}).get('value')}/{checks.get('bots_move', {}).get('of')}"
+                     f" · samples pr. site {e(json.dumps(sites))}</span></p>")  # fmt: skip
+    summ = sim.get("summary") or {}
+    if summ:
+        rows = []
+        for key, label in (("t_winrate", "T-winrate"), ("site_split_a", "andel plants på A")):
+            m = summ.get(key, {})
+            rows.append(f"<tr><td>{label}</td><td>{m.get('value')}</td><td>{m.get('ci')}</td>"
+                        f"<td>{m.get('target')}</td><td>{m.get('n')}</td><td>{e(str(m.get('relation')))}</td></tr>")  # fmt: skip
+        parts.append(f"<p class='muted'>{summ.get('rounds')} gyldige runder af {summ.get('rounds_logged')} logget"
+                     f" · {summ.get('plants')} plants · schema-fejl {summ.get('schema_errors')}</p>"
+                     "<table><tr><th>metrik</th><th>værdi</th><th>95 %-interval</th><th>mål</th><th>n</th>"
+                     "<th>ift. mål</th></tr>" + "".join(rows) + "</table>")  # fmt: skip
+    demos = sim.get("demos") or []
+    if demos:
+        parts.append(f"<p class='muted'>Demoer ({len(demos)}): kopiér til <code>cstrike/</code> og afspil med "
+                     f"<code>playdemo &lt;navn&gt;</code> – {e(', '.join(Path(d).name for d in demos))}</p>")  # fmt: skip
+    parts.append("</section>")
+    return "".join(parts)
 
 
 def _copy(src: Path, dst: Path) -> None:
@@ -235,9 +275,9 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
         parts.append("<p class='muted'>Ikke reviewet endnu.</p>")
     parts.append("</section>")
 
-    for key, label in (("simulate", "6 Simulate"), ("analyze", "7 Analyze")):
-        parts.append(f"<section id='{key}'><h2>{label}</h2><p class='muted'>Ikke bygget endnu "
-                     f"(fase {'4' if key == 'simulate' else '5'}).</p></section>")  # fmt: skip
+    parts.append(simulate_section(b))
+    parts.append("<section id='analyze'><h2>7 Analyze</h2><p class='muted'>Ikke bygget endnu "
+                 "(fase 5).</p></section>")  # fmt: skip
 
     parts.append("<section id='decide'><h2>8 Decide – iterationer</h2>")
     runs = iterations(cfg, name)
