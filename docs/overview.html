@@ -200,11 +200,11 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
 
 <section>
   <span class="eyebrow">Arkitektur 1 / 2</span>
-  <h2>Én iteration af loopet</h2>
-  <p>Hvert trin læser filen fra trinnet før og skriver sin egen. Alt gemmes i <code>runs/&lt;map&gt;/&lt;iteration&gt;/</code>, så en iteration kan genskabes fra kode og config alene.</p>
+  <h2>To loops: hurtigt og langsomt</h2>
+  <p>Alt der kan ses på et billede eller beregnes fra geometrien, fanges i det hurtige loop på sekunder til minutter. Kun et map, der har bestået Review, får bot-tid. Alle filer gemmes i <code>runs/&lt;map&gt;/&lt;iteration&gt;/</code>, så en iteration kan genskabes fra kode og config alene.</p>
   <figure>
     <div class="diagram">
-      <svg viewBox="0 0 1090 310" role="img" aria-label="Seks trin fra Generate til Analyze kører venstre mod højre. Analyze sender metrikker til Decide, som sender en ændringsplan tilbage til Generate. Fejler Validate et hårdt krav, går iterationen direkte til Decide uden simulering. Kun Compile er bygget.">
+      <svg viewBox="0 0 1070 360" role="img" aria-label="Det hurtige loop er Generate, Compile, Validate, Render og Review. Det langsomme loop er Simulate og Analyze. Fejler Validate, Review eller smoke-kørslen, går iterationen direkte til Decide uden fuld simulering. Decide sender en plan tilbage til Generate. Compile og Validate er bygget.">
         <defs>
           <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
@@ -215,79 +215,93 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
         </defs>
 
         <g font-family="IBM Plex Sans, Segoe UI, sans-serif" font-size="12" fill="currentColor">
-          <!-- Top row: x = 20,200,380,560,740,920; w = 150; y = 50..146 -->
-          <g fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="20" y="50" width="150" height="96" rx="4"/>
-            <rect x="200" y="50" width="150" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
-            <rect x="380" y="50" width="150" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
-            <rect x="560" y="50" width="150" height="96" rx="4"/>
-            <rect x="740" y="50" width="150" height="96" rx="4"/>
-            <rect x="920" y="50" width="150" height="96" rx="4"/>
-            <rect x="450" y="220" width="190" height="66" rx="4"/>
+          <!-- loop brackets -->
+          <g font-size="11" font-family="IBM Plex Mono, Consolas, monospace" style="fill:var(--muted)">
+            <text x="20" y="28">hurtigt loop · sekunder–minutter · ingen bots</text>
+            <text x="770" y="28">langsomt loop · timer</text>
           </g>
+          <line x1="20" y1="36" x2="748" y2="36" stroke-width="1" style="stroke:var(--line)"/>
+          <line x1="770" y1="36" x2="1048" y2="36" stroke-width="1" style="stroke:var(--line)"/>
 
-          <g font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">
-            <text x="34" y="76">1 Generate</text>
-            <text x="214" y="76">2 Compile</text>
-            <text x="394" y="76">3 Validate</text>
-            <text x="574" y="76">4 Render</text>
-            <text x="754" y="76">5 Simulate</text>
-            <text x="934" y="76">6 Analyze</text>
-            <text x="464" y="246">7 Decide</text>
+          <g fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="20" y="50" width="128" height="96" rx="4"/>
+            <rect x="170" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
+            <rect x="320" y="50" width="128" height="96" rx="4" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)"/>
+            <rect x="470" y="50" width="128" height="96" rx="4"/>
+            <rect x="620" y="50" width="128" height="96" rx="4"/>
+            <rect x="770" y="50" width="128" height="96" rx="4"/>
+            <rect x="920" y="50" width="128" height="96" rx="4"/>
+            <rect x="440" y="270" width="190" height="66" rx="4"/>
           </g>
-          <g style="fill:var(--muted)">
-            <text x="34" y="100">Python-generator</text>
-            <text x="214" y="100">SDHLT (VHLT-fork)</text>
-            <text x="394" y="100">BSP-parser · limits</text>
-            <text x="574" y="100">newbspguy · Blender</text>
-            <text x="754" y="100">HLDS + YaPB-bots</text>
-            <text x="934" y="100">pandas · numpy</text>
-            <text x="464" y="270">Claude Code (claude -p)</text>
+          <g font-family="Chakra Petch, Segoe UI, sans-serif" font-size="15" font-weight="600">
+            <text x="32" y="76">1 Generate</text>
+            <text x="182" y="76">2 Compile</text>
+            <text x="332" y="76">3 Validate</text>
+            <text x="482" y="76">4 Render</text>
+            <text x="632" y="76">5 Review</text>
+            <text x="782" y="76">6 Simulate</text>
+            <text x="932" y="76">7 Analyze</text>
+            <text x="454" y="296">8 Decide</text>
+          </g>
+          <g font-size="11" style="fill:var(--muted)">
+            <text x="32" y="100">Python-generator</text>
+            <text x="182" y="100">SDHLT (VHLT-fork)</text>
+            <text x="332" y="100">mapforge.validate</text>
+            <text x="482" y="100">Blender · BSP-lys</text>
+            <text x="632" y="100">checks + Claude</text>
+            <text x="782" y="100">HLDS + YaPB</text>
+            <text x="932" y="100">pandas · numpy</text>
+            <text x="454" y="320">Claude Code (claude -p)</text>
           </g>
           <g font-family="IBM Plex Mono, Consolas, monospace" font-size="11">
-            <text x="34" y="128">→ .map (Valve 220)</text>
-            <text x="214" y="128">→ .bsp · compile.log</text>
-            <text x="394" y="128">→ validation.json</text>
-            <text x="574" y="128">→ PNG-views</text>
-            <text x="754" y="128">→ CSV-events</text>
-            <text x="934" y="128">→ metrics.json</text>
+            <text x="32" y="128">→ .map</text>
+            <text x="182" y="128">→ compile.json</text>
+            <text x="332" y="128">→ validation.json</text>
+            <text x="482" y="128">→ renders/*.png</text>
+            <text x="632" y="128">→ review.json</text>
+            <text x="782" y="128">→ CSV</text>
+            <text x="932" y="128">→ metrics.json</text>
           </g>
 
           <!-- forward arrows -->
           <g stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah)">
-            <line x1="170" y1="98" x2="198" y2="98"/>
-            <line x1="350" y1="98" x2="378" y2="98"/>
-            <line x1="530" y1="98" x2="558" y2="98"/>
-            <line x1="710" y1="98" x2="738" y2="98"/>
-            <line x1="890" y1="98" x2="918" y2="98"/>
+            <line x1="148" y1="98" x2="168" y2="98"/>
+            <line x1="298" y1="98" x2="318" y2="98"/>
+            <line x1="448" y1="98" x2="468" y2="98"/>
+            <line x1="598" y1="98" x2="618" y2="98"/>
+            <line x1="748" y1="98" x2="768" y2="98"/>
+            <line x1="898" y1="98" x2="918" y2="98"/>
           </g>
 
-          <!-- feedback loop -->
-          <g stroke="currentColor" stroke-width="1.5" fill="none">
-            <polyline points="995,146 995,253 642,253" marker-end="url(#ah)"/>
-            <polyline points="450,253 95,253 95,148" marker-end="url(#ah)"/>
+          <!-- early exits straight to Decide (no full simulation) -->
+          <g stroke-width="1.5" stroke-dasharray="5 4" fill="none" marker-end="url(#ah-acc)" style="stroke:var(--accent)">
+            <polyline points="400,146 400,285 438,285"/>
+            <polyline points="684,146 684,282 632,282"/>
+            <polyline points="834,146 834,296 632,296"/>
           </g>
-          <text x="818" y="244" text-anchor="middle">metrics · heatmaps · renders</text>
-          <text x="282" y="244" text-anchor="middle">ændringsplan → næste .map</text>
-          <text x="282" y="274" text-anchor="middle" font-size="11" style="fill:var(--muted)">kun tilladte ændringer, låste beslutninger urørt</text>
+          <g font-size="11" style="fill:var(--accent)">
+            <text x="406" y="200">fejl</text>
+            <text x="690" y="200">fejl</text>
+            <text x="840" y="200">smoke fejler</text>
+          </g>
 
-          <!-- hard-requirement short-circuit -->
-          <line x1="505" y1="146" x2="505" y2="218" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah-acc)" style="stroke:var(--accent)"/>
-          <text x="516" y="178" font-size="11" style="fill:var(--accent)">hårdt krav fejler</text>
-          <text x="516" y="193" font-size="11" style="fill:var(--accent)">→ ugyldig, ingen sim</text>
+          <!-- full measurement -->
+          <polyline points="984,146 984,318 632,318" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+          <text x="978" y="240" text-anchor="end">metrics · heatmaps</text>
 
-          <!-- scope bracket -->
-          <text x="20" y="30" font-size="11" font-family="IBM Plex Mono, Consolas, monospace" style="fill:var(--muted)">deterministisk, scriptet</text>
-          <line x1="20" y1="38" x2="1070" y2="38" stroke-width="1" style="stroke:var(--line)"/>
+          <!-- plan back to Generate -->
+          <polyline points="440,322 84,322 84,148" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+          <text x="262" y="314" text-anchor="middle">plan.json → næste .map</text>
+          <text x="262" y="342" text-anchor="middle" font-size="11" style="fill:var(--muted)">kun tilladte ændringer, låste beslutninger urørt</text>
         </g>
       </svg>
     </div>
     <div class="legend">
-      <span><span class="swatch built"></span>bygget (fase 0–1)</span>
+      <span><span class="swatch built"></span>bygget</span>
       <span><span class="swatch plain"></span>planlagt</span>
-      <span>stiplet = genvej når et hårdt krav fejler</span>
+      <span>stiplet = fejl går direkte til Decide, ingen fuld simulering</span>
     </div>
-    <figcaption>Trin 1–6 er rent deterministiske. Kun trin 7 involverer en model: Claude får metrikker, billeder og FITNESS.md og må kun foreslå ændringer fra listen over tilladte ændringer.</figcaption>
+    <figcaption>Review er pre-sim-gaten: deterministiske checks (bl.a. nåbarhed spawn → sites) og Claude, der ser renders mod layout-spec'en. Simulate starter med en smoke-kørsel på ca. 3 runder og kører derefter batches med tidligt stop. Decide får en fast input-kontrakt (se ARCHITECTURE.md) og må kun foreslå tilladte ændringer.</figcaption>
   </figure>
 </section>
 
@@ -456,8 +470,9 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <li>Layout-spec i YAML: rum, korridorer, trapper, sites, spawns</li>
           <li>Generator med forseglet ydre skal; round-trip læs → ændr → skriv</li>
           <li>Første 2-site de_-blockout</li>
+          <li>Nåbarhed spawn → begge sites på walkable-grafen, før simulering</li>
         </ul>
-        <p class="accept"><b>Accept:</b> et 2-site blockout passerer fase 1-validering.</p>
+        <p class="accept"><b>Accept:</b> et 2-site blockout passerer fase 1-validering, inkl. nåbarhed.</p>
       </div>
     </li>
 
@@ -474,8 +489,9 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
           <li>newbspguy → OBJ → Blender headless: top-down og kamera-presets</li>
           <li>Lysstyrkekort fra lighting-lump, liste over mørke zoner</li>
           <li>Klient-screenshots med rigtige lightmaps (på værten)</li>
+          <li>Review-trin: Claude ser billederne mod layout-spec'en før simulering; fejl går direkte til Decide</li>
         </ul>
-        <p class="accept"><b>Accept:</b> <code>task render</code> laver alle billeder for blockoutet på under 5 min uden manuelle trin.</p>
+        <p class="accept"><b>Accept:</b> <code>./mf render</code> laver alle billeder for blockoutet på under 5 min uden manuelle trin, og et bevidst forkert blockout fanges af Review uden simulering.</p>
       </div>
     </li>
 
@@ -486,6 +502,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
         <ul>
           <li>hlds-image: HLDS + Metamod + AMXX + YaPB, headless</li>
           <li>Automatisk YaPB-navigationsgraf pr. map</li>
+          <li>Smoke-kørsel (≈ 3 runder) før fuld simulering, derefter batches med tidligt stop</li>
           <li>Tracker-plugin skriver <code>positions</code>, <code>events</code>, <code>rounds</code>.csv</li>
           <li>Mindst 2 servere parallelt</li>
           <li>Spectator-adgang: <code>connect localhost:27015</code> fra din CS-klient; tracker logger kun bots</li>
@@ -514,6 +531,7 @@ figcaption { color: var(--muted); font-size: var(--step--1); max-width: 80ch; }
         <div class="phase-head"><h3>Autonomt loop</h3><span class="chip">senere</span></div>
         <ul>
           <li>Orchestrator med budget, stopkriterier og rollback ved forværring</li>
+          <li>To-hastigheds-loop: hurtige iterationer, indtil Review består; først da bot-tid</li>
           <li>Claude headless får metrikker og billeder og returnerer en ændringsplan</li>
           <li><code>runs/</code>-log med NOTES.md pr. iteration</li>
         </ul>

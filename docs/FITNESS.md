@@ -9,7 +9,8 @@ Loopet optimerer kun efter det, der står her. Tærsklerne spejles maskinlæsbar
 | Ingen engine-limit over 90 % | validation.json |
 | Ingen off-grid vertices, alle brushes konvekse | validation.json |
 | Korrekte entities: spawns pr. hold ≥ 10, bomb targets = 2 (de_), buyzones pr. hold ≥ 1 | validation.json |
-| Alle spawns kan nå begge sites (graf-sti findes) | YaPB-graf / pathfinding |
+| Alle spawns kan nå begge sites (graf-sti findes) | walkable-graf fra BSP (hull 1) i Validate/Review – før simulering; YaPB-grafen tjekkes igen i smoke-kørslen |
+| Review bestået (ingen `critical`/`major` visuelle fund) | review.json – før simulering |
 
 ## Gameplay-mål (bot-data, ≥ 100 runder pr. måling)
 | Metrik | Mål | Note |
@@ -39,6 +40,7 @@ Loopet stopper ved første af:
 - Ingen forbedring i score i 5 iterationer (plateau)
 - Budget opbrugt: max iterationer (start: 20) eller max wall-clock
 - Hårde krav fejler 3 gange i træk → stop og eskalér til menneske
+- Review fejler 5 hurtige iterationer i træk → stop og eskalér til menneske
 - En gate er nået (se ROADMAP.md)
 
 ## Rollback

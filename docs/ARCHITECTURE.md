@@ -1,25 +1,58 @@
 # Arkitektur
 
-## Pipeline (én iteration)
+## Pipeline: to loops med forskellig hastighed
+
+Simulering koster timer; alt hvad der kan ses eller beregnes uden bots skal fanges før. Derfor to loops:
+
+- **Hurtigt loop (sekunder–minutter, ingen bots):** Generate → Compile → Validate → Render → **Review**. Fejler et trin, går iterationen direkte til Decide med fejlen som input og kører aldrig simulering.
+- **Langsomt loop (timer):** kun et map, der har bestået Review, simuleres. Simulate starter med en kort smoke-kørsel og stopper tidligt, når resultatet er statistisk afgjort.
 
 ```
- ┌────────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
- │ 1 Generate │──▶│2 Compile │──▶│3 Validate│──▶│ 4 Render │──▶│5 Simulate│──▶│6 Analyze │
- │  .map      │   │  VHLT    │   │ limits   │   │ views    │   │HLDS+bots │   │ metrics  │
- └────────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘   └────┬─────┘
-       ▲                                                                            │
-       └──────────────────── 7 Decide (Claude: ændringsforslag) ◀───────────────────┘
+ hurtigt loop ─────────────────────────────────────────────────────┐   langsomt loop ──────────────┐
+ ┌──────────┐  ┌─────────┐  ┌──────────┐  ┌────────┐  ┌──────────┐ │  ┌──────────┐  ┌──────────┐   │
+ │1 Generate│─▶│2 Compile│─▶│3 Validate│─▶│4 Render│─▶│ 5 Review │─┼─▶│6 Simulate│─▶│7 Analyze │   │
+ └──────────┘  └─────────┘  └────┬─────┘  └────────┘  └────┬─────┘ │  └────┬─────┘  └────┬─────┘   │
+      ▲                          │ fejl                    │ fejl  │       │ smoke fejler │         │
+      │                          ▼                         ▼       │       ▼              ▼         │
+      └───────────────────────────────── 8 Decide (Claude) ◀──────────────────────────────┘
 ```
 
-| Trin | Input | Output | Værktøj |
-|---|---|---|---|
-| 1 Generate | layout-spec (YAML) / forrige .map + ændringer | `.map` (Valve 220) | Python-generator |
-| 2 Compile | `.map`, WADs | `.bsp`, compile-log | SDHLT (VHLT-fork): hlcsg → hlbsp → hlvis → hlrad |
-| 3 Validate | `.bsp`, log | `validation.json` (leaks, limits, r_speeds-estimat) | Python BSP-parser, newbspguy `info` |
-| 4 Render | `.bsp` | PNG: top-down, kameraviews, lysstyrkekort | newbspguy → OBJ → Blender headless; klient-screenshots for lys |
-| 5 Simulate | `.bsp`, YaPB-graf | CSV-events (se TRACKER_SPEC.md) | HLDS (Docker) + Metamod + AMXX + YaPB |
-| 6 Analyze | CSV, renders | `metrics.json`, heatmaps | Python (pandas, numpy, matplotlib) |
-| 7 Decide | metrics, billeder, FITNESS.md | ændringsplan + næste .map | Claude Code headless (`claude -p`) |
+| Trin | Input | Output | Værktøj | Tid |
+|---|---|---|---|---|
+| 1 Generate | layout-spec (YAML) / forrige .map + ændringsplan | `.map` (Valve 220) | Python-generator | sek. |
+| 2 Compile | `.map`, WADs | `.bsp`, `compile.json` | SDHLT: hlcsg → hlbsp → hlvis → hlrad | sek. (fast) |
+| 3 Validate | `.map`, `.bsp`, `compile.json` | `validation.json` | Python (`mapforge.validate`) | sek. |
+| 4 Render | `.bsp` | `renders/*.png` + `renders/index.json` | newbspguy → OBJ → Blender headless; lysstyrkekort fra BSP | < 5 min |
+| 5 Review | renders, `validation.json`, layout-spec, review-tjekliste | `review.json` (pass/fail + fund) | Deterministiske pre-sim-checks + Claude (`claude -p`) ser billederne | ~1 min |
+| 6 Simulate | `.bsp`, YaPB-graf | CSV (TRACKER_SPEC.md) | HLDS + Metamod + AMXX + YaPB | min.–timer |
+| 7 Analyze | CSV, renders | `metrics.json`, heatmaps | Python (pandas, numpy, matplotlib) | sek. |
+| 8 Decide | se input-kontrakt nedenfor | `plan.json` + `NOTES.md` | Claude Code headless (`claude -p`) | ~1 min |
+
+### 5 Review – pre-sim-gate
+Formål: fange alt hvad der kan ses på et billede eller beregnes fra geometrien, før der bruges bot-tid.
+- **Deterministisk (først, gratis):** alle hårde krav fra Validate; nåbarhed spawn → begge sites på walkable-grafen fra hull 1 (samme celler som korridor-checket) – flytter FITNESS-kravet "alle spawns kan nå begge sites" fra YaPB-grafen til før simulering; topologi matcher layout-spec (rum/forbindelser findes).
+- **Visuelt (Claude):** top-down og kameraviews holdes op mod layout-spec og en fast tjekliste: svarer formen til spec'en, flydende/manglende geometri, sites og spawns hvor de skal være, åbenlyse sigtelinjer tværs over mappet, mørke spilområder. Svar som `review.json`: `{ "pass": bool, "findings": [{ "severity": "critical|major|minor", "where": "...", "what": "...", "image": "renders/…png" }] }`. `critical` eller `major` = fail.
+- **Budget:** max 5 hurtige iterationer i træk uden at bestå Review → stop og eskalér til mennesket.
+
+### 6 Simulate – trinvis
+1. **Smoke (≈ 3 runder):** serveren starter, YaPB-grafen loader, bots bevæger sig og når begge sites, ingen crash. Fejl → Decide uden at køre resten.
+2. **Batches à ~20 runder** med løbende konfidensinterval. Stop tidligt, når en gameplay-metrik ligger klart uden for målintervallet (så er iterationen afgjort) eller alle ligger sikkert inden for; ellers fortsæt til max (FITNESS: ≥ 100 runder for en fuld måling).
+
+### 8 Decide – input-kontrakt
+Claude får pr. iteration en mappe `runs/<map>/<iteration>/` og en prompt, der peger på filerne (Claude læser selv PNG'erne):
+
+| Fil | Altid | Indhold |
+|---|---|---|
+| `layout.yaml` | ✓ | nuværende layout-spec |
+| `map.diff` | ✓ | ændring i .map ift. forrige iteration |
+| `compile.json`, `validation.json` | ✓ | fejl og fund med positioner |
+| `renders/index.json` + `renders/*.png` | når Render kørte | top-down, kameraviews, lysstyrkekort; index beskriver kamera og formål pr. billede |
+| `review.json` | når Review kørte | visuelle fund |
+| `metrics.json`, `heatmaps/*.png` | når Simulate kørte | metrikker med konfidensinterval + delta ift. bedste version |
+| `stage.json` | ✓ | hvor iterationen stoppede (validate / review / smoke / simulate) og hvorfor |
+| FITNESS.md, seneste 3 × `NOTES.md` | ✓ | mål, låste beslutninger, tilladte ændringer, historik |
+
+Output: `plan.json` = `{ "changes": [{ "type": <tilladt ændring fra FITNESS.md>, "target": …, "params": …, "rationale": … }], "expected_effect": …, "risk": … }` + `NOTES.md`. Orchestratoren afviser planer, der rører låste beslutninger eller bruger en ikke-tilladt ændringstype, før generatoren kører.
 
 ## Eksekvering
 Værten skal kun have Docker. Alt deterministisk kører i containere, der deler repoet som én mount (`/work`) og kun taler sammen gennem filer:
