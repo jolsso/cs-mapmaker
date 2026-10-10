@@ -31,6 +31,11 @@ PHASES = [  # (key, label, built?)
 CSS_VERSION = (
     __import__("hashlib").sha256(Path(__file__).with_name("style.css").read_bytes()).hexdigest()[:8]
 )
+ANN_VERSION = (
+    __import__("hashlib")
+    .sha256(Path(__file__).with_name("annotate.js").read_bytes())
+    .hexdigest()[:8]
+)
 JS_VERSION = (
     __import__("hashlib").sha256(Path(__file__).with_name("live.js").read_bytes()).hexdigest()[:8]
 )
@@ -376,6 +381,47 @@ def loop_section(cfg: Config, name: str) -> str:
             f"<th>A-plants</th><th>ift. bedste</th><th>anvendte ændringer</th></tr>{rows}</table></div></section>")  # fmt: skip
 
 
+def topdown_view(cfg: Config, name: str) -> dict[str, Any] | None:
+    index = _load(cfg.path("build_dir") / name / "renders" / "index.json")
+    top = next((im for im in (index or {}).get("images", []) if im["file"] == "topdown.png"), None)
+    return top.get("view") if top else None
+
+
+def live_block(cfg: Config, name: str) -> str:
+    """Live view of this map's running simulations (same stream as the Live page)."""
+    view = topdown_view(cfg, name)
+    maps = (
+        {name: {"img": "img/topdown.png", "rect": view["world_rect"], "size": view["size"]}}
+        if view
+        else {}
+    )
+    return (f"<div class='card'><h3>● Live – kørende simuleringer af {e(name)}</h3><p id='status' class='muted small'>forbinder …</p>"
+            "<div id='totals' class='kpis'></div><div id='runs' class='livegrid'></div></div>"
+            f"<script>const LIVE_MAP = {json.dumps(name)}; const MAPS = {json.dumps(maps)};</script>")  # fmt: skip
+
+
+def annotate_section(cfg: Config, name: str) -> str:
+    """Draw wishes on the map (point / area / line + text) for the loop's Decide step."""
+    view = topdown_view(cfg, name)
+    if not view or not (cfg.path("maps_dir") / name).is_dir():
+        return ""
+    ann = {"map": name, "img": "img/topdown.png", "rect": view["world_rect"], "size": view["size"]}
+    return (
+        "<section id='annotate' class='panel'><h2><span class='no'>✎</span>Dine ønsker til mappet</h2>"
+        "<p class='muted'>Tegn på kortet og skriv, hvad du vil have gjort – fx et <b>punkt</b> med \"flere kasser her\", "
+        "et <b>område</b> med \"fjern disse korridorer\" eller en <b>streg</b> med \"en rute som denne\". Loopets næste "
+        "Decide behandler åbne ønsker først (låste beslutninger gælder stadig; konflikter eskaleres til dig), og ønsket "
+        "markeres som udført, når ændringen er anvendt.</p>"
+        "<div class='annwrap'><div><div class='phases tools'><button data-tool='point' class='on'>● Punkt</button>"
+        "<button data-tool='rect'>▭ Område</button><button data-tool='path'>✎ Streg</button></div>"
+        "<canvas class='anncanvas'></canvas></div><div class='annside'>"
+        "<textarea rows='3' maxlength='500' placeholder='Hvad vil du gerne have gjort her?'></textarea>"
+        "<div class='phases'><button class='annsave primary'>Gem ønske</button><button class='anncancel'>Annullér</button></div>"
+        "<p class='annmsg muted small'></p><h3>Ønsker</h3><ul class='annlist'></ul></div></div>"
+        f"<script>const ANN = {json.dumps(ann)};</script><script src='../../annotate.js?v={ANN_VERSION}'></script></section>"
+    )  # fmt: skip
+
+
 def live_page(cfg: Config, maps: list[str], out: Path) -> str:
     """Live view of running simulations: SSE from the live collector, drawn by live.js."""
     views = {}
@@ -521,7 +567,7 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
         parts.append("<p class='muted'>Ikke reviewet endnu.</p>")
     parts.append("</section>")
 
-    parts.append(simulate_section(b))
+    parts.append(simulate_section(b).replace("</section>", live_block(cfg, name) + "</section>", 1))
     parts.append(analyze_section(b, out))
     parts.append(loop_section(cfg, name))
 
@@ -823,16 +869,18 @@ def build_site(cfg: Config) -> Path:
         _page("MapForge – live", live_page(cfg, maps, out), 0, "live", maps), encoding="utf-8"
     )
     shutil.copy2(Path(__file__).with_name("live.js"), out / "live.js")
+    shutil.copy2(Path(__file__).with_name("annotate.js"), out / "annotate.js")
     (out / "index.html").write_text(_page("MapForge – projekter", home, 0, "home", maps),
                                     encoding="utf-8")  # fmt: skip
     for m in maps:
         mdir = out / "maps" / m
         mdir.mkdir(parents=True, exist_ok=True)
         body = map_page(cfg, m, mdir)
-        hist = history_section(cfg, m, mdir, maps)
+        hist = annotate_section(cfg, m) + history_section(cfg, m, mdir, maps)
         if hist:  # right after the project header
             cut = body.index("</section>") + len("</section>")
             body = body[:cut] + hist + body[cut:]
+        body += f"<script src='../../live.js?v={JS_VERSION}'></script>"
         (mdir / "index.html").write_text(
             _page(f"MapForge – {m}", body, 2, m, maps), encoding="utf-8"
         )

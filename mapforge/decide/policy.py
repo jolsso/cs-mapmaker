@@ -113,6 +113,12 @@ def check_plan(plan: Any, fitness: dict[str, Any], phase: float = 6) -> Verdict:
                 reason = f"{ctype} only from phase {spec['from_phase']}"
             elif spec.get("before_gate_b_only") and frozen:
                 reason = f"{ctype} only before Gate B"
+            elif spec.get("requires_annotation") and not any(
+                str(a).startswith("annotation:") for a in change.get("addresses", []) or []
+            ):
+                reason = (
+                    f"{ctype} only on a human's request (addresses must name an annotation:<id>)"
+                )
             else:
                 try:
                     if "max_abs_delta" in spec:

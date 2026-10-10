@@ -6,6 +6,9 @@ state per run and streams it to browsers. Standard library only; nothing is writ
 
   UDP  :27500  in   (docker network mapforge-sim; containers reach it as "mapforge-live")
   HTTP :8090   out  GET /events (text/event-stream, ~4 updates/s), GET /state (JSON)
+                   GET/POST/DELETE /api/annotations/<map>: the human's wishes drawn on the map
+                   page (maps/<map>/annotations.json, mapforge.annotations); writes only from
+                   the dashboard's origin (MAPFORGE_SITE_ORIGINS)
 
 Usage: python -m mapforge.live.collector [--udp 27500] [--http 8090]
 Published on 127.0.0.1 only (compose.yaml, service `live`).
@@ -16,7 +19,10 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
+import re
 import time
+from pathlib import Path
 from typing import Any
 
 STALE_S = 20  # a run not heard from for this long is shown as finished
@@ -97,17 +103,101 @@ class Udp(asyncio.DatagramProtocol):
 
 
 HEADERS = "Access-Control-Allow-Origin: *\r\nCache-Control: no-cache\r\n"
+# Writes (annotations) only from the local dashboard: a page on another site open in the same
+# browser must not be able to put wishes into the loop.
+SITE_ORIGINS = set(
+    os.environ.get("MAPFORGE_SITE_ORIGINS", "http://localhost:8080,http://127.0.0.1:8080").split(
+        ","
+    )
+)
+MAPS_DIR = Path(os.environ.get("MAPFORGE_MAPS_DIR", "maps"))
+MAP_NAME = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+REASONS = {
+    200: "OK",
+    201: "Created",
+    204: "No Content",
+    400: "Bad Request",
+    403: "Forbidden",
+    404: "Not Found",
+}
+
+
+def _respond(writer: asyncio.StreamWriter, code: int, body: Any, origin: str = "*") -> None:
+    data = json.dumps(body, ensure_ascii=False).encode("utf-8")
+    writer.write(
+        f"HTTP/1.1 {code} {REASONS.get(code, 'OK')}\r\nContent-Type: application/json; charset=utf-8\r\n"
+        f"Access-Control-Allow-Origin: {origin}\r\nVary: Origin\r\nCache-Control: no-cache\r\n"
+        f"Content-Length: {len(data)}\r\n\r\n".encode()
+        + data
+    )
+
+
+async def annotations_api(
+    method: str, path: str, headers: dict[str, str], body: bytes, writer: asyncio.StreamWriter
+) -> None:
+    """GET /api/annotations/<map> · POST (JSON annotation) · DELETE /api/annotations/<map>/<id>."""
+    from mapforge import annotations as ann
+
+    origin = headers.get("origin", "")
+    allow = origin if origin in SITE_ORIGINS else "null"
+    parts = [p for p in path.split("?")[0].split("/") if p][2:]  # after /api/annotations
+    if method == "OPTIONS":
+        writer.write(
+            f"HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: {allow}\r\nVary: Origin\r\n"
+            "Access-Control-Allow-Methods: GET, POST, DELETE\r\nAccess-Control-Allow-Headers: Content-Type\r\n"
+            "Content-Length: 0\r\n\r\n".encode()
+        )
+        return
+    if not parts or not MAP_NAME.match(parts[0]) or not (MAPS_DIR / parts[0]).is_dir():
+        _respond(writer, 404, {"error": "unknown map"}, allow)
+        return
+    map_name = parts[0]
+    if method == "GET":
+        _respond(writer, 200, ann.load(MAPS_DIR, map_name), allow)
+        return
+    if origin not in SITE_ORIGINS:
+        _respond(writer, 403, {"error": "writes only from the local dashboard"}, allow)
+        return
+    try:
+        if method == "POST" and len(parts) == 1:
+            if headers.get("content-type", "").split(";")[0].strip() != "application/json":
+                raise ValueError("Content-Type must be application/json")
+            item = ann.add(MAPS_DIR, map_name, json.loads(body.decode("utf-8")))
+            _respond(writer, 201, item, allow)
+        elif method == "DELETE" and len(parts) == 2 and parts[1].isdigit():
+            ok = ann.remove(MAPS_DIR, map_name, int(parts[1]))
+            _respond(writer, 200 if ok else 404, {"deleted": ok}, allow)
+        else:
+            _respond(writer, 400, {"error": "unsupported"}, allow)
+    except (ValueError, json.JSONDecodeError) as exc:
+        _respond(writer, 400, {"error": str(exc)}, allow)
 
 
 async def http(state: State, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
     try:
         line = (await reader.readline()).decode("latin-1")
-        while (await reader.readline()) not in (b"\r\n", b"\n", b""):
-            pass
-        path = line.split(" ")[1] if " " in line else "/"
+        headers: dict[str, str] = {}
+        while True:
+            h = await reader.readline()
+            if h in (b"\r\n", b"\n", b""):
+                break
+            k, _, v = h.decode("latin-1").partition(":")
+            headers[k.strip().lower()] = v.strip()
+        method, path = ([*line.split(" "), "", ""])[:2]
+        if path.startswith("/api/annotations"):
+            length = min(int(headers.get("content-length", "0") or 0), 200_000)
+            body = await reader.readexactly(length) if length else b""
+            await annotations_api(method, path, headers, body, writer)
+            await writer.drain()
+            return
         if path.startswith("/events"):
-            writer.write(("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\n" + HEADERS
-                          + "Connection: keep-alive\r\n\r\n").encode())  # fmt: skip
+            writer.write(
+                (
+                    "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\n"
+                    + HEADERS
+                    + "Connection: keep-alive\r\n\r\n"
+                ).encode()
+            )
             last = -1
             while True:
                 if state.version != last or int(time.time()) % 5 == 0:
@@ -115,18 +205,16 @@ async def http(state: State, reader: asyncio.StreamReader, writer: asyncio.Strea
                     writer.write(f"data: {json.dumps(state.snapshot())}\n\n".encode())
                     await writer.drain()
                 await asyncio.sleep(0.25)
-        body = (
-            json.dumps(state.snapshot()).encode()
-            if path.startswith("/state")
-            else b"MapForge live collector: /events, /state\n"
-        )
-        ctype = "application/json" if path.startswith("/state") else "text/plain"
+        if path.startswith("/state"):
+            body, ctype = json.dumps(state.snapshot()).encode(), "application/json"
+        else:
+            body, ctype = b"MapForge live: /events, /state, /api/annotations/<map>\n", "text/plain"
         writer.write(
             f"HTTP/1.1 200 OK\r\nContent-Type: {ctype}\r\n{HEADERS}Content-Length: {len(body)}\r\n\r\n".encode()
             + body
         )
         await writer.drain()
-    except (ConnectionError, asyncio.IncompleteReadError):
+    except (ConnectionError, asyncio.IncompleteReadError, ValueError):
         pass
     finally:
         writer.close()

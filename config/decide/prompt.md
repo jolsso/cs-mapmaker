@@ -6,6 +6,11 @@ Iteration: {run_dir}
 ## Hvor iterationen stoppede
 {stage}
 
+## Menneskets annotationer (højeste prioritet)
+Mennesket har tegnet disse ønsker på mappet (verdenskoordinater; "rammer" = layout-områder, de overlapper). Opfyld dem før dine egne idéer, med værktøjskassen – men låste beslutninger og design-normerne gælder stadig. Et ønske, der ikke kan opfyldes med værktøjskassen eller strider mod en låst beslutning: sæt `escalate: true` og forklar i `escalation_reason` (nævn `annotation:<id>`). Skriv `"annotation:<id>"` i `addresses` på den ændring, der opfylder ønsket – så markeres det som udført. `remove_area` må kun bruges, når en annotation beder om det.
+
+{annotations}
+
 ## Loopet
 {loop}
 

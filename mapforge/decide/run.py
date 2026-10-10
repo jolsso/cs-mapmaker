@@ -42,6 +42,18 @@ def toolbox_text(fitness: dict[str, Any]) -> str:
     return "\n".join(lines) + f"\n\nLåste beslutninger (config/fitness.yaml):\n```yaml\n{locked}```"
 
 
+def annotations_text(cfg: Config, map_name: str) -> str:
+    """The human's open annotations (maps/<map>/annotations.json) with the areas they touch."""
+    from mapforge import annotations
+
+    layout_file = cfg.path("maps_dir") / map_name / "layout.yaml"
+    layout = (
+        yaml.safe_load(layout_file.read_text(encoding="utf-8")) if layout_file.is_file() else None
+    )
+    text = annotations.prompt_text(cfg.path("maps_dir"), map_name, layout)
+    return text or "(ingen åbne annotationer)"
+
+
 def emit(cfg: Config, map_name: str) -> Path:
     return emit_into(cfg, map_name, new_iteration(cfg, map_name))
 
@@ -62,6 +74,7 @@ def emit_into(cfg: Config, map_name: str, run_dir: Path, loop: str = "") -> Path
         notes=notes,
         toolbox=toolbox_text(load_fitness(root)),
         loop=loop or "(enkeltstående Decide, ikke en del af et loop)",
+        annotations=annotations_text(cfg, map_name),
     )
     (run_dir / "decide_prompt.md").write_text(prompt, encoding="utf-8")
     (run_dir / "plan_schema.json").write_text(json.dumps(PLAN_SCHEMA, indent=2), encoding="utf-8")

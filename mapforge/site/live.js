@@ -76,14 +76,17 @@ function draw(c, run) {
 // graph analysis and smoke runs are checks, not measurements: shown, but not in the totals
 const counted = r => !/^(graph|smoke)/.test(r.run);
 
+// on a map page only that map's runs are shown (LIVE_MAP set by the page)
+const FILTER = typeof LIVE_MAP === "string" ? LIVE_MAP : null;
+
 function render(state) {
   last = state;
   const status = document.getElementById("status");
-  const runs = state.runs;
+  const runs = FILTER ? state.runs.filter(r => r.map === FILTER) : state.runs;
   const active = runs.filter(r => !r.done && !r.stale);
   status.innerHTML = runs.length
     ? `<span class="chip ok">forbundet</span> ${active.length} kørende server(e) · ${runs.length - active.length} afsluttede`
-    : `<span class="chip ok">forbundet</span> ingen simuleringer kører lige nu – start fx <code>./mf simulate MAP=…</code> eller loopet`;
+    : `<span class="chip ok">forbundet</span> ingen simuleringer${FILTER ? " af dette map" : ""} kører lige nu`;
   // per-map totals over all runs (live + recently finished)
   const byMap = {};
   for (const r of runs.filter(counted)) {

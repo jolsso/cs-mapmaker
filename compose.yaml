@@ -35,6 +35,7 @@ services:
     working_dir: /work
     volumes:
       - .:/work:ro
+      - ./maps:/work/maps   # annotations.json per map (written by the annotation API)
     ports:
       - "127.0.0.1:8090:8090"
     networks: [default, sim]

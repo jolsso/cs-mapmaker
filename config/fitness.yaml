@@ -75,6 +75,11 @@ allowed_changes:
     params: [from, to]
     before_gate_b_only: true
     max_per_iteration: 1
+  remove_area:
+    description: Remove an area (corridor/room) and its doors/cover/stairs; the space becomes solid
+    params: [target]
+    before_gate_b_only: true
+    requires_annotation: true        # only when a human annotation asks for it
   lighting:
     description: Light intensity, colour or position
     params: [target]

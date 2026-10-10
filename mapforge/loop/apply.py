@@ -158,6 +158,20 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
             raise ValueError(f"door {door['name']!r} is protected (locked topology)")
         lay["doors"].remove(door)
         return f"door {door['name']} between {a} and {b} removed"
+    if t == "remove_area":
+        area = _find(lay["areas"], str(p["target"]), "area")
+        _guard_area(area)
+        name = area["name"]
+        lay["areas"].remove(area)
+        for key in ("doors",):
+            for d in [d for d in lay.get(key, []) if name in d["between"]]:
+                if d.get("protected"):
+                    raise ValueError(f"door {d['name']!r} to {name} is protected (locked topology)")
+                lay[key].remove(d)
+        for key in ("cover", "stairs"):
+            for it in [it for it in lay.get(key, []) if it.get("area") == name]:
+                lay[key].remove(it)
+        return f"area {name} removed (now solid), with its doors, cover and stairs"
     raise ValueError(f"change type {t!r} cannot be applied to a layout (phase 6)")
 
 

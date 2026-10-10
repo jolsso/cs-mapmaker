@@ -283,7 +283,13 @@ class Loop:
         d = self.it_dir
         decision = answer(self.cfg, d, float(self.cfg.data.get("decide", {}).get("phase", 6)))
         if decision.get("escalate"):
-            self.record(decision="escalated", why=decision.get("escalation_reason"))
+            from mapforge import annotations
+
+            reason = decision.get("escalation_reason") or ""
+            annotations.resolve(
+                self.cfg.path("maps_dir"), self.map, self.state["iteration"], [], reason
+            )
+            self.record(decision="escalated", why=reason)
             return self.stop(f"Decide eskalerede: {decision.get('escalation_reason')}")
         best = self.state.get("best")
         base = (
@@ -301,7 +307,14 @@ class Loop:
         )
         (d / "layout_next.yaml").write_text(new, encoding="utf-8")
         self.layout.write_text(new, encoding="utf-8", newline="\n")
-        self.record(applied=[a["effect"] for a in applied], failed=len(failed))
+        from mapforge import annotations
+
+        done = annotations.resolve(
+            self.cfg.path("maps_dir"), self.map, self.state["iteration"], applied, None
+        )
+        self.record(
+            applied=[a["effect"] for a in applied], failed=len(failed), annotations_done=done
+        )
         self.log(f"applied {len(applied)} change(s), {len(failed)} failed, "
                  f"{len(decision['rejected'])} rejected by policy (base {base.parent.name})")  # fmt: skip
         reason = self.stop_reason(bool(applied) or self.state.get("rollback"))
@@ -317,7 +330,14 @@ class Loop:
         stop, budget = self.fitness.get("stop", {}), self.fitness.get("budget", {})
         c = self.state["counters"]
         done_its = int(self.state["iteration"]) - int(self.state["first_iteration"]) + 1
-        if c["targets_met"] >= int(stop.get("targets_met_in_a_row", 2)):
+        from mapforge import annotations
+
+        wishes = [
+            a
+            for a in annotations.load(self.cfg.path("maps_dir"), self.map)
+            if a["status"] == "open"
+        ]
+        if c["targets_met"] >= int(stop.get("targets_met_in_a_row", 2)) and not wishes:
             return f"alle mål ramt i {c['targets_met']} målinger i træk → Gate B"
         if c["hard_fail"] >= int(stop.get("hard_fail_in_a_row", 3)):
             return f"hårde krav fejlede {c['hard_fail']} gange i træk → eskalér til mennesket"
