@@ -1,0 +1,69 @@
+# Fitness – hvad betyder "bedre"?
+
+Loopet optimerer kun efter det, der står her. Tærsklerne spejles maskinlæsbart i `config/fitness.yaml`. Tallene er startværdier – justér efter erfaring.
+
+## Hårde krav (skal være opfyldt, ellers er iterationen ugyldig)
+| Krav | Kilde |
+|---|---|
+| Compile uden errors og uden leak | compile.json |
+| Ingen engine-limit over 90 % | validation.json |
+| Ingen off-grid vertices, alle brushes konvekse | validation.json |
+| Korrekte entities: spawns pr. hold ≥ 10, bomb targets = 2 (de_), buyzones pr. hold ≥ 1 | validation.json |
+| Alle spawns kan nå begge sites (graf-sti findes) | YaPB-graf / pathfinding |
+
+## Gameplay-mål (bot-data, ≥ 100 runder pr. måling)
+| Metrik | Mål | Note |
+|---|---|---|
+| T-winrate | 45–55 % | Primær balance-metrik |
+| Site-fordeling A/B (bomb plants) | 35–65 % | Begge sites skal bruges |
+| Tid til første kontakt | 15–25 s | Fra rundestart |
+| Døde zoner | < 5 % af gangbart areal med ~0 trafik | Ubrugt plads |
+| Kill-koncentration | Ingen enkelt celle > 10 % af alle kills | Fanger "death traps" |
+| Rundelængde (median) | 50–100 s | Afhænger af mp_roundtime |
+
+**Statistik:** Rapportér altid konfidensinterval. Ændringer under støjniveauet tæller ikke som forbedring.
+
+## Visuelle mål (Fase 7)
+| Metrik | Mål |
+|---|---|
+| Mørke zoner (lysstyrke < tærskel i spilområde) | 0 |
+| r_speeds wpoly pr. kameraview | < ~800 |
+| Stilreview (Claude mod ART_DIRECTION.md) | Ingen "kritiske" fund |
+
+## Samlet score
+Kun gyldige iterationer scores. Vægtet afstand til målintervaller (0 = alle mål ramt). Vægte i `config/fitness.yaml`, start: balance 0.4, site-fordeling 0.2, kontakttid 0.15, døde zoner 0.15, kill-koncentration 0.1.
+
+## Stopkriterier
+Loopet stopper ved første af:
+- Alle mål ramt i 2 på hinanden følgende målinger
+- Ingen forbedring i score i 5 iterationer (plateau)
+- Budget opbrugt: max iterationer (start: 20) eller max wall-clock
+- Hårde krav fejler 3 gange i træk → stop og eskalér til menneske
+- En gate er nået (se ROADMAP.md)
+
+## Rollback
+Hvis en iteration forværrer scoren ud over støjniveau: gå tilbage til bedste version, og prøv en anden ændring.
+
+## Låste beslutninger
+Må **ikke** ændres af loopet uden menneskelig godkendelse. Udfyldes ved Gate A/B.
+
+```yaml
+locked:
+  theme: ""              # fx "industriel havn"
+  map_type: "de"         # de / cs / aim / fy
+  topology: ""           # fx "3 lanes, mid forbinder, sites i hver ende"
+  site_locations: []     # grove koordinater/zoner
+  landmarks: []          # navngivne landmarks der skal bestå
+  geometry_frozen: false # true efter Gate B
+```
+
+## Tilladte ændringer (loopets værktøjskasse)
+- Flytte/forlænge/forkorte korridorer inden for ±256 units
+- Tilføje/fjerne cover (kasser, vægge) inden for en zone
+- Justere døråbninger og bredder
+- Flytte spawns inden for spawn-zone
+- Tilføje/fjerne en sekundær forbindelse (kun før Gate B, max 1 pr. iteration)
+- Lys: intensitet, farve, placering (Fase 7)
+
+## Goodhart-advarsel
+Bot-metrikker måler hvordan **bots** spiller. Hvis loopet forbedrer tallene ved at forenkle mappet (færre ruter, lige korridorer), er det et rødt flag – noter det i NOTES.md og eskalér.

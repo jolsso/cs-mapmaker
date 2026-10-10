@@ -1,17 +1,29 @@
-# Python venv
-backend/.venv/
+# Fetched third-party tools (see config/pipeline.yaml)
+tools/
 
-# Caches and artifacts
-cache/
-maps/
-previews/
+# Build and run artifacts
+build/
+runs/
+*.bsp
+*.prt
+*.lin
+*.pts
+*.log
+*.err
 
-# OS / editor files
-.DS_Store
-Thumbs.db
-*.swp
+# Generated assets (regenerate with `task wad`)
+assets/wads/*.wad
 
-# Test / temp
-tmp_*
-*.fetch.json
-*.geojson
+# Local config overrides
+config/*.local.yaml
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Editors
+.vscode/
+.idea/

@@ -1,3 +1,0 @@
-﻿dataforsyningen:
-  wfs_url: "https://api.dataforsyningen.dk/building_inspire"
-  wfs_typename: "BU.Building"
