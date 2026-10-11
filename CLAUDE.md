@@ -21,8 +21,8 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 4. **Alt deterministisk skal være scriptet.** Ingen manuelle trin i loopet; hver iteration skal kunne genskabes fra kode + config.
 5. **Log hver iteration** i `runs/<map>/<iteration>/` med: .map-diff, compile-log, metrikker (JSON), renders/screenshots, og en kort `NOTES.md` om hvad der blev ændret og hvorfor.
 6. **Små, målrettede ændringer pr. iteration.** Ændr én ting ad gangen når det er muligt, så effekten kan måles.
-7. **Commit efter hver feature** (lokalt; push kun på forespørgsel). Rækkefølge: `./mf test` + `./mf lint` grønne → docs/ROADMAP opdateret → oversigtssiden genudgivet → commit. Saml ikke en hel fase i ét commit.
-8. **Opdatér oversigtssiden** `docs/overview.html` (arkitektur + roadmap) efter hver implementeret roadmap-feature, og genudgiv den til samme artifact-URL: https://claude.ai/artifact/B1mxnr1kLUJGD8de4ruDfX. Genbyg det lokale website (`./mf site`), så det også viser den nye arkitektur/roadmap. Billeder af Valve-/community-maps hører kun hjemme på det lokale website, aldrig i artifacten.
+7. **Commit efter hver feature** (lokalt; push kun på forespørgsel). Rækkefølge: `./mf test` + `./mf lint` grønne → docs/ROADMAP opdateret → oversigtssiden opdateret og `./mf site` genbygget → commit. Saml ikke en hel fase i ét commit.
+8. **Opdatér oversigtssiden** `docs/overview.html` (arkitektur + roadmap) efter hver implementeret roadmap-feature, og genbyg det lokale website (`./mf site`, http://localhost:8080), så det viser den nye arkitektur/roadmap. Artifacten på claude.ai genudgives ikke længere (besluttet 2026-10-11; mennesket bruger localhost:8080).
 9. **Stop ved gates** (se ROADMAP.md) og skriv en opsummering til mennesket i stedet for at fortsætte.
 
 ## GoldSrc-fakta (design-normer)
