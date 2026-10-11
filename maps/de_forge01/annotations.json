@@ -286,5 +286,41 @@
     "status": "done",
     "created": "2026-10-10 21:27",
     "resolution": "iteration 002: area b_start removed (now solid), with its doors, cover and stairs"
+  },
+  {
+    "kind": "rect",
+    "text": "Fjern dette område. Lav i stedet en lang gang fra T Spawn til Site B med connector fra mid ind i siden. Gør det kun, hvis du mener at det kan forbedre mappet, f.eks. med mere success på plant på Site B.",
+    "points": [
+      [
+        -2036,
+        411
+      ],
+      [
+        -1267,
+        -443
+      ]
+    ],
+    "id": 5,
+    "status": "done",
+    "created": "2026-10-11 06:19",
+    "resolution": "iteration 010: area b_tunnels removed (now solid), with its doors, cover and stairs"
+  },
+  {
+    "kind": "rect",
+    "text": "Slet hele dette område, for at se om vi kan tvinge en anden vej til Site B.",
+    "points": [
+      [
+        -1907,
+        -1926
+      ],
+      [
+        -484,
+        -171
+      ]
+    ],
+    "id": 6,
+    "status": "open",
+    "created": "2026-10-11 06:32",
+    "resolution": null
   }
 ]

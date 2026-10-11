@@ -41,7 +41,6 @@ areas:
   - {name: a_long, rect: [1280, -384, 2048, 384], height: 288, outdoor: true, role: corridor}
   - {name: long_ec_s, rect: [1472, -1264, 1856, -400], height: 288, outdoor: true, role: corridor}
   - {name: long_ec_n, rect: [1472, 400, 1856, 1264], height: 288, outdoor: true, role: corridor}
-  - {name: b_tunnels, rect: [-2048, -384, -1280, 384], height: 160, role: corridor}
   - {name: b_tunnel_n, rect: [-1792, 400, -1536, 1264], height: 144, role: corridor}
   # --- middle and cross connectors ---
   - {name: mid_s, rect: [-192, -1648, 192, -400], height: 256, outdoor: true, role: corridor}
@@ -57,6 +56,7 @@ areas:
   - {name: ct_to_a, rect: [656, 1600, 1264, 1856], height: 192, role: corridor}
   - {name: ct_to_b, rect: [-1264, 1600, -144, 1856], height: 192, role: corridor}
   - {name: t_b_cut, rect: [-1264, -1456, -1008, -144], height: 144, role: corridor}
+  - {name: b_long, rect: [-1792, -1856, -1280, 384], height: 192, role: corridor}
 
 doors:
   # T side
@@ -71,13 +71,11 @@ doors:
   - {name: d_long_n1, between: [a_long, long_ec_n], width: 192, offset: -96}
   - {name: d_long_n2, between: [long_ec_n, a_site], width: 192, offset: 96, protected: true} # chokepoint A long
   # B tunnels
-  - {name: d_b_tun_n1, between: [b_tunnels, b_tunnel_n], width: 160, offset: 32}
   - {name: d_b_tun_n2, between: [b_tunnel_n, b_site], width: 160, offset: -32, protected: true} # chokepoint B tunnels
   # mid and its connections
   - {name: d_mid_long1, between: [mid, mid_to_long], width: 160}
   - {name: d_mid_long2, between: [mid_to_long, a_long], width: 160}
   - {name: d_mid_b1, between: [mid, mid_to_b], width: 128}
-  - {name: d_mid_b2, between: [mid_to_b, b_tunnels], width: 128}
   - {name: d_mid_top, between: [mid, mid_top], width: 192, offset: 160}
   - {name: d_top_ashort, between: [mid_top, a_short_up], width: 192}
   - {name: d_ashort_turn, between: [a_short_up, a_short], width: 192}
@@ -92,7 +90,9 @@ doors:
   - {name: d_ct_b2, between: [ct_to_b, b_site], width: 192, offset: -32}               # 1100-unit line from CT spawn onto B
 
   - {name: d_t_b_cut_t_to_b, between: [t_b_cut, t_to_b], width: 160}
-  - {name: d_t_b_cut_b_tunnels, between: [t_b_cut, b_tunnels], width: 160}
+  - {name: d_b_long_t_to_b, between: [b_long, t_to_b], width: 192}
+  - {name: d_b_long_mid_to_b, between: [b_long, mid_to_b], width: 128}
+  - {name: d_b_long_b_tunnel_n, between: [b_long, b_tunnel_n], width: 160, offset: -32}
 stairs:
   # A site is 32 higher: steps near the end of every approach (gives the defender height)
   - {name: a_steps_long, area: long_ec_n, axis: +y, rise: 32, step: 16, run: 32, start: 640}
@@ -113,9 +113,6 @@ cover:
   - {name: b_platform, area: b_site, pos: [-1664, 1680], size: [192, 128, 32]}
   - {name: b_box_se, area: b_site, pos: [-1440, 1424], size: [64, 64, 64]}
   - {name: ct_b_box, area: ct_to_b, pos: [-704, 1792], size: [64, 64, 64]}
-  # iteration 6: screen wall inside B's CT door (review: CT spawn still saw onto B) and a crate
-  # in mid_s (long open line from T spawn into mid)
-  - {name: b_ct_screen, area: b_site, pos: [-1408, 1728], size: [32, 256, 128]}
   - {name: mid_s_box, area: mid_s, pos: [-64, -1024], size: [96, 64, 64]}
   # mid and the mid_top junction
   - {name: mid_box, area: mid, pos: [0, 0], size: [192, 96, 96]}
@@ -124,16 +121,15 @@ cover:
   # long: cover along the lane
   - {name: long_box, area: a_long, pos: [1760, 0], size: [96, 96, 64]}
   - {name: long_start_box, area: a_long_start, pos: [1664, -1568], size: [128, 64, 64]}
-  # B route
-  - {name: b_tun_wall, area: b_tunnels, pos: [-1664, 0], size: [256, 32, 160]}
-  - {name: b_tun_box, area: b_tunnels, pos: [-1472, 224], size: [64, 64, 64]}
   - {name: b_cut_chicane, area: t_b_cut, pos: [-1184, -800], size: [160, 32, 128]}
   - {name: mid_top_cover, area: mid_top, pos: [-824, 704], size: [272, 32, 128]}
-  - {name: mid_top_cover_2, area: mid_top, pos: [-576, 560], size: [32, 320, 128]}
   - {name: a_long_start_cover, area: a_long_start, pos: [1912, -1712], size: [272, 32, 128]}
   - {name: a_long_start_cover_2, area: a_long_start, pos: [1664, -1872], size: [32, 352, 128]}
   - {name: a_long_cover, area: a_long, pos: [1760, -240], size: [128, 32, 96]}
   - {name: a_long_cover_2, area: a_long, pos: [1408, -96], size: [64, 64, 64]}
+  - {name: b_site_cover, area: b_site, pos: [-1408, 1776], size: [32, 160, 128]}
+  - {name: b_long_cover, area: b_long, pos: [-1536, -560], size: [256, 32, 128]}
+  - {name: b_long_cover_2, area: b_long, pos: [-1696, 256], size: [192, 32, 128]}
 
 sites: {A: a_site, B: b_site}
 spawns:
