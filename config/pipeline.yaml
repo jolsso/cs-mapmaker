@@ -172,7 +172,7 @@ site:
 simulate:
   # HLDS + YaPB servers (docker/hlds/, built by mapforge.simulate through the Docker socket).
   image: mapforge/hlds
-  servers: 4                # parallel servers per batch (16 cores: ~1 core per server at timescale 4)
+  servers: 8                # parallel servers per batch (8 cores / 16 threads: ~1 core per server at timescale 4)
   bind: 127.0.0.1           # spectator ports: bind:<base_port + i>/udp (connect localhost:27015)
   base_port: 27015
   maxplayers: 12            # 10 bots + HLTV + one free slot for a spectator
@@ -185,7 +185,7 @@ simulate:
   # map where 80 and 112 worked; CALIBRATION.md)
   graph_distances: [80, 96, 112, 128]   # 80 first: 96 failed on 3 of 4 de_forge01 builds (2026-10-11)
   smoke_extra_rounds: 6      # if a bomb site was not reached in the smoke rounds, play this many more
-  batch_rounds: 20          # rounds per batch, split over the servers
+  batch_rounds: 40          # rounds per batch, split over the servers (5 per server)
   max_rounds: 100           # stop after this many valid rounds (FITNESS min_rounds)
   confidence: 0.95          # Wilson interval for the early stop on t_winrate / site_split_a
   round_timeout_s: 120      # wall-clock guard per round (after timescale)

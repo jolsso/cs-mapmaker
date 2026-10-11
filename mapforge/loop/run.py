@@ -63,6 +63,14 @@ class Loop:
             json.dumps(self.state, indent=2, ensure_ascii=False), encoding="utf-8"
         )
         (self.root / "LOOP.md").write_text(self.report(), encoding="utf-8")
+        # the website is static: rebuild it when the loop moves on, so "we are here" is current
+        # while a long step (simulate) runs, not only when the command exits
+        where = (self.state.get("iteration"), self.state.get("step"), self.state.get("status"))
+        if where != getattr(self, "_shown", None):
+            self._shown = where
+            from mapforge.site.build import refresh_site  # lazy: avoids an import cycle
+
+            refresh_site(self.cfg)
 
     def log(self, msg: str) -> None:
         print(f"[loop {self.map} {self.state.get('iteration', '-')}] {msg}", flush=True)
