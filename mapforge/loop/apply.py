@@ -92,6 +92,19 @@ def _guard_area(area: Any, lay: Any = None) -> None:
         )
 
 
+def _new_name(items: Any, base: str) -> str:
+    names = {it["name"] for it in items or []}
+    name, n = base, 2
+    while name in names:
+        name, n = f"{base}_{n}", n + 1
+    return name
+
+
+def _guard_spawn(area: Any) -> None:
+    if area.get("role") in ("t_spawn", "ct_spawn"):
+        raise ValueError(f"no floor changes in spawn area {area['name']!r} (spawns stand there)")
+
+
 def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
     """Mutate `lay` with one change; returns a short description. Raises ValueError."""
     t, p = change["type"], change.get("params", {}) or {}
@@ -126,9 +139,14 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         while name in names:
             name, n = f"{base}_{n}", n + 1
         lay.setdefault("cover", CommentedSeq())
-        lay["cover"].append(_flow_map({"name": name, "area": area["name"], "pos": _flow(pos),
-                                       "size": _flow(size)}))  # fmt: skip
-        return f"cover {name} {size} at {pos} in {area['name']}"
+        item = {"name": name, "area": area["name"], "pos": _flow(pos), "size": _flow(size)}
+        if p.get("z"):
+            item["z"] = _vec(p["z"], 1, 8, "z")[0]  # raised: platform, bridge, stacked crate
+        if p.get("texture"):
+            item["texture"] = str(p["texture"])
+        lay["cover"].append(_flow_map(item))
+        z = f" raised {item['z']}" if "z" in item else ""
+        return f"cover {name} {size} at {pos}{z} in {area['name']}"
     if t == "remove_cover":
         cover = _find(lay.get("cover", []), str(p["target"]), "cover")
         if cover.get("protected") or cover["name"] in soul_elements(lay):
@@ -156,13 +174,87 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         a, b = str(p["from"]), str(p["to"])
         for n in (a, b):
             _find(lay["areas"], n, "area")
-        width = _vec(p.get("width", 128), 1, grid, "width")[0]
-        names = {d["name"] for d in lay["doors"]}
-        name, n = f"d_{a}_{b}", 2
-        while name in names:
-            name, n = f"d_{a}_{b}_{n}", n + 1
-        lay["doors"].append(_flow_map({"name": name, "between": _flow([a, b]), "width": width}))
-        return f"door {name} ({width} wide) between {a} and {b}"
+        kind = str(p.get("kind", "door"))
+        if kind not in ("door", "vent"):
+            raise ValueError("add_connection kind: door or vent (a window is add_window)")
+        width = _vec(p.get("width", 128 if kind == "door" else 64), 1, grid, "width")[0]
+        door = {"name": _new_name(lay["doors"], f"d_{a}_{b}"), "between": _flow([a, b]),
+                "width": width}  # fmt: skip
+        if kind == "vent":
+            door.update(kind="vent", height=_vec(p.get("height", 48), 1, 8, "height")[0])
+        if p.get("offset"):
+            door["offset"] = _vec(p["offset"], 1, 8, "offset")[0]
+        lay["doors"].append(_flow_map(door))
+        return f"{kind} {door['name']} ({width} wide) between {a} and {b}"
+    if t == "add_window":
+        a, b = str(p["from"]), str(p["to"])
+        for n in (a, b):
+            _find(lay["areas"], n, "area")
+        door = {"name": _new_name(lay["doors"], f"w_{a}_{b}"), "between": _flow([a, b]),
+                "width": _vec(p["width"], 1, grid, "width")[0], "kind": "window",
+                "sill": _vec(p["sill"], 1, grid, "sill")[0]}  # fmt: skip
+        if p.get("height"):
+            door["height"] = _vec(p["height"], 1, grid, "height")[0]
+        if p.get("offset"):
+            door["offset"] = _vec(p["offset"], 1, 8, "offset")[0]
+        if p.get("glass"):
+            door["glass"] = True
+        lay["doors"].append(_flow_map(door))
+        dims = f"{door['width']} wide, sill {door['sill']}"
+        return f"window {door['name']} ({dims}) between {a} and {b}"
+    if t == "set_gate":
+        door = _find(lay["doors"], str(p["target"]), "door")
+        gate = str(p["gate"])
+        if gate not in ("none", "sliding", "rotating"):
+            raise ValueError("gate: none, sliding or rotating")
+        if gate == "none":
+            door.pop("gate", None)
+        else:
+            door["gate"] = gate
+        return f"door {door['name']} gate {gate}"
+    if t == "add_ramp":
+        area = _find(lay["areas"], str(p["zone"]), "area")
+        _guard_spawn(area)
+        item = {"name": _new_name(lay.get("ramps", []), f"{area['name']}_ramp"),
+                "area": area["name"], "axis": str(p["axis"]),
+                "rise": _vec(p["rise"], 1, grid, "rise")[0],
+                "length": _vec(p["length"], 1, grid, "length")[0],
+                "start": _vec(p.get("start", 0), 1, grid, "start")[0]}  # fmt: skip
+        lay.setdefault("ramps", CommentedSeq()).append(_flow_map(item))
+        return f"ramp {item['name']} rise {item['rise']} over {item['length']} in {area['name']}"
+    if t == "add_wedge":
+        area = _find(lay["areas"], str(p["zone"]), "area")
+        _guard_spawn(area)
+        item = {"name": _new_name(lay.get("wedges", []), f"{area['name']}_wedge"),
+                "area": area["name"], "corner": str(p["corner"]),
+                "size": _flow(_vec(p["size"], 2, grid, "size"))}  # fmt: skip
+        lay.setdefault("wedges", CommentedSeq()).append(_flow_map(item))
+        where = f"the {item['corner']} corner of {area['name']}"
+        return f"angled wall {item['name']} {list(item['size'])} in {where}"
+    if t == "add_ladder":
+        area = _find(lay["areas"], str(p["zone"]), "area")
+        item = {"name": _new_name(lay.get("ladders", []), f"{area['name']}_ladder"),
+                "area": area["name"], "wall": str(p["wall"]),
+                "height": _vec(p["height"], 1, 8, "height")[0],
+                "pos": _vec(p.get("pos", 0), 1, 8, "pos")[0]}  # fmt: skip
+        lay.setdefault("ladders", CommentedSeq()).append(_flow_map(item))
+        return f"ladder {item['name']} on the {item['wall']} wall of {area['name']}"
+    if t == "remove_element":
+        name = str(p["target"])
+        for key in ("ramps", "wedges", "ladders", "cover", "stairs"):
+            hit = next((it for it in lay.get(key, []) or [] if it.get("name") == name), None)
+            if hit is not None:
+                if hit.get("protected") or name in soul_elements(lay):
+                    raise ValueError(f"{name!r} is protected (landmark/irregularity)")
+                lay[key].remove(hit)
+                return f"{key[:-1] if key != 'stairs' else 'stairs'} {name} removed"
+        window = next((d for d in lay.get("doors", []) if d.get("name") == name), None)
+        if window is not None and window.get("kind") == "window":
+            if window.get("protected") or name in soul_elements(lay):
+                raise ValueError(f"{name!r} is protected")
+            lay["doors"].remove(window)
+            return f"window {name} removed"
+        raise ValueError(f"no ramp/wedge/ladder/cover/stairs/window named {name!r}")
     if t == "remove_connection":
         a, b = str(p["from"]), str(p["to"])
         hits = [d for d in lay["doors"] if set(d["between"]) == {a, b}]
@@ -180,11 +272,14 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         x0, y0, x1, y1 = _vec(p["rect"], 4, grid, "rect")
         if not (x0 < x1 and y0 < y1):
             raise ValueError("rect must be [x0, y0, x1, y1] with x0 < x1, y0 < y1")
+        (h,) = _vec(p.get("height", 160), 1, grid, "height")
+        fl = _vec(p.get("floor", 0), 1, grid, "floor")[0]
         for other in lay["areas"]:
             ox0, oy0, ox1, oy1 = other["rect"]
-            if x0 < ox1 and ox0 < x1 and y0 < oy1 and oy0 < y1:
+            of = int(other.get("floor", 0))
+            above_or_below = fl >= of + int(other.get("height", 192)) + 16 or of >= fl + h + 16
+            if x0 < ox1 and ox0 < x1 and y0 < oy1 and oy0 < y1 and not above_or_below:
                 raise ValueError(f"rect overlaps area {other['name']!r} (areas are one wall apart)")
-        (h,) = _vec(p.get("height", 160), 1, grid, "height")
         area = {"name": name, "rect": _flow([x0, y0, x1, y1]), "height": h,
                 "role": str(p.get("role", "corridor"))}  # fmt: skip
         if p.get("floor"):
@@ -220,8 +315,8 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
                 if d.get("protected"):
                     raise ValueError(f"door {d['name']!r} to {name} is protected (locked topology)")
                 lay[key].remove(d)
-        for key in ("cover", "stairs"):
-            for it in [it for it in lay.get(key, []) if it.get("area") == name]:
+        for key in ("cover", "stairs", "ramps", "wedges", "ladders", "weapons"):
+            for it in [it for it in lay.get(key, []) or [] if it.get("area") == name]:
                 lay[key].remove(it)
         return f"area {name} removed (now solid), with its doors, cover and stairs"
     raise ValueError(f"change type {t!r} cannot be applied to a layout (phase 6)")

@@ -61,6 +61,13 @@ def load_fitness(root: Path = REPO_ROOT) -> dict[str, Any]:
     return yaml.safe_load((root / "config" / "fitness.yaml").read_text(encoding="utf-8"))
 
 
+def locked_for(fitness: dict[str, Any], map_name: str | None) -> dict[str, Any]:
+    """The locked decisions of a map: its own entry under `locked_maps`, else `locked` (the
+    decisions approved for de_forge01 at Gate A, which earlier maps share)."""
+    own = (fitness.get("locked_maps") or {}).get(map_name or "")
+    return own if own is not None else fitness.get("locked", {})
+
+
 @dataclass
 class Verdict:
     accepted: list[dict[str, Any]] = field(default_factory=list)
@@ -92,7 +99,9 @@ def _mentions(change: dict[str, Any], names: list[str]) -> str | None:
     return None
 
 
-def check_plan(plan: Any, fitness: dict[str, Any], phase: float = 6) -> Verdict:
+def check_plan(
+    plan: Any, fitness: dict[str, Any], phase: float = 6, map_name: str | None = None
+) -> Verdict:
     """Validate structure, then each change against the allowed toolbox and locked decisions."""
     v = Verdict()
     if not isinstance(plan, dict):
@@ -108,10 +117,11 @@ def check_plan(plan: Any, fitness: dict[str, Any], phase: float = 6) -> Verdict:
         v.errors.append("escalate is true but escalation_reason is empty")
 
     allowed = fitness["allowed_changes"]
-    locked = fitness.get("locked", {})
+    locked = locked_for(fitness, map_name)
     frozen = bool(locked.get("geometry_frozen"))
     protected = [*locked.get("landmarks", []), *[str(s) for s in locked.get("site_locations", [])]]
     connections = 0
+    per_type: dict[str, int] = {}
     for change in plan.get("changes", []):
         reason = None
         ctype = change.get("type") if isinstance(change, dict) else None
@@ -150,6 +160,10 @@ def check_plan(plan: Any, fitness: dict[str, Any], phase: float = 6) -> Verdict:
                 connections += 1
                 if connections > int(spec.get("max_per_iteration", 1)):
                     reason = "only one connection change per iteration"
+            elif reason is None and "max_per_iteration" in spec:
+                per_type[ctype] = per_type.get(ctype, 0) + 1
+                if per_type[ctype] > int(spec["max_per_iteration"]):
+                    reason = f"at most {spec['max_per_iteration']} {ctype} per iteration"
             if reason is None and (hit := _mentions(change, protected)):
                 reason = f"touches locked decision {hit!r}"
         if reason:

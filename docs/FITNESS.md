@@ -62,6 +62,8 @@ locked:
 ```
 
 ## Tilladte ændringer (loopets værktøjskasse)
+Låste beslutninger er pr. map: `locked_maps.<map>` i `config/fitness.yaml` gælder for det map, ellers `locked` (godkendt for de_forge01 ved Gate A).
+
 Maskinlæsbart i `config/fitness.yaml` → `allowed_changes` (typer, påkrævede parametre, grænser). En plan med andre typer, for store ændringer eller ændringer der nævner låste landmarks/sites afvises af `mapforge/decide/policy.py`. Kræver en rettelse noget uden for værktøjskassen, skal planen eskalere (`escalate: true`).
 
 - Flytte/forlænge/forkorte korridorer inden for ±256 units
@@ -69,6 +71,11 @@ Maskinlæsbart i `config/fitness.yaml` → `allowed_changes` (typer, påkrævede
 - Justere døråbninger og bredder
 - Flytte spawns inden for spawn-zone
 - Tilføje/fjerne en sekundær forbindelse (kun før Gate B, max 1 pr. iteration)
+- Tilføje/fjerne område (kun på et menneskes annotation, før Gate B)
+- Hævet cover (`z`): platforme, broer, stablede kasser / boost-spots (2026-10-11)
+- Vindue mellem to områder (`add_window`, sill ≥ 64, evt. glas; max 1 pr. iteration), vent som forbindelse (`kind: vent`)
+- Rampe (≤ 45°, ikke i spawn-områder), skrå væg / kile i et hjørne, stige (kun før Gate B)
+- Dørblad i en åbning (`set_gate`: sliding / rotating / none); fjerne et element ved navn (`remove_element`)
 - Lys: intensitet, farve, placering (Fase 7)
 
 ## Goodhart-advarsel

@@ -35,6 +35,49 @@ def test_apply_keeps_comments_and_applies_valid_changes():
     assert data["spawns"]["CT"]["offset"] == [64, 0]
 
 
+def test_apply_new_geometry_change_types():
+    changes = [
+        {"type": "add_cover", "params": {"zone": "mid_top", "position": [0, 656],
+                                         "size": [128, 128, 16], "z": 96}},
+        {"type": "add_window", "params": {"from": "mid", "to": "mid_top", "width": 96,
+                                          "sill": 96, "height": 64, "offset": 256, "glass": True}},
+        {"type": "add_connection", "params": {"from": "mid_to_b", "to": "t_b_cut", "kind": "vent",
+                                              "width": 64, "offset": 64}},
+        {"type": "set_gate", "params": {"target": "d_t_mid", "gate": "sliding"}},
+        {"type": "add_ramp", "params": {"zone": "mid_s", "axis": "+y", "rise": 32, "length": 64,
+                                        "start": 256}},
+        {"type": "add_wedge", "params": {"zone": "mid_top", "corner": "sw", "size": [128, 128]}},
+        {"type": "add_ladder", "params": {"zone": "mid_top", "wall": "+y", "height": 112,
+                                          "pos": -400}},
+        {"type": "remove_element", "params": {"target": "mid_top_wedge"}},
+        {"type": "add_ramp", "params": {"zone": "t_spawn", "axis": "+y", "rise": 32,
+                                        "length": 64}},
+    ]  # fmt: skip
+    new, applied, failed = apply_plan(LAYOUT, changes)
+    assert [f["type"] for f in failed] == ["add_ramp"] and "spawn" in failed[0]["reason"]
+    assert len(applied) == 8
+    data = yaml.safe_load(new)
+    win = next(d for d in data["doors"] if d["name"] == "w_mid_mid_top")
+    assert win["kind"] == "window" and win["glass"] and win["sill"] == 96
+    assert next(d for d in data["doors"] if d["name"] == "d_t_mid")["gate"] == "sliding"
+    assert not data.get("wedges") and data["ramps"][0]["area"] == "mid_s"
+    assert next(c for c in data["cover"] if c.get("z") == 96)["area"] == "mid_top"
+
+
+def test_policy_counts_windows_per_iteration_and_uses_per_map_locks():
+    from mapforge.decide.policy import check_plan, load_fitness, locked_for
+
+    f = load_fitness()
+    w = {"type": "add_window", "rationale": "r",
+         "params": {"from": "a", "to": "b", "width": 96, "sill": 80}}  # fmt: skip
+    plan = {"summary": "s", "changes": [w, w], "expected_effect": "e", "risk": "r",
+            "escalate": False}  # fmt: skip
+    v = check_plan(plan, f)
+    assert len(v.accepted) == 1 and "at most 1" in v.rejected[0]["reason"]
+    assert locked_for(f, "de_vault01")["topology"] == ""
+    assert locked_for(f, "de_forge01") == f["locked"]
+
+
 def test_apply_refuses_locked_and_ungeneratable_changes():
     _, applied, failed = apply_plan(
         LAYOUT,

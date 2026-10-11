@@ -13,6 +13,17 @@ locked:
   landmarks: []          # none yet (graybox); named at the art pass
   geometry_frozen: false # true after Gate B
 
+# Per-map locked decisions (decide.policy.locked_for): a map listed here uses its own entry
+# instead of `locked` above. Test maps of the engine start empty (no Gate A yet).
+locked_maps:
+  de_vault01:
+    theme: ""
+    map_type: "de"
+    topology: ""           # engine test map: nothing locked until a Gate A
+    site_locations: []
+    landmarks: []
+    geometry_frozen: false
+
 # Bot-data targets (>= 100 rounds per measurement). Changed 2026-10-10 after the design
 # research (docs/DESIGN_GUIDE.md §9): YaPB cannot see a map, so bot numbers are sanity checks and
 # bug finders, not the balance verdict (that is the human playtest at Gate C). The structural
@@ -60,8 +71,8 @@ allowed_changes:
     params: [target, length_delta]   # units, + longer / - shorter
     max_abs_delta: 256
   add_cover:
-    description: Add a box/wall as cover inside a zone
-    params: [zone, position, size]   # position [x, y], size [w, d, h]
+    description: Add a box/wall as cover inside a zone; with z a platform, bridge or a crate stacked on another (boost spot)
+    params: [zone, position, size]   # position [x, y], size [w, d, h]; optional z (bottom above the floor), texture
   remove_cover:
     description: Remove a piece of cover
     params: [target]
@@ -74,8 +85,8 @@ allowed_changes:
     params: [team, delta]
     max_abs_delta: 256
   add_connection:
-    description: Add a secondary connection between two areas
-    params: [from, to]
+    description: Add a secondary connection between two areas (kind door, or vent = crouch route, height 40-64)
+    params: [from, to]               # optional width, offset, kind, height
     before_gate_b_only: true
     max_per_iteration: 1
   remove_connection:
@@ -93,6 +104,26 @@ allowed_changes:
     params: [target]
     before_gate_b_only: true
     requires_annotation: true        # only when a human annotation asks for it
+  add_window:
+    description: A window between two areas one wall apart (sightline/info, not a route); optional breakable glass
+    params: [from, to, width, sill]  # sill >= 64 above the higher floor; optional height, offset, glass
+    max_per_iteration: 1
+  set_gate:
+    description: Put an openable door leaf in an opening (sliding / rotating) or take it out (none)
+    params: [target, gate]
+  add_ramp:
+    description: A sloped floor (<= 45 degrees) across an area; the rest of the area is raised (not in spawn areas)
+    params: [zone, axis, rise, length] # axis +x/-x/+y/-y = uphill; optional start
+  add_wedge:
+    description: An angled wall cutting a corner of an area (triangular solid; two opposite ones = diagonal corridor)
+    params: [zone, corner, size]     # corner ne/nw/se/sw, size [dx, dy] legs (equal = 45 degrees)
+  add_ladder:
+    description: A ladder against a wall of an area up to a platform or upper level
+    params: [zone, wall, height]     # wall +x/-x/+y/-y; optional pos (along the wall)
+    before_gate_b_only: true
+  remove_element:
+    description: Remove a ramp, angled wall, ladder, cover, stairs or window by name
+    params: [target]
   lighting:
     description: Light intensity, colour or position
     params: [target]

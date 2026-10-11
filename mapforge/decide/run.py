@@ -21,7 +21,7 @@ from typing import Any
 import yaml
 
 from mapforge.config import Config, load_config
-from mapforge.decide.policy import PLAN_SCHEMA, check_plan, load_fitness
+from mapforge.decide.policy import PLAN_SCHEMA, check_plan, load_fitness, locked_for
 from mapforge.runs import collect, iterations, new_iteration
 
 
@@ -32,13 +32,13 @@ def _rel(path: Path, root: Path) -> str:
         return path.resolve().as_posix()
 
 
-def toolbox_text(fitness: dict[str, Any]) -> str:
+def toolbox_text(fitness: dict[str, Any], map_name: str | None = None) -> str:
     lines = []
     for name, spec in fitness["allowed_changes"].items():
         limits = {k: v for k, v in spec.items() if k not in ("description", "params")}
         extra = f" – grænser: {limits}" if limits else ""
         lines.append(f"- `{name}`: {spec['description']}; params {spec['params']}{extra}")
-    locked = yaml.safe_dump(fitness.get("locked", {}), allow_unicode=True, sort_keys=False)
+    locked = yaml.safe_dump(locked_for(fitness, map_name), allow_unicode=True, sort_keys=False)
     return "\n".join(lines) + f"\n\nLåste beslutninger (config/fitness.yaml):\n```yaml\n{locked}```"
 
 
@@ -72,7 +72,7 @@ def emit_into(cfg: Config, map_name: str, run_dir: Path, loop: str = "") -> Path
         stage=json.dumps(manifest["stage"], indent=2, ensure_ascii=False),
         files=files,
         notes=notes,
-        toolbox=toolbox_text(load_fitness(root)),
+        toolbox=toolbox_text(load_fitness(root), map_name),
         loop=loop or "(enkeltstående Decide, ikke en del af et loop)",
         annotations=annotations_text(cfg, map_name),
     )
@@ -86,7 +86,7 @@ def answer(cfg: Config, run_dir: Path, phase: float) -> dict[str, Any]:
     if not plan_path.is_file():
         raise RuntimeError(f"no plan.json in {run_dir}")
     plan = json.loads(plan_path.read_text(encoding="utf-8"))
-    verdict = check_plan(plan, load_fitness(cfg.root), phase)
+    verdict = check_plan(plan, load_fitness(cfg.root), phase, run_dir.parent.name)
     decision = {
         **verdict.to_dict(),
         "escalate": bool(plan.get("escalate")),
