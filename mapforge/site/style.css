@@ -254,3 +254,12 @@ button.on, button.primary { background: var(--accent-soft); border-color: var(--
 .vmain .kpis { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 .vmain .kpi b { font-size: 21px; }
 @media (max-width: 900px) { .vhead { grid-template-columns: 1fr; } }
+
+.pcard.newcard { display: grid; grid-template-rows: auto 1fr; border-style: dashed; }
+.pcard.newcard .plus { aspect-ratio: 16 / 10; display: grid; place-items: center; font: 300 96px var(--head); color: var(--accent); background: repeating-linear-gradient(45deg, transparent 0 14px, rgba(242, 169, 59, .05) 14px 28px); border-bottom: 1px dashed var(--line); }
+.pcard.newcard:hover .plus { background-color: rgba(242, 169, 59, .08); }
+.pcard .img.brief { background: repeating-linear-gradient(0deg, transparent 0 31px, #1c2228 31px 32px), repeating-linear-gradient(90deg, transparent 0 31px, #1c2228 31px 32px), #0c0f12; }
+#newmap { display: grid; gap: 12px; }
+#newmap label { display: grid; gap: 6px; font-weight: 600; }
+#newmap input, #newmap textarea { font: inherit; color: inherit; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.card.brief { white-space: pre-wrap; }

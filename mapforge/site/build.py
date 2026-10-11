@@ -37,6 +37,9 @@ ANN_VERSION = (
     .sha256(Path(__file__).with_name("annotate.js").read_bytes())
     .hexdigest()[:8]
 )
+NEW_VERSION = (
+    __import__("hashlib").sha256(Path(__file__).with_name("newmap.js").read_bytes()).hexdigest()[:8]
+)
 JS_VERSION = (
     __import__("hashlib").sha256(Path(__file__).with_name("live.js").read_bytes()).hexdigest()[:8]
 )
@@ -450,12 +453,54 @@ def live_block(cfg: Config, name: str) -> str:
             f"<script>const LIVE_MAP = {json.dumps(name)}; const MAPS = {json.dumps(maps)};</script>")  # fmt: skip
 
 
+def brief_of(cfg: Config, name: str) -> dict[str, Any] | None:
+    """maps/<name>/brief.json: a map project started from the dashboard (description)."""
+    return _load(cfg.path("maps_dir") / name / "brief.json")
+
+
+GRID_PX = 1024
+
+
+def brief_grid(out: Path) -> None:
+    """A blank drawing grid for briefs (no geometry yet): img/brief_grid.png over BRIEF_CANVAS."""
+    from PIL import Image, ImageDraw
+
+    from mapforge.live.collector import BRIEF_CANVAS
+
+    x0, y0, x1, y1 = BRIEF_CANVAS
+    im = Image.new("RGB", (GRID_PX, GRID_PX), (12, 15, 18))
+    d = ImageDraw.Draw(im)
+    for u in range(x0, x1 + 1, 256):
+        px = (u - x0) / (x1 - x0) * GRID_PX
+        col = (52, 62, 72) if u % 1024 == 0 else (28, 34, 40)
+        w = 2 if u == 0 else 1
+        d.line([(px, 0), (px, GRID_PX)], fill=col, width=w)
+        d.line([(0, GRID_PX - px), (GRID_PX, GRID_PX - px)], fill=col, width=w)
+    d.text((GRID_PX - 22, 8), "N", fill=(220, 220, 220))
+    bar = 1024 / (x1 - x0) * GRID_PX
+    d.rectangle([12, GRID_PX - 18, 12 + bar, GRID_PX - 13], fill=(220, 220, 220))
+    d.text((12, GRID_PX - 34), "1024 units (ca. 4 s lob)", fill=(220, 220, 220))
+    d.text((12, 8), "T-spawn typisk mod syd, CT mod nord (vejledende)", fill=(140, 150, 160))
+    (out / "img").mkdir(parents=True, exist_ok=True)
+    im.save(out / "img" / "brief_grid.png")
+
+
 def annotate_section(cfg: Config, name: str) -> str:
-    """Draw wishes on the map (point / area / line + text) for the loop's Decide step."""
-    view = topdown_view(cfg, name)
-    if not view or not (cfg.path("maps_dir") / name).is_dir():
+    """Draw wishes on the map (point / area / line + text) for the loop's Decide step; a brief
+    without geometry yet gets the blank grid."""
+    from mapforge.live.collector import BRIEF_CANVAS
+
+    if not (cfg.path("maps_dir") / name).is_dir():
         return ""
-    ann = {"map": name, "img": "img/topdown.png", "rect": view["world_rect"], "size": view["size"]}
+    view = topdown_view(cfg, name)
+    if view:
+        ann = {"map": name, "img": "img/topdown.png", "rect": view["world_rect"],
+               "size": view["size"]}  # fmt: skip
+    elif brief_of(cfg, name):
+        ann = {"map": name, "img": "../../img/brief_grid.png", "rect": BRIEF_CANVAS,
+               "size": [GRID_PX, GRID_PX]}  # fmt: skip
+    else:
+        return ""
     return (
         "<section id='annotate' class='panel'><h2><span class='no'>1</span>Input – dine ønsker til mappet</h2>"
         "<p class='muted'>Første fase i hver iteration: dit input. Skriv et ønske som <b>tekst</b> (hele mappet), eller tegn på kortet – fx et <b>punkt</b> med \"flere kasser her\", "
@@ -470,6 +515,40 @@ def annotate_section(cfg: Config, name: str) -> str:
         "<p class='annmsg muted small'></p><h3>Ønsker</h3><ul class='annlist'></ul></div></div>"
         f"<script>const ANN = {json.dumps(ann)};</script><script src='../../annotate.js?v={ANN_VERSION}'></script></section>"
     )  # fmt: skip
+
+
+def new_page() -> str:
+    """Start a map: name + description (POST /api/maps), then sketch on a blank grid."""
+    from mapforge.live.collector import BRIEF_CANVAS
+
+    new = {"img": "img/brief_grid.png", "rect": BRIEF_CANVAS, "size": [GRID_PX, GRID_PX],
+           "annotate": f"annotate.js?v={ANN_VERSION}"}  # fmt: skip
+    return (
+        "<section><span class='eyebrow'>Egne maps</span><h1>Nyt map</h1><p class='muted'>Beskriv mappet, "
+        "og tegn bagefter, hvad du forestiller dig: sites, ruter, et landmærke, en stemning. Tegningen er "
+        "vejledende; Claude laver et layout (<code>layout.yaml</code>) ud fra begge dele, og loopet "
+        "itererer derfra. Gemmes i <code>maps/&lt;navn&gt;/brief.json</code> og "
+        "<code>annotations.json</code>.</p></section>"
+        "<form id='newmap' class='panel'><h2><span class='no'>1</span>Beskrivelse</h2>"
+        "<label>Navn <input name='name' required pattern='de_[a-z0-9_]{2,28}' placeholder='de_harbour01'>"
+        "</label><label>Beskrivelse <textarea name='description' rows='6' required minlength='10' "
+        "maxlength='4000' placeholder='Fx: En havn ved nat. A er et lagerhus med en kran, B ligger på "
+        "kajen. Mid er en smal gyde med et vindue ud mod vandet. CT bør kunne rotere på under 12 s.'>"
+        "</textarea></label><div class='phases'><button class='primary'>Opret og tegn</button></div>"
+        "<p class='annmsg muted small'></p></form>"
+        "<section id='annotate' class='panel' hidden><h2><span class='no'>2</span>Tegn – "
+        "<span class='mapname'></span></h2><p class='muted'>Punkt, område, streg eller kun tekst – med et "
+        "ønske til hver. Et felt er 256 units.</p>"
+        "<div class='annwrap'><div><div class='phases tools'><button data-tool='point' class='on'>● Punkt"
+        "</button><button data-tool='rect'>▭ Område</button><button data-tool='path'>✎ Streg</button>"
+        "<button data-tool='note'>¶ Kun tekst</button></div><canvas class='anncanvas'></canvas></div>"
+        "<div class='annside'><textarea rows='3' maxlength='500' placeholder='Hvad skal der være her?'>"
+        "</textarea><div class='phases'><button class='annsave primary'>Gem ønske</button>"
+        "<button class='anncancel'>Annullér</button></div><p class='annmsg muted small'></p>"
+        "<h3>Ønsker</h3><ul class='annlist'></ul>"
+        "<p><a id='done' class='chip ok'>Færdig – til map-siden →</a></p></div></div></section>"
+        f"<script>const NEW = {json.dumps(new)};</script><script src='newmap.js?v={NEW_VERSION}'></script>"
+    )
 
 
 def live_page(cfg: Config, maps: list[str], out: Path) -> str:
@@ -526,6 +605,8 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
         st["source"] or "", "ikke valideret endnu"
     )
     nxt = f"Næste trin: <b>{e(st['next'] or '-')}</b> – {e(st['why'] or '')}"
+    if brief_of(cfg, name) and not (cfg.path("maps_dir") / name / "layout.yaml").is_file():
+        nxt = "Næste trin: <b>layout</b> – Claude laver <code>layout.yaml</code> ud fra din beskrivelse og tegning"
     cur, cur_text = current_phase(cfg, name, st)
     img = ""
     if st["thumb"]:
@@ -538,6 +619,16 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
              f"{e(src)}</span><h1>{e(name)}</h1><p class='muted'>{nxt}</p></div>"
              f"{bar}<p class='nowline'>▸ {e(cur_text)}</p>"
              f"{kpis(b)}</div></section>"]  # fmt: skip
+
+    brief = brief_of(cfg, name)
+    if brief:
+        has_layout = (cfg.path("maps_dir") / name / "layout.yaml").is_file()
+        state = ("Layout lavet ud fra briefen." if has_layout else
+                 "Venter på layout: Claude laver <code>layout.yaml</code> ud fra beskrivelsen og dine "
+                 "tegninger.")  # fmt: skip
+        parts.append(f"<section class='panel'><h2><span class='no'>1</span>Input – din beskrivelse</h2>"
+                     f"<p class='muted small'>Startet {e(brief.get('created', ''))} fra dashboardet · {state}</p>"
+                     f"<div class='card brief'>{e(brief.get('description', ''))}</div></section>")  # fmt: skip
 
     from mapforge.site.versions import render_versions
 
@@ -832,8 +923,13 @@ def build_site(cfg: Config) -> Path:
     own = [m for m in maps if map_status(cfg, m)["source"] != "reference"]
     refs = sorted((m for m in maps if m not in own), key=lambda m: (-progress(m), m))
     rows = []
+    new_card = ("<a class='pcard newcard' href='new.html'><div class='plus'>+</div><div class='body'>"
+                "<div class='name'>Nyt map</div><p class='muted small'>Start med en beskrivelse og tegn, "
+                "hvad du forestiller dig.</p></div></a>")  # fmt: skip
+    rows.append(f"<section><h2>Egne maps</h2><p class='muted'>Maps vi selv genererer og compiler.</p>"
+                f"<div class='cards' data-own-maps='{e(json.dumps(own))}'>{new_card}"
+                f"{''.join(card(m) for m in own)}</div></section>")  # fmt: skip
     for title, group, note in (
-        ("Egne maps", own, "Maps vi selv genererer og compiler."),
         (
             "Referencemaps",
             refs,
@@ -846,12 +942,16 @@ def build_site(cfg: Config) -> Path:
     home = ("<section><span class='eyebrow'>Oversigt</span><h1>Projekter</h1><p class='muted'>Ét "
             "projekt pr. map. Bjælken viser pipelinens faser: grøn = kørt og bestået, rød = kørt og "
             "fejlet, stiplet = ikke kørt. <a href='architecture.html'>Arkitektur og roadmap</a>.</p></section>"
-            f"{''.join(rows)}")  # fmt: skip
+            f"{''.join(rows)}<script src='newmap.js?v={NEW_VERSION}'></script>")  # fmt: skip
     (out / "live.html").write_text(
         _page("MapForge – live", live_page(cfg, maps, out), 0, "live", maps), encoding="utf-8"
     )
     shutil.copy2(Path(__file__).with_name("live.js"), out / "live.js")
     shutil.copy2(Path(__file__).with_name("annotate.js"), out / "annotate.js")
+    shutil.copy2(Path(__file__).with_name("newmap.js"), out / "newmap.js")
+    brief_grid(out)
+    (out / "new.html").write_text(_page("MapForge – nyt map", new_page(), 0, "nyt map", maps),
+                                  encoding="utf-8")  # fmt: skip
     (out / "index.html").write_text(_page("MapForge – projekter", home, 0, "home", maps),
                                     encoding="utf-8")  # fmt: skip
     for m in maps:
@@ -859,8 +959,10 @@ def build_site(cfg: Config) -> Path:
         mdir.mkdir(parents=True, exist_ok=True)
         body = map_page(cfg, m, mdir)
         hist = annotate_section(cfg, m)
-        if hist:  # right after the project header
+        if hist:  # right after the project header (and the brief, if the map started as one)
             cut = body.index("</section>") + len("</section>")
+            if brief_of(cfg, m):
+                cut = body.index("</section>", cut) + len("</section>")
             body = body[:cut] + hist + body[cut:]
         body += f"<script src='../../live.js?v={JS_VERSION}'></script>"
         (mdir / "index.html").write_text(

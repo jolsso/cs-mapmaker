@@ -7,6 +7,7 @@ state per run and streams it to browsers. Standard library only; nothing is writ
   UDP  :27500  in   (docker network mapforge-sim; containers reach it as "mapforge-live")
   HTTP :8090   out  GET /events (text/event-stream, ~4 updates/s), GET /state (JSON)
                    GET/POST/DELETE /api/annotations/<map>: the human's wishes drawn on the map
+                   GET/POST /api/maps: new map projects (brief.json: name + description)
                    page (maps/<map>/annotations.json, mapforge.annotations); writes only from
                    the dashboard's origin (MAPFORGE_SITE_ORIGINS)
 
@@ -173,6 +174,78 @@ async def annotations_api(
         _respond(writer, 400, {"error": str(exc)}, allow)
 
 
+NEW_MAP_NAME = re.compile(r"^de_[a-z0-9_]{2,28}$")
+
+
+def create_map(name: str, description: str) -> dict[str, Any]:
+    """A new map project from the dashboard: maps/<name>/brief.json (description), no layout yet
+    (Claude drafts layout.yaml from the brief and the drawn annotations)."""
+    if not NEW_MAP_NAME.match(name):
+        raise ValueError("name: de_ + 2-28 lower-case letters, digits or _ (e.g. de_harbour01)")
+    description = description.strip()
+    if not 10 <= len(description) <= 4000:
+        raise ValueError("description: 10-4000 characters")
+    d = MAPS_DIR / name
+    if d.exists():
+        raise ValueError(f"{name} exists already")
+    d.mkdir(parents=True)
+    brief = {"name": name, "description": description, "created": time.strftime("%Y-%m-%d %H:%M"),
+             "status": "brief", "canvas": BRIEF_CANVAS}  # fmt: skip
+    (d / "brief.json").write_text(json.dumps(brief, indent=2, ensure_ascii=False), encoding="utf-8")
+    return brief
+
+
+def list_briefs() -> list[dict[str, Any]]:
+    out = []
+    for f in sorted(MAPS_DIR.glob("*/brief.json")):
+        try:
+            b = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        b["has_layout"] = (f.parent / "layout.yaml").is_file()
+        out.append(b)
+    return out
+
+
+# The drawing area of a brief before any geometry exists: world units (x0, y0, x1, y1).
+BRIEF_CANVAS = [-3072, -3072, 3072, 3072]
+
+
+async def maps_api(
+    method: str, path: str, headers: dict[str, str], body: bytes, writer: asyncio.StreamWriter
+) -> None:
+    """GET /api/maps (briefs) · POST /api/maps {name, description} (dashboard origin only)."""
+    origin = headers.get("origin", "")
+    allow = origin if origin in SITE_ORIGINS else "null"
+    if method == "OPTIONS":
+        writer.write(
+            f"HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: {allow}\r\nVary: Origin\r\n"
+            "Access-Control-Allow-Methods: GET, POST\r\nAccess-Control-Allow-Headers: Content-Type\r\n"
+            "Content-Length: 0\r\n\r\n".encode()
+        )
+        return
+    if method == "GET":
+        _respond(writer, 200, list_briefs(), allow)
+        return
+    if origin not in SITE_ORIGINS:
+        _respond(writer, 403, {"error": "writes only from the local dashboard"}, allow)
+        return
+    try:
+        if method != "POST":
+            raise ValueError("unsupported")
+        if headers.get("content-type", "").split(";")[0].strip() != "application/json":
+            raise ValueError("Content-Type must be application/json")
+        req = json.loads(body.decode("utf-8"))
+        _respond(
+            writer,
+            201,
+            create_map(str(req.get("name", "")), str(req.get("description", ""))),
+            allow,
+        )
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        _respond(writer, 400, {"error": str(exc)}, allow)
+
+
 async def http(state: State, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
     try:
         line = (await reader.readline()).decode("latin-1")
@@ -184,10 +257,11 @@ async def http(state: State, reader: asyncio.StreamReader, writer: asyncio.Strea
             k, _, v = h.decode("latin-1").partition(":")
             headers[k.strip().lower()] = v.strip()
         method, path = ([*line.split(" "), "", ""])[:2]
-        if path.startswith("/api/annotations"):
+        if path.startswith("/api/annotations") or path.split("?")[0].rstrip("/") == "/api/maps":
             length = min(int(headers.get("content-length", "0") or 0), 200_000)
             body = await reader.readexactly(length) if length else b""
-            await annotations_api(method, path, headers, body, writer)
+            api = annotations_api if path.startswith("/api/annotations") else maps_api
+            await api(method, path, headers, body, writer)
             await writer.drain()
             return
         if path.startswith("/events"):

@@ -82,6 +82,8 @@ Den visuelle vurdering laves **i Claude Code-sessionen**, ikke af et separat API
 3. `./mf review MAP=<navn> -- --answer` validerer svaret og afgør pass/fail (ingen `critical`/`major`). Pass-reglen ligger i koden, ikke i modellen.
 Decide følger samme mønster: `./mf decide -- --emit` → en subagent læser `runs/<map>/<NNN>/decide_prompt.md` og skriver `plan.json` + `NOTES.md` → `./mf decide -- --answer`.
 **Loopet** (`./mf loop`) bruger samme mønster: når det stopper med exit 3 ("AWAITING review/decide"), start en frisk subagent med den nævnte prompt-fil, lad den skrive svar-filen, og kør `./mf loop MAP=<navn>` igen. Gentag til loopet stopper (exit 0); læs `runs/<map>/LOOP.md`. Ved en gate eller eskalering: stop og skriv en opsummering til mennesket.
+**Nye maps fra dashboardet** ("+ Nyt map" på forsiden, `POST /api/maps` i live-containeren): `maps/<navn>/brief.json` (beskrivelse) + `annotations.json` (skitse på et tomt gitter, verdenskoordinater ±3072). Claude laver `layout.yaml` ud fra begge (DESIGN_GUIDE, LAYOUT_SPEC; skitsen er vejledende, designreglerne gælder), tilføjer en tom `locked_maps.<navn>` i `config/fitness.yaml`, kører generate → validate → render og starter loopet. Skitsens ønsker markeres som udført i første iteration.
+
 Ubemandede kørsler (uden åben session) kan bruge `uv run task review MAP=<navn> -- --headless` på værten (`claude -p`, samme prompt/skema/regel).
 
 ## Compiler

@@ -140,7 +140,8 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [x] Nyt testmap `de_vault01` med alle features: validering 0 errors/0 warnings; gangbarhedsgrafen klatrer op ad stigen
 - [x] Loopet itererer på de_vault01: review-fund (mid ind i CT-spawn, tunnel-sigtelinje) rettet i iteration 001; alle mål ramt 2 målinger i træk (score 0,0; T 0,46 / 0,59, A-plants 0,49 / 0,48) → Gate B. Review genbruges ved byte-identisk .map
 - [x] Pakke 2: ottekantede søjler, knusbart cover (`func_breakable`), lys pr. område, spotlys (`light_spot`), teksturlys (`<map>.rad` → hlrad `-lights`), rumklang (`env_sound` efter størrelse), lemme mellem stablede etager med stige, vand (`!WATER`), diagonal-korridor som makro; værktøjskassen: `set_breakable`, `add_hatch`, `add_water`
-- [ ] Nyt testmap til pakke 2: `de_cistern01`
+- [x] Nyt testmap til pakke 2: `de_cistern01` (B under jorden med ramper, kontor over B via lem og stige, vand, ottekantede søjler, knusbare kasser, spot-/teksturlys, rumklang); review bestået (3,6)
+- [x] Dashboard: "+ Nyt map" – start et map med en beskrivelse og en skitse (brief.json + annotations på et tomt gitter); Claude laver layoutet ud fra dem
 - [ ] Skrå korridorer i vilkårlig vinkel (i dag 45° og grid-forhold via kilernes kateter), flere niveauer med overlap i højden (broer over korridorer)
 
 **Accept:** et genereret map med de nye features compiler, validerer uden fejl, simuleres (YaPB når begge sites) og forbedres af loopet uden manuelle trin.

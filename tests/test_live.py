@@ -25,3 +25,19 @@ def test_collector_tracks_positions_kills_and_rounds():
     assert r["rounds"][-1]["winner"] == "T" and r["score"] == {"T": 2, "CT": 2}
     s.handle("Q|b01s0|de_x|done")
     assert s.snapshot()["runs"][0]["done"]
+
+
+def test_new_map_brief(tmp_path, monkeypatch):
+    import pytest
+
+    from mapforge.live import collector
+
+    monkeypatch.setattr(collector, "MAPS_DIR", tmp_path)
+    b = collector.create_map("de_harbour01", "En havn ved nat med et lagerhus på A.")
+    assert (tmp_path / "de_harbour01" / "brief.json").is_file() and b["status"] == "brief"
+    assert [x["name"] for x in collector.list_briefs()] == ["de_harbour01"]
+    for name, desc, msg in (("de_harbour01", "a valid description", "exists"),
+                            ("../evil", "a valid description", "name"),
+                            ("de_ok01", "short", "description")):  # fmt: skip
+        with pytest.raises(ValueError, match=msg):
+            collector.create_map(name, desc)
