@@ -75,8 +75,11 @@ buyzones: true                # func_buyzone over hvert spawn-område
 Alt er valgfrit; et layout uden disse nøgler genereres byte for byte som før.
 
 ```yaml
-detail: true                  # cover, trapper, ramper og kiler i én func_detail (SDHLT): blokerer og lyses
-                              # som world, men splitter ikke vis-leaves (færre leaves, hurtigere VIS)
+detail: false                 # lave solider (trapper, ramper, kasser <= 128 høje) i én func_detail (SDHLT): blokerer
+                              # som world, men splitter ikke vis-leaves. Kiler og høje solider forbliver world
+                              # (de lukker sigtelinjer for VIS, og CSG fjerner fladerne bag dem).
+                              # ⚠️ VERIFICÉR: med fast-RAD bliver func_detail-flader mørke i vores renders
+                              # (lightmap findes, style 0). Standard er derfor false.
 zones:                        # identitet/callouts: tekstur- og lyssæt pr. zone
   a: {floor: DEV_FLOOR_RED, wall: DEV_WALL_RED, ceiling: DEV_CEIL_RED, cover: DEV_METAL,
       light: {color: [255, 200, 180], brightness: 240}}

@@ -24,6 +24,7 @@ from mapforge.mapfile.writer import box_brush, entity, polyhedron_brush, prism_b
 
 WORLD_LIMIT = 4096
 EMPTY, SOLID, SKY = 0, 1, 2
+DETAIL_MAX_H = 128  # func_detail only for solids up to this height above their floor
 ZONE_LABEL = 10  # solid cells owned by zone k get ZONE_LABEL + k (keeps zones in separate boxes)
 
 Box = tuple[tuple[int, int, int], tuple[int, int, int]]
@@ -223,9 +224,9 @@ def _stair_clips(layout: Layout, tex: str) -> list[Brush]:
     return out
 
 
-def _ramp_brushes(layout: Layout, surf) -> list[Brush]:
+def _ramp_brushes(layout: Layout, surf, ramps: list | None = None) -> list[Brush]:
     out = []
-    for rp in layout.ramps:
+    for rp in layout.ramps if ramps is None else ramps:
         a = layout.areas[rp.area]
         along, sign, begin, end = _along(a, rp.axis, rp.start)
         top = begin + sign * rp.length
@@ -341,29 +342,32 @@ def generate(layout: Layout) -> Generated:
         world.brushes.append(box_brush(b_lo, b_hi, t))
     n_shell = len(world.brushes)
 
-    # Solids inside the empty space. With `detail`, they go into one func_detail (SDHLT): they
-    # still block and are lit like world, but do not split vis leaves.
-    inner: list[Brush] = []
+    # Solids inside the empty space. With `detail`, the low ones (stairs, ramps, crates: top at
+    # most DETAIL_MAX_H above the floor) go into one func_detail (SDHLT): they still block and
+    # are lit like world, but do not split vis leaves. Wall-like solids (angled walls, pillars,
+    # anything taller) stay structural: they seal sightlines for VIS and the world faces behind
+    # them are removed by CSG.
+    inner: list[tuple[Brush, int]] = []  # (brush, height above the area floor)
     for (b_lo, b_hi), a in _stair_boxes(layout):
-        inner.append(box_brush(b_lo, b_hi, surf(a)))
-    inner += _ramp_brushes(layout, surf)
-    inner += _wedge_brushes(layout, surf)
+        inner.append((box_brush(b_lo, b_hi, surf(a)), b_hi[2] - a.floor))
+    for rp in layout.ramps:
+        inner += [(b, rp.rise) for b in _ramp_brushes(layout, surf, [rp])]
+    walls = _wedge_brushes(layout, surf)
     for c in layout.cover:
         a = areas[c.area]
         (px, py), (w, d, h) = c.pos, c.size
         z0 = a.floor + c.z
-        inner.append(
-            box_brush(
-                (px - w // 2, py - d // 2, z0),
-                (px + w // 2, py + d // 2, z0 + h),
-                c.texture or tex_of(a)["cover"],
-            )
+        brush = box_brush(
+            (px - w // 2, py - d // 2, z0),
+            (px + w // 2, py + d // 2, z0 + h),
+            c.texture or tex_of(a)["cover"],
         )
+        inner.append((brush, c.z + h))
     ents = [world]
-    if layout.detail and inner:
-        ents.append(entity({"classname": "func_detail", "zhlt_detaillevel": "1"}, inner))
-    else:
-        world.brushes += inner
+    detail = [b for b, top in inner if layout.detail and top <= DETAIL_MAX_H]
+    world.brushes += walls + [b for b, top in inner if not (layout.detail and top <= DETAIL_MAX_H)]
+    if detail:
+        ents.append(entity({"classname": "func_detail", "zhlt_detaillevel": "1"}, detail))
     world.brushes += _stair_clips(layout, tex["clip"])
 
     # Openings: glass panes and door leaves fill the opening's box.
@@ -493,7 +497,7 @@ def generate(layout: Layout) -> Generated:
         ents.append(entity(props))
 
     stats = {
-        "brushes": len(world.brushes) + (len(inner) if layout.detail else 0),
+        "brushes": len(world.brushes) + len(detail),
         "shell_brushes": n_shell,
         "areas": len(areas),
         "doors": len(layout.doors),

@@ -114,8 +114,9 @@ def test_all_brushes_are_valid_convex_solids_on_the_grid():
 
 def test_wedge_is_a_triangle_with_a_45_degree_wall():
     g = generate(feat())
-    det = next(e for e in g.mapfile.entities if e.classname == "func_detail")
-    tris = [brush_geometry(b).vertices for b in det.brushes if len(b.faces) == 5]
+    # angled walls are structural (world), low solids go to func_detail
+    world = g.mapfile.worldspawn.brushes
+    tris = [brush_geometry(b).vertices for b in world if len(b.faces) == 5]
     b_wedge = next(v for v in tris if v[:, 0].min() == -496 and v[:, 1].min() == -656)
     xy = {(round(x), round(y)) for x, y, _ in b_wedge}
     assert xy == {(-496, -656), (-304, -656), (-496, -464)}

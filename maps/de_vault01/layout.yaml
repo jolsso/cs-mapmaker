@@ -1,0 +1,140 @@
+# de_vault01 – engine test map for the extended generator (2026-10-11): ramps, angled walls,
+# a two-level site with catwalk and ladder, a glass window, a rotating gate, stair clips, zones.
+# Not a release candidate: it exists so the loop has something new to iterate on.
+name: de_vault01
+grid: 16
+wall: 16
+detail: false
+
+concept: "Hvælvingen: A er en solbagt gård op ad en rampe, B er en høj bankhal med catwalk; mid er en skrå hal med metalsøjler"
+archetype: asymmetric
+landmarks:
+  - {name: Søjlerne, element: mid_pillar, zone: mid, function: "callout; bryder sigtelinjen mid_s → mid_n"}
+  - {name: Catwalken, element: b_catwalk, zone: b_site, function: "hævet CT-hold over B, nås ad stigen"}
+  - {name: Glasvinduet, element: w_short_ramp, zone: a_short_up, function: "info fra short ind på A-rampen"}
+chokes:
+  - {name: Long-porten, door: d_long_choke, type: doorway, engagement: long, utility: smoke}
+  - {name: Short-trappen, door: d_short_choke, type: doorway, engagement: close, utility: flash}
+  - {name: Tunnel-mundingen, door: d_b_choke, type: doorway, engagement: close, utility: molotov}
+irregularities:
+  - {element: b_diag, purpose: "skrå korridor bryder gitteret og skjuler tunnelen fra T-siden"}
+  - {element: a_ramp, purpose: "rampen giver A højdefordel for forsvaret"}
+intended_strategies:
+  T: ["rush B gennem den skrå gang og tunnelen", "mid → short A via glasvinduet", "long A med smoke på porten"]
+  CT: ["2-1-2 (A-rampen, mid_n, B-catwalk)", "stack B fra catwalken, retake A via ct_to_a"]
+
+zones:
+  t: {floor: DEV_FLOOR_RED, wall: DEV_WALL_RED, ceiling: DEV_CEIL_RED, light: {color: [255, 214, 190]}}
+  mid: {floor: DEV_FLOOR_GREY, wall: DEV_WALL_GREY, ceiling: DEV_CEIL_GREY, cover: DEV_METAL}
+  a: {floor: DEV_FLOOR_SAND, wall: DEV_WALL_SAND, ceiling: DEV_CEIL_SAND, light: {color: [255, 236, 200]}}
+  b: {floor: DEV_FLOOR_BLUE, wall: DEV_WALL_BLUE, ceiling: DEV_CEIL_BLUE, cover: DEV_BRICK,
+      light: {color: [210, 225, 255], brightness: 240}}
+  ct: {floor: DEV_FLOOR_GREEN, wall: DEV_WALL_GREEN, ceiling: DEV_CEIL_GREEN}
+
+sky:
+  name: desert
+  sun: {pitch: -55, yaw: 120, color: [255, 238, 210], brightness: 300, ambient: 100}
+
+areas:
+  # T side (south)
+  - {name: t_spawn, rect: [-512, -2560, 512, -1984], height: 256, outdoor: true, role: t_spawn, zone: t}
+  - {name: t_to_a, rect: [528, -2400, 1360, -2144], height: 192, role: corridor, zone: t}
+  - {name: t_to_b, rect: [-1360, -2400, -528, -2144], height: 192, role: corridor, zone: t}
+  - {name: mid_s, rect: [-192, -1968, 192, -976], height: 224, role: corridor, zone: t}
+  # A (east): long, ramp up to the courtyard; short via the glass window
+  - {name: a_long, rect: [1376, -2400, 1760, 0], height: 288, outdoor: true, role: corridor, zone: a}
+  - {name: a_ramp, rect: [1376, 16, 2432, 1008], height: 288, outdoor: true, role: room, zone: a}
+  - {name: a_site, rect: [1536, 1024, 2432, 1920], floor: 64, height: 288, outdoor: true, role: site, zone: a}
+  - {name: a_short, rect: [528, -704, 1360, -448], height: 192, role: corridor, zone: mid}
+  - {name: a_short_up, rect: [1104, -432, 1360, 1376], height: 192, role: corridor, zone: a}
+  - {name: a_short_top, rect: [1104, 1392, 1520, 1648], height: 224, role: corridor, zone: a}
+  # mid
+  - {name: mid, rect: [-512, -960, 512, -128], height: 288, role: mid, zone: mid}
+  - {name: mid_n, rect: [208, -112, 592, 1584], height: 224, role: corridor, zone: mid}
+  - {name: b_short, rect: [-1520, 896, 192, 1152], height: 192, role: corridor, zone: mid}
+  # B (west): angled corridor, tunnel, the hall
+  - {name: b_diag, rect: [-2016, -2400, -1376, -1760], height: 192, role: corridor, zone: b}
+  - {name: b_tunnel, rect: [-2016, -1744, -1760, 640], height: 160, role: corridor, zone: b}
+  - {name: b_site, rect: [-2432, 656, -1536, 1872], height: 384, role: site, zone: b}
+  # nooks: small rooms touching a corridor (no wall between = one room): close-quarters spots
+  - {name: b_tunnel_nook, rect: [-2240, -864, -2016, -576], height: 128, role: room, zone: b}
+  - {name: mid_s_nook, rect: [192, -1664, 416, -1376], height: 128, role: room, zone: t}
+  - {name: a_short_nook, rect: [768, -960, 1024, -704], height: 128, role: room, zone: mid}
+  - {name: ct_to_b_nook, rect: [-1232, 1856, -976, 2112], height: 128, role: room, zone: b}
+  - {name: t_to_b_nook, rect: [-1104, -2656, -848, -2400], height: 128, role: room, zone: t}
+  - {name: a_long_nook, rect: [1760, -1664, 1984, -1376], height: 128, role: room, zone: a}
+  # CT side (north)
+  - {name: ct_spawn, rect: [-256, 1600, 768, 2176], height: 256, outdoor: true, role: ct_spawn, zone: ct}
+  - {name: ct_to_a, rect: [784, 1664, 1520, 1920], height: 192, role: corridor, zone: a}
+  - {name: ct_to_b, rect: [-1520, 1600, -272, 1856], height: 192, role: corridor, zone: b}
+
+doors:
+  - {name: d_t_a, between: [t_spawn, t_to_a], width: 192}
+  - {name: d_a_long_in, between: [t_to_a, a_long], width: 192}
+  - {name: d_long_choke, between: [a_long, a_ramp], width: 160, protected: true}   # chokepoint A long
+  - {name: d_ramp_site, between: [a_ramp, a_site], width: 512}
+  - {name: d_t_mid, between: [t_spawn, mid_s], width: 192}
+  - {name: d_mid_s, between: [mid_s, mid], width: 192}
+  - {name: d_mid_short, between: [mid, a_short], width: 192}
+  - {name: d_mid_n, between: [mid, mid_n], width: 160}
+  - {name: d_short_up, between: [a_short, a_short_up], width: 192}
+  - {name: d_short_top, between: [a_short_up, a_short_top], width: 192}
+  - {name: d_short_choke, between: [a_short_top, a_site], width: 160, protected: true}   # chokepoint A short
+  - {name: w_short_ramp, between: [a_short_up, a_ramp], width: 96, kind: window, sill: 96, height: 64, glass: true}
+  - {name: d_ct_mid, between: [ct_spawn, mid_n], width: 160}
+  - {name: d_ct_a, between: [ct_spawn, ct_to_a], width: 192}
+  - {name: d_cta_site, between: [ct_to_a, a_site], width: 192}
+  - {name: d_t_b, between: [t_spawn, t_to_b], width: 192}
+  - {name: d_b_diag_in, between: [t_to_b, b_diag], width: 160}
+  - {name: d_b_tunnel_in, between: [b_diag, b_tunnel], width: 160}
+  - {name: d_b_choke, between: [b_tunnel, b_site], width: 160, protected: true}   # chokepoint B tunnel
+  - {name: d_mid_n_b, between: [mid_n, b_short], width: 160}
+  - {name: d_b_short_site, between: [b_short, b_site], width: 160, gate: rotating}
+  - {name: d_ct_b, between: [ct_spawn, ct_to_b], width: 192}
+  - {name: d_ctb_site, between: [ct_to_b, b_site], width: 192}
+
+ramps:
+  - {name: a_ramp_up, area: a_ramp, axis: +y, rise: 64, length: 128, start: 512}
+  - {name: ct_to_a_up, area: ct_to_a, axis: +x, rise: 64, length: 128, start: 480}
+
+stairs:
+  - {name: a_short_steps, area: a_short_top, axis: +x, rise: 64, step: 16, run: 32, start: 160, clip: true}
+
+wedges:
+  - {name: b_diag_ne, area: b_diag, corner: ne, size: [432, 432]}   # with b_diag_sw: a 45° corridor
+  - {name: b_diag_sw, area: b_diag, corner: sw, size: [432, 432]}
+  - {name: mid_nw, area: mid, corner: nw, size: [192, 192]}
+  - {name: mid_sw, area: mid, corner: sw, size: [192, 192]}
+  - {name: a_long_se, area: a_long, corner: se, size: [128, 128]}
+
+cover:
+  - {name: mid_pillar, area: mid, pos: [0, -544], size: [96, 96, 288]}
+  - {name: mid_crate, area: mid, pos: [320, -768], size: [64, 64, 64]}
+  - {name: a_long_crate, area: a_long, pos: [1648, -1200], size: [64, 128, 64]}
+  - {name: a_ramp_crate, area: a_ramp, pos: [1600, 352], size: [96, 96, 64]}
+  - {name: a_site_box, area: a_site, pos: [1984, 1600], size: [96, 96, 64]}
+  - {name: a_site_box_top, area: a_site, pos: [1984, 1600], size: [48, 48, 48], z: 64}   # boost spot
+  - {name: a_site_crate, area: a_site, pos: [1760, 1280], size: [64, 64, 64]}
+  - {name: a_short_crate, area: a_short_up, pos: [1168, 400], size: [64, 64, 64]}
+  - {name: b_tunnel_crate, area: b_tunnel, pos: [-1952, -600], size: [64, 64, 64]}
+  - {name: b_catwalk, area: b_site, pos: [-1984, 1792], size: [896, 128, 16], z: 176}
+  - {name: b_pillar_w, area: b_site, pos: [-2176, 1104], size: [64, 64, 384]}
+  - {name: b_pillar_e, area: b_site, pos: [-1792, 1104], size: [64, 64, 384]}
+  - {name: b_crate, area: b_site, pos: [-1984, 1360], size: [96, 96, 64]}
+  - {name: ct_crate, area: ct_spawn, pos: [512, 1904], size: [64, 64, 64]}
+  # screens at the nook mouths (a 64-wide way in at one end)
+  - {name: b_tunnel_nook_screen, area: b_tunnel_nook, pos: [-2024, -688], size: [16, 224, 128]}
+  - {name: mid_s_nook_screen, area: mid_s_nook, pos: [200, -1488], size: [16, 224, 128]}
+  - {name: a_short_nook_screen, area: a_short_nook, pos: [928, -712], size: [192, 16, 128]}
+  - {name: ct_to_b_nook_screen, area: ct_to_b_nook, pos: [-1136, 1864], size: [192, 16, 128]}
+  - {name: t_to_b_nook_screen, area: t_to_b_nook, pos: [-1008, -2408], size: [192, 16, 128]}
+  - {name: a_long_nook_screen, area: a_long_nook, pos: [1768, -1552], size: [16, 224, 128]}
+
+ladders:
+  - {name: b_ladder, area: b_site, wall: -x, pos: 448, width: 32, height: 192}
+
+sites: {A: a_site, B: b_site}
+spawns:
+  T: {area: t_spawn, count: 16}
+  CT: {area: ct_spawn, count: 16}
+buyzones: true
