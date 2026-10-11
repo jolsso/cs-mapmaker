@@ -27,8 +27,8 @@ zones:
   t: {floor: DEV_FLOOR_RED, wall: DEV_WALL_RED, ceiling: DEV_CEIL_RED, light: {color: [255, 214, 190]}}
   mid: {floor: DEV_FLOOR_GREY, wall: DEV_WALL_GREY, ceiling: DEV_CEIL_GREY, cover: DEV_METAL}
   a: {floor: DEV_FLOOR_SAND, wall: DEV_WALL_SAND, ceiling: DEV_CEIL_SAND, light: {color: [255, 236, 200]}}
-  b: {floor: DEV_FLOOR_BLUE, wall: DEV_WALL_BLUE, ceiling: DEV_CEIL_BLUE, cover: DEV_BRICK,
-      light: {color: [210, 225, 255], brightness: 240}}
+  b: {floor: DEV_FLOOR_BLUE, wall: DEV_WALL_BLUE, ceiling: DEV_CEIL_BLUE, cover: DEV_BRICK, light: {color: [210, 225, 
+            255], brightness: 240}}
   ct: {floor: DEV_FLOOR_GREEN, wall: DEV_WALL_GREEN, ceiling: DEV_CEIL_GREEN}
 
 sky:
@@ -81,7 +81,6 @@ doors:
   - {name: d_short_top, between: [a_short_up, a_short_top], width: 192}
   - {name: d_short_choke, between: [a_short_top, a_site], width: 160, protected: true}   # chokepoint A short
   - {name: w_short_ramp, between: [a_short_up, a_ramp], width: 96, kind: window, sill: 96, height: 64, glass: true}
-  - {name: d_ct_mid, between: [ct_spawn, mid_n], width: 160}
   - {name: d_ct_a, between: [ct_spawn, ct_to_a], width: 192}
   - {name: d_cta_site, between: [ct_to_a, a_site], width: 192}
   - {name: d_t_b, between: [t_spawn, t_to_b], width: 192}
@@ -129,6 +128,8 @@ cover:
   - {name: ct_to_b_nook_screen, area: ct_to_b_nook, pos: [-1136, 1864], size: [192, 16, 128]}
   - {name: t_to_b_nook_screen, area: t_to_b_nook, pos: [-1008, -2408], size: [192, 16, 128]}
   - {name: a_long_nook_screen, area: a_long_nook, pos: [1768, -1552], size: [16, 224, 128]}
+  - {name: b_tunnel_chicane_w, area: b_tunnel, pos: [-1936, 224], size: [160, 32, 160]}
+  - {name: b_tunnel_chicane_e, area: b_tunnel, pos: [-1840, 384], size: [160, 32, 160]}
 
 ladders:
   - {name: b_ladder, area: b_site, wall: -x, pos: 448, width: 32, height: 192}
