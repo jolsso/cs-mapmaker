@@ -81,6 +81,7 @@ På map-siden kan mennesket tegne ønsker på top-down-kortet: **punkt**, **omr�
 - Spec'en beskriver kun tomt rum; alt andet inden for en ydre skal er solidt (komprimeret grid + grådig sammenfletning til kasse-brushes). Derfor ingen leaks, og alle vertices på grid.
 - Entities: spawns (gitter, vendt mod midten), `func_bomb_target`, `func_buyzone`, `light_environment` for udendørs, punktlys indendørs.
 - Round-trip: `mapforge/mapfile/writer.py` skriver Valve 220; parseren læser.
+- Udvidet 2026-10-11 (fase 6b): solider inde i det tomme rum (trapper med clip, ramper, kiler/skrå vægge, hævet cover), åbninger med entiteter (vindue/vent, glas, `func_door`/`func_door_rotating`), stiger (`func_ladder`), zoner (tekstur pr. vendt flade, lysfarve), `armoury_entity`, `info_map_parameters`, `func_detail` for lave solider. Konvekse ikke-kasse-brushes skrives af `polyhedron_brush`/`prism_brush` med udadvendt winding fra fladens egne grid-vertices.
 
 ### Compile (`mapforge/compile/`) – bygget
 - Profiler: `fast` (hurtig iteration, lav rad-kvalitet) og `final` (`-extra`, flere bounces).

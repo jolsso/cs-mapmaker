@@ -123,9 +123,25 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 **Accept:** Loopet forbedrer et bevidst ubalanceret map mod målintervallerne uden at bryde låste beslutninger.
 - ✅ 2026-10-10 på de_tilt01 (de_forge01 uden CT's direkte vej til B). Score 2,11 → 1,21 → **0,04** i to iterationer: Decide genskabte CT-døren til B (review-major + timing) og fjernede en kasse, hvor CT-bots klumpede sig (heatmap + kill-celle). 100 runder i iteration 003: T 0,56 [0,46–0,65], A-plants 0,56, første kontakt 16 s, runde 63 s, døde zoner 18 %. Ingen låste beslutninger rørt. `runs/de_tilt01/LOOP.md`.
 - Fundet undervejs: YaPB's automatiske graf kan efterlade hele områder umappede → graf-retry (CALIBRATION.md). Live-visning af kørende simuleringer på websitet (`docker compose up -d live`).
-- Næste: loopet på de_forge01 (tidligere målinger er ugyldige pga. grafen) frem mod Gate B.
+- ✅ 2026-10-11: de_forge01 kørt til plateau (11 iterationer, bedste 006: score 0,16, T 0,38, A-plants 0,39). Gate B-opsummering givet; mennesket har sat de_forge01 på pause ("fint for nu") for at prioritere motoren.
 
 🚦 **Gate B – Geometri låst:** Mennesket godkender balance. Geometri fryses før art pass.
+- de_forge01: afventer (006 vs. 012, 4-vejskrydset ved mid).
+
+## Fase 6b – Motor-udvidelse (2026-10-11, menneskets prioritet: motoren før mappet)
+**Mål:** Generatoren og loopets værktøjskasse kan mere end akse-rettede kasser.
+
+- [x] Ramper (≤ 45°), kiler (skrå vægge / diagonale korridorer), hævet cover (platforme, broer, boost-spots)
+- [x] Vinduer og vents (`kind`, `sill`), glas (`func_breakable`), døre der kan åbnes (`func_door`, `func_door_rotating` med ORIGIN)
+- [x] Stiger (`func_ladder` + synlig stige), player clip på trapper, rum der rører hinanden (L-rum, split-level)
+- [x] Zoner (tekstur pr. vendt flade + lysfarve), landmark-materialer og tool-teksturer i dev-WAD'en, våben (`armoury_entity`), `info_map_parameters`, `func_detail` (⚠️ mørk efter fast-RAD, standard fra)
+- [x] Decide-værktøjskasse: `add_window`, `set_gate`, `add_ramp`, `add_wedge`, `add_ladder`, `remove_element`, hævet `add_cover`, vent-forbindelser; låste beslutninger pr. map (`locked_maps`)
+- [x] Layout-graf: vinduer er ikke indgange; rum der rører hinanden er ét rum
+- [x] Nyt testmap `de_vault01` med alle features: validering 0 errors/0 warnings; gangbarhedsgrafen klatrer op ad stigen
+- [ ] Loopet itererer på de_vault01 (i gang)
+- [ ] Skrå korridorer i vilkårlig vinkel (i dag 45° og grid-forhold via kilernes kateter), flere niveauer med overlap i højden (broer over korridorer)
+
+**Accept:** et genereret map med de nye features compiler, validerer uden fejl, simuleres (YaPB når begge sites) og forbedres af loopet uden manuelle trin.
 
 ## Fase 7 – Art pass
 **Mål:** Lys og visuel identitet.
