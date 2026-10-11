@@ -78,6 +78,62 @@ def collect_versions(cfg: Config, name: str) -> list[Version]:
     return out
 
 
+def wish_version(w: dict[str, Any], vers: list[Version]) -> str | None:
+    """The version a wish was drawn on: the newest version created no later than the wish."""
+    if w.get("version"):
+        return str(w["version"])
+    made = str(w.get("created") or "")
+    keys = [v.key for v in vers if str(v.meta.get("created") or "") <= made]
+    return keys[-1] if keys else (vers[0].key if vers else None)
+
+
+WISH_COLORS = {
+    "open": "#f2a93b",
+    "done": "#5cc28a",
+    "needs_human": "#ef6a55",
+    "rejected": "#8d969f",
+}
+WISH_LABEL = {"open": "åben", "done": "udført", "needs_human": "kræver dig", "rejected": "afvist"}
+
+
+def wish_overlay(v: Version, wishes: list[dict], img_rel: str) -> str:
+    """The version's top-down with its wishes drawn on it (inline SVG, same marks as annotate.js)."""
+    index = v.json("renders/index.json") or {}
+    view = next(
+        (im.get("view") for im in index.get("images", []) if im["file"] == "topdown.png"), None
+    )
+    if not view or not v.path("renders/topdown.png"):
+        return ""
+    (x0, y0, x1, y1), (w_px, h_px) = view["world_rect"], view["size"]
+
+    def px(p: list[float]) -> tuple[float, float]:
+        return (p[0] - x0) / (x1 - x0) * w_px, (y1 - p[1]) / (y1 - y0) * h_px
+
+    marks = []
+    for w in wishes:
+        if not w.get("points"):
+            continue
+        c = WISH_COLORS.get(w["status"], "#fff")
+        pts = [px(p) for p in w["points"]]
+        if w["kind"] == "point":
+            (x, y) = pts[0]
+            marks.append(
+                f"<circle cx='{x:.0f}' cy='{y:.0f}' r='12' fill='{c}' fill-opacity='.35' stroke='{c}' stroke-width='4'/>"
+            )
+        elif w["kind"] == "rect" and len(pts) >= 2:
+            (ax, ay), (bx, by) = pts[:2]
+            marks.append(f"<rect x='{min(ax, bx):.0f}' y='{min(ay, by):.0f}' width='{abs(bx - ax):.0f}' height='{abs(by - ay):.0f}' "
+                         f"fill='{c}' fill-opacity='.18' stroke='{c}' stroke-width='4' stroke-dasharray='10 6'/>")  # fmt: skip
+        else:
+            line = " ".join(f"{x:.0f},{y:.0f}" for x, y in pts)
+            marks.append(f"<polyline points='{line}' fill='none' stroke='{c}' stroke-width='5'/>")
+        x, y = pts[0]
+        marks.append(f"<text x='{x + 14:.0f}' y='{y - 10:.0f}' fill='{c}' font-size='26' font-weight='bold' "
+                     f"stroke='#000' stroke-width='5' paint-order='stroke'>#{w['id']}</text>")  # fmt: skip
+    return (f"<svg class='wishmap' viewBox='0 0 {w_px} {h_px}' role='img' aria-label='Dine ønsker tegnet på denne version'>"
+            f"<image href='{img_rel}/topdown.png' width='{w_px}' height='{h_px}'/>{''.join(marks)}</svg>")  # fmt: skip
+
+
 def status(v: Version) -> dict[str, bool | None]:
     comp, val, rev = v.json("compile.json"), v.json("validation.json"), v.json("review.json")
     sim = v.json("simulation.json") or v.json("sim/simulation.json")
@@ -160,6 +216,8 @@ def render_versions(
     vers = collect_versions(cfg, name)
     loop = _load(runs_root(cfg, name) / "loop.json") or {}
     wishes = annotations.load(cfg.path("maps_dir"), name)
+    for w in wishes:
+        w["_version"] = wish_version(w, vers)
     boxes = []
     for v in reversed(vers):
         st = status(v)
@@ -234,6 +292,21 @@ def phase_panels(cfg: Config, name: str, v: Version, out: Path, img_dir: Path, i
     parts = []
     # 1 Input
     inner = []
+    mine = [w for w in wishes if w.get("_version") == v.key]
+    if mine:
+        rows = "".join(
+            f"<li class='st-{e(w['status'])}'>#{w['id']} <span class='chip' style='color:{WISH_COLORS.get(w['status'], '#fff')}'>"
+            f"{e(WISH_LABEL.get(w['status'], w['status']))}</span> {e(w['text'])}"
+            + (
+                f"<div class='muted small'>{e(w['resolution'])}</div>"
+                if w.get("resolution")
+                else ""
+            )
+            + "</li>"
+            for w in mine
+        )
+        inner.append(f"<div class='card'><h3>Dine ønsker til denne version</h3><div class='wishwrap'>"
+                     f"{wish_overlay(v, mine, img_rel)}<ul class='annlist'>{rows}</ul></div></div>")  # fmt: skip
     for r in v.input_runs:
         applied = json.loads((r / "applied.json").read_text(encoding="utf-8"))
         plan = (
@@ -253,9 +326,9 @@ def phase_panels(cfg: Config, name: str, v: Version, out: Path, img_dir: Path, i
             inner.append("<div class='card'><h3>Dine ønsker opfyldt her</h3><ul>" + "".join(
                 f"<li>#{w['id']} {e(w['text'])} <span class='muted small'>– {e(w['resolution'])}</span></li>" for w in done) + "</ul></div>")  # fmt: skip
     if v.current:
-        open_ = [w for w in wishes if w["status"] in ("open", "needs_human")]
+        open_ = [w for w in wishes if w["status"] in ("open", "needs_human") and w not in mine]
         if open_:
-            inner.append("<div class='card'><h3>Åbne ønsker – går ind i næste Decide</h3><ul>" + "".join(
+            inner.append("<div class='card'><h3>Åbne ønsker fra tidligere versioner – går ind i næste Decide</h3><ul>" + "".join(
                 f"<li>#{w['id']} {e(w['text'])} {_chip(None if w['status'] == 'open' else False, '', 'kræver dig', 'åben')}</li>" for w in open_)
                 + "</ul><p class='muted small'>Tilføj flere under <a href='#annotate'>1 Input – dine ønsker</a> øverst.</p></div>")  # fmt: skip
     if not inner:

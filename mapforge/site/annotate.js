@@ -91,7 +91,8 @@
   async function load() {
     try {
       const r = await fetch(API);
-      items = r.ok ? await r.json() : [];
+      // only wishes still waiting: done/rejected ones live under the version they were drawn on
+      items = (r.ok ? await r.json() : []).filter(a => a.status === "open" || a.status === "needs_human");
       msg.textContent = "";
     } catch {
       msg.innerHTML = "API'et kører ikke: <code>docker compose up -d live</code>";
@@ -106,7 +107,7 @@
       `<li class="st-${esc(a.status)}"><b>#${a.id}</b> <span class="chip">${kind[a.kind] || ""}</span>
        <span class="chip ${a.status === "done" ? "ok" : a.status === "needs_human" ? "bad" : "run"}">${label[a.status] || esc(a.status)}</span>
        <span>${esc(a.text)}</span>${a.resolution ? `<div class="muted small">${esc(a.resolution)}</div>` : ""}
-       <button data-del="${a.id}" title="slet">✕</button></li>`).join("") : "<li class='muted'>Ingen annotationer endnu.</li>";
+       <button data-del="${a.id}" title="slet">✕</button></li>`).join("") : "<li class='muted'>Ingen åbne ønsker. Udførte ønsker ligger under den version, du tegnede dem på (Versioner → 1 Input).</li>";
     list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
       await fetch(`${API}/${b.dataset.del}`, { method: "DELETE" });
       load();
