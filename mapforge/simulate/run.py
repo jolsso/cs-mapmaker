@@ -202,6 +202,9 @@ class Simulation:
         assign_plant_sites(merged, self.bsp_data, names)
         return merged, errors
 
+    def graph_file_for_diag(self) -> Path | None:
+        return self.graph if self.graph.is_file() else None
+
     def smoke(self, tag: str) -> tuple[dict[str, Any], list[dict]]:
         n = int(self.sim["smoke_rounds"])
         self.log(f"smoke: {n} rounds on 1 server (timescale {self.timescale}) ...")
@@ -220,6 +223,19 @@ class Simulation:
             data, errors = self.data(groups)
             smoke = smoke_checks(data, self.bsp_data, n, self.per_team)
             smoke["extended"] = extra
+        if not smoke["checks"]["sites_reached"]["ok"] and self.graph_file_for_diag():
+            # where the graph itself breaks: nodes per site and how many T can reach on links
+            from mapforge.simulate.yapbgraph import read_graph, site_coverage
+            from mapforge.validate.checks import spawn_origins
+
+            origins, teams = spawn_origins(self.bsp_data.entities)
+            t_starts = origins[[t == "T" for t in teams]]
+            try:
+                cov = site_coverage(read_graph(self.graph_file_for_diag()), self.bsp_data, t_starts)
+                smoke["graph_coverage"] = cov
+                self.log(f"smoke: YaPB graph per site (nodes / reachable from T): {cov}")
+            except (OSError, ValueError) as exc:
+                self.log(f"smoke: could not read the YaPB graph ({exc})")
         smoke["schema_errors"] = errors
         smoke["ok"] = smoke["ok"] and not errors and all(s.get("done") for s in statuses)
         smoke["servers"] = statuses

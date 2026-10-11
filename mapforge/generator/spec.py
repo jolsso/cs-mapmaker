@@ -362,8 +362,10 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         )
         if rp.axis not in ("+x", "-x", "+y", "-y"):
             raise SpecError(f"ramp {rp.name}: axis must be +x/-x/+y/-y")
-        if not (0 < rp.rise <= rp.length):
-            raise SpecError(f"ramp {rp.name}: needs 0 < rise <= length (GoldSrc walks <= ~45°)")
+        if not (rp.rise > 0 and 2 * rp.rise <= rp.length):
+            # players walk up to ~45°, but YaPB's graph analyser leaves steeper ramps unmapped
+            # (de_cistern01: 192 over 256 = 37° cut B off from the bots; CALIBRATION.md)
+            raise SpecError(f"ramp {rp.name}: needs 0 < rise <= length / 2 (<= 26.6°: YaPB bots)")
         for v in (rp.rise, rp.length, rp.start):
             if v % grid:
                 raise SpecError(f"ramp {rp.name}: {v} is off the {grid}-unit grid")

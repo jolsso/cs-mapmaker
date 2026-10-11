@@ -111,3 +111,20 @@ def test_image_tag_follows_the_build_context():
     }
     assert image_tag(cfg, files) == image_tag(cfg, dict(files))
     assert image_tag(cfg, files) != image_tag(cfg, changed)
+
+
+def test_ulz_decoder_literals_and_overlapping_match():
+    from mapforge.simulate.yapbgraph import ulz_decompress
+
+    # token 0x60: 3 literals, then a match of 0 + 4 bytes at distance 3 (overlapping copy)
+    assert ulz_decompress(bytes([0x60]) + b"abc" + bytes([3, 0]), 7) == b"abcabca"
+
+
+def test_graph_reachability_along_links():
+    import numpy as np
+
+    from mapforge.simulate.yapbgraph import Graph, reachable
+
+    g = Graph(2, np.array([[0, 0, 0], [80, 0, 0], [160, 0, 0], [2000, 0, 0]], float),
+              np.zeros(4, int), [[1], [0, 2], [1], []])  # fmt: skip
+    assert reachable(g, np.array([[0, 0, 0]])).tolist() == [True, True, True, False]

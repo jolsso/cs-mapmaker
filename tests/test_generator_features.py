@@ -177,7 +177,10 @@ def test_without_new_keys_the_output_is_unchanged():
 @pytest.mark.parametrize(
     ("over", "msg"),
     [
-        ({"ramps": [{"name": "r", "area": "mid", "axis": "+x", "rise": 128, "length": 64}]}, "45"),
+        (
+            {"ramps": [{"name": "r", "area": "mid", "axis": "+x", "rise": 96, "length": 128}]},
+            "26.6",
+        ),
         ({"wedges": [{"name": "w", "area": "mid", "corner": "up", "size": [64, 64]}]}, "corner"),
         ({"wedges": [{"name": "w", "area": "mid", "corner": "ne", "size": [64, 999]}]}, "fit"),
         (

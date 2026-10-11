@@ -115,3 +115,10 @@ Valgt: rotation 6–20 s; spawn-sigtelinjer = 0 (ingen officielle har dem); T-te
 - **Design-normerne er strengere end Valves egne maps.** Officielle maps har typisk passager på 40–56 units og mange lofter under 96. **Besluttet 2026-10-10: behold 64 / 96** for vores egne maps – bevidst lidt strengere end Valve (luft til bots og læsbarhed); det er warnings, så smalle steder kan stadig vælges bevidst.
 - **Døde zoner:** besluttet 2026-10-10 at hæve målet til ≤ 20 % for bot-data (dust2: 16 %).
 - **Tid.** Validate tager 12 s på dust2 men ~5 min på store udendørsmaps (de_mon). Fint nu; kan optimeres med grovere grid til nåbarhed, hvis det bliver flaskehalsen.
+
+
+## YaPB og ramper (2026-10-11, de_cistern01)
+YaPB 4.4's automatiske grafanalyse forbinder ikke noder hen over stejle ramper. På de_cistern01 førte alle tre veje til B (gulv −192) ned ad ramper på 192 over 256 units (37°). Bottene gik ned ad dem, men grafen havde kun noder i ramperampernes ender, og T kunne ikke nå nogen site-noder ad grafens links. B blev aldrig nået i 4 × 9 smoke-runder med nodeafstand 80–128. de_vault01's ramper (64 over 128 = 27°) virkede.
+
+- Spec'en kræver nu `rise <= length / 2` (≤ 26,6°). Spillere kan gå op til ca. 45°, men bots er vores målemetode.
+- Værktøj: `python -m mapforge.simulate.yapbgraph <graph>` læser YaPB-grafen: header `BPAY`, ULZ-komprimerede noder på 220 bytes, links som int16-indeks ved offset 74 med 20 bytes pr. link. Offsettet er fundet empirisk: med det matcher link-længderne analysens nodeafstand. Når smoke fejler på "sites_reached", logger simulate nu noder pr. site, og hvor mange af dem T kan nå ad links (`graph_coverage`).

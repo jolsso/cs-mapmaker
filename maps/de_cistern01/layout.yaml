@@ -106,9 +106,9 @@ doors:
   - {name: d_ctb_site, between: [ct_to_b, b_site], width: 192}
 
 ramps:
-  - {name: b_tunnel_down, area: b_tunnel, axis: -y, rise: 192, length: 256, start: 2064}   # down into the cistern
-  - {name: b_short_down, area: b_short, axis: +x, rise: 192, length: 256, start: 1392}
-  - {name: ct_to_b_down, area: ct_to_b, axis: +x, rise: 192, length: 256, start: 928}
+  - {name: b_tunnel_down, area: b_tunnel, axis: -y, rise: 192, length: 384, start: 1936}   # down into the cistern
+  - {name: b_short_down, area: b_short, axis: +x, rise: 192, length: 384, start: 1264}
+  - {name: ct_to_b_down, area: ct_to_b, axis: +x, rise: 192, length: 384, start: 800}
   - {name: a_ramp_up, area: a_ramp, axis: +y, rise: 64, length: 128, start: 512}
   - {name: ct_to_a_up, area: ct_to_a, axis: +x, rise: 64, length: 128, start: 480}
 
