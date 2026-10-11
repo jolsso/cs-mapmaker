@@ -274,6 +274,12 @@ class Loop:
         from mapforge.decide.run import emit_into
 
         d = self.it_dir
+        if not (d / "plan.json").is_file():
+            # plateau / budget / targets met are known right after the measurement: stop
+            # before asking for a plan that would leave the layout on an unmeasured change
+            reason = self.stop_reason(True)
+            if reason:
+                return self.stop(reason)
         if not (d / "decide_prompt.md").is_file():
             emit_into(self.cfg, self.map, d, self.loop_context())
         if not (d / "plan.json").is_file():

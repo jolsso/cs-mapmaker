@@ -53,7 +53,7 @@ def test_apply_refuses_locked_and_ungeneratable_changes():
 
 def _loop(tmp_path) -> Loop:
     loop = Loop(load_config(), "de_x")
-    loop.root = tmp_path
+    loop.root, loop.state_file = tmp_path, tmp_path / "loop.json"
     loop.state = {"iteration": "003", "first_iteration": "001", "history": [{"iteration": "003", "reached": "simulate"}],
                   "started_ts": __import__("time").time(), "rollback": False, "best": None,
                   "counters": {"hard_fail": 0, "review_fail": 0, "since_best": 0, "targets_met": 0, "measured": 0}}  # fmt: skip
@@ -85,6 +85,15 @@ def test_stop_reasons(tmp_path):
     assert "hårde krav" in loop.stop_reason(changed=True)
     loop.state["counters"].update(hard_fail=0, measured=6, since_best=5)
     assert "plateau" in loop.stop_reason(changed=True)
+
+
+def test_decide_stops_on_plateau_before_asking_for_a_plan(tmp_path, monkeypatch):
+    monkeypatch.setattr("mapforge.site.build.refresh_site", lambda cfg=None: None)
+    loop = _loop(tmp_path)
+    loop.state["counters"].update(measured=6, since_best=5)
+    assert loop.step_decide() == 0
+    assert loop.state["status"] == "stopped" and "plateau" in loop.state["stop_reason"]
+    assert not (loop.it_dir / "decide_prompt.md").exists()
 
 
 def test_add_area_needs_a_shared_wall_and_no_overlap():
