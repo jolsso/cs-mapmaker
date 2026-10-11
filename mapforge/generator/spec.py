@@ -21,19 +21,35 @@ class Area:
     height: int
     outdoor: bool = False
     role: str = "room"
+    zone: str | None = None  # texture/light set from Layout.zones (identity, callouts)
 
     @property
     def top(self) -> int:
         return self.floor + self.height
 
 
+DOOR_KINDS = ("door", "window", "vent")
+GATES = ("none", "sliding", "rotating")
+
+
 @dataclass(frozen=True)
 class Door:
+    """An opening in the wall between two areas. kind: door (walk through), window (a hole
+    from `sill` up: see/shoot through, not a route), vent (crouch-height route)."""
+
     name: str
     between: tuple[str, str]
     width: int
     height: int | None = None
     offset: int = 0
+    kind: str = "door"
+    sill: int = 0  # bottom of the opening above the higher of the two floors
+    glass: bool = False  # breakable glass pane in the opening (func_breakable)
+    gate: str = "none"  # an openable door leaf in the opening (func_door / func_door_rotating)
+
+    @property
+    def walkable(self) -> bool:
+        return self.kind != "window"
 
 
 @dataclass(frozen=True)
@@ -45,14 +61,60 @@ class Stairs:
     step: int = 16
     run: int = 32
     start: int = 0  # distance from the area edge where the first step begins
+    clip: bool = False  # player-clip ramp over the steps: smooth movement, no step bobbing
+
+
+@dataclass(frozen=True)
+class Ramp:
+    """Sloped floor across the whole area: rises `rise` over `length` from `start` along `axis`;
+    after it the rest of the area is raised by `rise` (like Stairs). Slope <= 45 degrees."""
+
+    name: str
+    area: str
+    axis: str
+    rise: int
+    length: int
+    start: int = 0
+
+
+CORNERS = ("ne", "nw", "se", "sw")
+
+
+@dataclass(frozen=True)
+class Wedge:
+    """Solid triangular prism filling a corner of an area: its hypotenuse is an angled wall.
+    Two opposite wedges turn a rectangle into a diagonal corridor; one chamfers a room."""
+
+    name: str
+    area: str
+    corner: str
+    size: tuple[int, int]  # legs along x and y from the corner (equal = 45 degrees)
+    height: int | None = None  # default: floor to ceiling
+
+
+@dataclass(frozen=True)
+class Ladder:
+    """A climbable ladder on one wall of an area, from the floor up `height` units."""
+
+    name: str
+    area: str
+    wall: str  # +x -x +y -y: the wall it stands against
+    pos: int = 0  # centre along the wall, from the wall's middle
+    width: int = 32
+    height: int = 128
 
 
 @dataclass(frozen=True)
 class Cover:
+    """A solid box inside an area: crate, wall, pillar; with z > 0 a platform, bridge or a crate
+    stacked on another (boost spot)."""
+
     name: str
     area: str
     pos: tuple[int, int]
     size: tuple[int, int, int]
+    z: int = 0  # bottom above the area floor
+    texture: str | None = None  # default: textures.cover (or the area zone's cover)
 
 
 @dataclass
@@ -70,6 +132,13 @@ class Layout:
     buyzones: bool = True
     sky: dict[str, Any] = field(default_factory=dict)
     lights: dict[str, Any] = field(default_factory=dict)
+    ramps: list[Ramp] = field(default_factory=list)
+    wedges: list[Wedge] = field(default_factory=list)
+    ladders: list[Ladder] = field(default_factory=list)
+    zones: dict[str, dict[str, Any]] = field(default_factory=dict)  # name -> textures + light
+    weapons: list[dict[str, Any]] = field(default_factory=list)  # armoury_entity
+    map_parameters: dict[str, Any] = field(default_factory=dict)  # info_map_parameters
+    detail: bool = False  # cover/wedges/ramps as func_detail (no vis splits; SDHLT)
 
 
 DEFAULT_TEXTURES = {
@@ -79,6 +148,11 @@ DEFAULT_TEXTURES = {
     "cover": "DEV_CRATE",
     "sky": "SKY",
     "trigger": "AAATRIGGER",
+    "clip": "CLIP",  # tool textures: names the compiler treats specially
+    "origin": "ORIGIN",
+    "glass": "DEV_GLASS",
+    "door": "DEV_DOOR",
+    "ladder": "DEV_LADDER",
 }
 
 
@@ -103,6 +177,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             height=int(a.get("height", 192)),
             outdoor=bool(a.get("outdoor", False)),
             role=a.get("role", "room"),
+            zone=a.get("zone"),
         )
         if area.name in areas:
             raise SpecError(f"duplicate area {area.name}")
@@ -129,8 +204,25 @@ def parse_layout(data: dict[str, Any]) -> Layout:
                 width=int(d["width"]),
                 height=d.get("height"),
                 offset=int(d.get("offset", 0)),
+                kind=str(d.get("kind", "door")),
+                sill=int(d.get("sill", 0)),
+                glass=bool(d.get("glass", False)),
+                gate=str(d.get("gate", "none")),
             )
         )
+        dr = doors[-1]
+        if dr.kind not in DOOR_KINDS:
+            raise SpecError(f"door {dr.name}: kind must be one of {DOOR_KINDS}")
+        if dr.gate not in GATES:
+            raise SpecError(f"door {dr.name}: gate must be one of {GATES}")
+        if dr.sill % grid or dr.sill < 0:
+            raise SpecError(f"door {dr.name}: sill {dr.sill} must be >= 0 on the {grid}-unit grid")
+        if dr.kind == "window" and dr.sill < 64:
+            raise SpecError(f"door {dr.name}: a window needs sill >= 64 (lower is a door/jump)")
+        if dr.kind == "vent" and not (dr.height and 40 <= int(dr.height) <= 64):
+            raise SpecError(f"door {dr.name}: a vent needs height 40..64 (crouch hull 36)")
+        if dr.glass and dr.gate != "none":
+            raise SpecError(f"door {dr.name}: glass and gate exclude each other")
     stairs = []
     for s in data.get("stairs", []):
         st = Stairs(
@@ -141,6 +233,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             step=int(s.get("step", 16)),
             run=int(s.get("run", 32)),
             start=int(s.get("start", 0)),
+            clip=bool(s.get("clip", False)),
         )
         if st.axis not in ("+x", "-x", "+y", "-y"):
             raise SpecError(f"stairs {st.name}: axis must be +x/-x/+y/-y")
@@ -155,9 +248,79 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             area=need(c["area"], c["name"]),
             pos=_ints(c["pos"], 2, f"cover {c['name']}.pos"),
             size=_ints(c["size"], 3, f"cover {c['name']}.size"),
+            z=int(c.get("z", 0)),
+            texture=c.get("texture"),
         )
         for c in data.get("cover", [])
     ]
+    for c in cover:
+        if c.z < 0 or c.z + c.size[2] > areas[c.area].height:
+            raise SpecError(f"cover {c.name}: z {c.z} + height {c.size[2]} leaves its area")
+    ramps = []
+    for r in data.get("ramps", []):
+        rp = Ramp(
+            name=r["name"],
+            area=need(r["area"], r["name"]),
+            axis=r["axis"],
+            rise=int(r["rise"]),
+            length=int(r["length"]),
+            start=int(r.get("start", 0)),
+        )
+        if rp.axis not in ("+x", "-x", "+y", "-y"):
+            raise SpecError(f"ramp {rp.name}: axis must be +x/-x/+y/-y")
+        if not (0 < rp.rise <= rp.length):
+            raise SpecError(f"ramp {rp.name}: needs 0 < rise <= length (GoldSrc walks <= ~45°)")
+        for v in (rp.rise, rp.length, rp.start):
+            if v % grid:
+                raise SpecError(f"ramp {rp.name}: {v} is off the {grid}-unit grid")
+        a = areas[rp.area]
+        span = a.rect[2] - a.rect[0] if rp.axis[1] == "x" else a.rect[3] - a.rect[1]
+        if rp.start + rp.length > span:
+            raise SpecError(f"ramp {rp.name}: start + length {rp.start + rp.length} > area {span}")
+        ramps.append(rp)
+    wedges = []
+    for w in data.get("wedges", []):
+        wd = Wedge(
+            name=w["name"],
+            area=need(w["area"], w["name"]),
+            corner=w["corner"],
+            size=_ints(w["size"], 2, f"wedge {w['name']}.size"),
+            height=w.get("height"),
+        )
+        if wd.corner not in CORNERS:
+            raise SpecError(f"wedge {wd.name}: corner must be one of {CORNERS}")
+        a = areas[wd.area]
+        if not (
+            0 < wd.size[0] <= a.rect[2] - a.rect[0] and 0 < wd.size[1] <= a.rect[3] - a.rect[1]
+        ):
+            raise SpecError(f"wedge {wd.name}: legs {wd.size} do not fit in area {wd.area}")
+        if any(v % grid for v in wd.size):
+            raise SpecError(f"wedge {wd.name}: legs {wd.size} are off the {grid}-unit grid")
+        wedges.append(wd)
+    ladders = []
+    for ld in data.get("ladders", []):
+        lad = Ladder(
+            name=ld["name"],
+            area=need(ld["area"], ld["name"]),
+            wall=ld["wall"],
+            pos=int(ld.get("pos", 0)),
+            width=int(ld.get("width", 32)),
+            height=int(ld.get("height", 128)),
+        )
+        if lad.wall not in ("+x", "-x", "+y", "-y"):
+            raise SpecError(f"ladder {lad.name}: wall must be +x/-x/+y/-y")
+        if lad.height > areas[lad.area].height:
+            raise SpecError(f"ladder {lad.name}: taller than its area")
+        ladders.append(lad)
+    zones = data.get("zones", {}) or {}
+    for a in areas.values():
+        if a.zone is not None and a.zone not in zones:
+            raise SpecError(f"area {a.name}: unknown zone {a.zone!r} (define it under zones:)")
+    weapons = []
+    for wp in data.get("weapons", []) or []:
+        need(wp["area"], f"weapon {wp.get('item')}")
+        _ints(wp["pos"], 2, f"weapon {wp.get('item')}.pos")
+        weapons.append(dict(wp))
     sites = {
         k: need(v["area"] if isinstance(v, dict) else v, f"site {k}")
         for k, v in data.get("sites", {}).items()
@@ -174,7 +337,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             # grid outwards from area centre + offset
             "offset": _ints(sp.get("offset", [0, 0]), 2, f"spawns.{team}.offset"),
         }
-    names = [d.name for d in doors] + [s.name for s in stairs] + [c.name for c in cover]
+    names = [x.name for group in (doors, stairs, cover, ramps, wedges, ladders) for x in group]
     dup = {n for n in names if names.count(n) > 1 or n in areas}
     if dup:
         raise SpecError(f"names must be unique across areas/doors/stairs/cover: {sorted(dup)}")
@@ -192,6 +355,13 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         buyzones=bool(data.get("buyzones", True)),
         sky=data.get("sky", {}) or {},
         lights=data.get("lights", {}) or {},
+        ramps=ramps,
+        wedges=wedges,
+        ladders=ladders,
+        zones=zones,
+        weapons=weapons,
+        map_parameters=data.get("map_parameters", {}) or {},
+        detail=bool(data.get("detail", False)),
     )
 
 

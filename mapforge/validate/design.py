@@ -176,20 +176,52 @@ def sightline_spread(
 
 def layout_graph(layout: dict[str, Any]) -> dict[str, Any]:
     """Topology from layout.yaml: entrances per site, junctions, Ølsted's C = n + r."""
-    areas = {a["name"]: a for a in layout.get("areas", [])}
+    raw = {a["name"]: a for a in layout.get("areas", [])}
+    # areas that touch (no wall between them) are one room: an L-room, a split-level hall
+    group = {n: n for n in raw}
+
+    def find(n: str) -> str:
+        while group[n] != n:
+            n = group[n]
+        return n
+
+    names = list(raw)
+    for i, n in enumerate(names):
+        a = raw[n]
+        for m in names[i + 1 :]:
+            b = raw[m]
+            (ax0, ay0, ax1, ay1), (bx0, by0, bx1, by1) = a["rect"], b["rect"]
+            fa, fb = a.get("floor", 0), b.get("floor", 0)
+            z_overlap = min(fa + a.get("height", 192), fb + b.get("height", 192)) > max(fa, fb)
+            touch_x = (ax1 == bx0 or bx1 == ax0) and min(ay1, by1) > max(ay0, by0)
+            touch_y = (ay1 == by0 or by1 == ay0) and min(ax1, bx1) > max(ax0, bx0)
+            if z_overlap and (touch_x or touch_y):
+                ra, rb = find(n), find(m)
+                if ra != rb:  # keep the site / spawn as the room's name
+                    keep, drop = (
+                        (ra, rb)
+                        if raw[ra].get("role") in ("site", "t_spawn", "ct_spawn")
+                        else (rb, ra)
+                    )
+                    group[drop] = keep
+    areas = {n: raw[n] for n in raw if find(n) == n}
     degree = {n: 0 for n in areas}
-    for d in layout.get("doors", []):
-        for n in d["between"]:
-            degree[n] = degree.get(n, 0) + 1
+    walk_doors = [
+        (find(d["between"][0]), find(d["between"][1]))
+        for d in layout.get("doors", [])
+        if d.get("kind", "door") != "window"  # a window is a sightline, not an entrance
+    ]
+    for a, b in walk_doors:
+        degree[a] += 1
+        degree[b] += 1
     sites = layout.get("sites", {})
-    site_areas = {k: (v["area"] if isinstance(v, dict) else v) for k, v in sites.items()}
+    site_areas = {k: find(v["area"] if isinstance(v, dict) else v) for k, v in sites.items()}
     entrances = {k: degree.get(a, 0) for k, a in site_areas.items()}
     ct_areas = {a for a, x in areas.items() if x.get("role") == "ct_spawn"}
     # a site's CT entrance: a door to an area that CT reaches without crossing the site (direct
     # neighbour of the CT spawn area or the spawn itself)
     neighbours: dict[str, set[str]] = {n: set() for n in areas}
-    for d in layout.get("doors", []):
-        a, b = d["between"]
+    for a, b in walk_doors:
         neighbours[a].add(b)
         neighbours[b].add(a)
     ct_side = set(ct_areas) | {n for c in ct_areas for n in neighbours[c]}

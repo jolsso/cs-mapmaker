@@ -23,6 +23,23 @@ def test_layout_graph_counts_entrances_and_junctions():
     assert g["four_way"] == ["mid"]  # t, l, r, ct
 
 
+def test_layout_graph_windows_are_no_entrances_and_touching_areas_are_one_room():
+    lay = {
+        "areas": [
+            {"name": "a", "rect": [0, 0, 256, 256], "role": "site"},
+            {"name": "a_alcove", "rect": [256, 0, 384, 128], "role": "room"},  # touches a
+            {"name": "x", "rect": [400, 0, 600, 128], "role": "corridor"},
+            {"name": "y", "rect": [0, 272, 256, 400], "role": "corridor"},
+        ],
+        "doors": [
+            {"between": ["a_alcove", "x"]},  # into the alcove = into the site
+            {"between": ["a", "y"], "kind": "window", "sill": 80},
+        ],
+        "sites": {"A": "a"},
+    }
+    assert layout_graph(lay)["site_entrances"] == {"A": 1}
+
+
 def test_design_findings_severities():
     stats = {
         "rotation": [{"sites": "A-B", "seconds": 25.0}],

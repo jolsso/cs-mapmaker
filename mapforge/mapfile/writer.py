@@ -64,6 +64,80 @@ def box_brush(
     return Brush(faces=faces, line=0, entity_index=entity_index, brush_index=0)
 
 
+def _tex_axes(n: tuple[float, float, float]) -> tuple[tuple, tuple]:
+    """Valve 220 texture axes for a face with normal n: floors/ramps project from above,
+    walls (also slanted ones) run their u axis along the wall so textures are not stretched."""
+    nx, ny, nz = n
+    if abs(nz) >= max(abs(nx), abs(ny)):
+        return (1, 0, 0, 0), (0, -1, 0, 0)
+    h = (nx * nx + ny * ny) ** 0.5
+    u = (round(-ny / h, 6), round(nx / h, 6), 0)
+    return (*u, 0), (0, 0, -1, 0)
+
+
+def polyhedron_brush(
+    faces: list[list[tuple[float, float, float]]],
+    textures: str | dict[str, str],
+    entity_index: int = 0,
+) -> Brush:
+    """Convex brush from its faces, each a list of >= 3 vertices (any order on the face).
+
+    The plane points are three of the face's own vertices, wound so the normal points out of
+    the brush (Quake: normal = (p3 - p1) x (p2 - p1)); grid vertices give exact planes.
+    `textures`: one name or {"top", "bottom", "side"} chosen by the face's normal.
+    """
+    verts = [v for f in faces for v in f]
+    cx, cy, cz = (sum(v[i] for v in verts) / len(verts) for i in range(3))
+    out = []
+    for f in faces:
+        p1 = f[0]
+        best = None
+        for i in range(1, len(f)):  # the pair spanning the largest triangle (robust winding)
+            for j in range(i + 1, len(f)):
+                a = [f[i][k] - p1[k] for k in range(3)]
+                b = [f[j][k] - p1[k] for k in range(3)]
+                n = (
+                    b[1] * a[2] - b[2] * a[1],
+                    b[2] * a[0] - b[0] * a[2],
+                    b[0] * a[1] - b[1] * a[0],
+                )
+                size = sum(c * c for c in n)
+                if best is None or size > best[0]:
+                    best = (size, f[i], f[j], n)
+        if best is None or best[0] == 0:
+            raise ValueError(f"degenerate face {f}")
+        _, p2, p3, n = best
+        fc = [sum(v[k] for v in f) / len(f) for k in range(3)]
+        if sum(n[k] * (fc[k] - (cx, cy, cz)[k]) for k in range(3)) < 0:
+            p2, p3, n = p3, p2, tuple(-c for c in n)
+        if isinstance(textures, str):
+            tex = textures
+        else:
+            m = max(abs(c) for c in n)
+            named = "top" if n[2] == m else "bottom" if -n[2] == m else "side"
+            tex = textures.get(named) or textures["side"]
+        u, v = _tex_axes(n)
+        out.append(Face(points=(tuple(p1), tuple(p2), tuple(p3)), texture=tex, u_axis=u,
+                        v_axis=v, rotation=0, scale=(1, 1), line=0))  # fmt: skip
+    return Brush(faces=out, line=0, entity_index=entity_index, brush_index=0)
+
+
+def prism_brush(
+    polygon: list[tuple[float, float]],
+    z0: float,
+    z1: float,
+    textures: str | dict[str, str],
+) -> Brush:
+    """Vertical prism: a convex x/y polygon (a triangle = an angled wall) from z0 to z1."""
+    bottom = [(x, y, z0) for x, y in polygon]
+    top = [(x, y, z1) for x, y in polygon]
+    sides = [
+        [bottom[i], bottom[(i + 1) % len(polygon)], top[(i + 1) % len(polygon)], top[i]]
+        for i in range(len(polygon))
+    ]
+    return polyhedron_brush([bottom, top, *sides], textures)
+
+
 def _face_line(f: Face) -> str:
     p = " ".join("( " + " ".join(_num(c) for c in pt) + " )" for pt in f.points)
     u = "[ " + " ".join(_num(c) for c in f.u_axis) + " ]"

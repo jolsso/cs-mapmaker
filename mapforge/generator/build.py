@@ -5,6 +5,10 @@ outer shell (the bounding box of all empty space, grown by `wall`) is solid: the
 axes are compressed to the boundaries that occur, each resulting cell is marked empty or
 solid, and solid cells are greedily merged into boxes. The map is therefore sealed by
 construction (no leaks) and every vertex lies on the spec's grid.
+
+Inside the empty space the spec adds solids: stairs, ramps, wedges (angled walls), cover
+(also raised: platforms, bridges, stacked crates), ladders, and entities in the openings
+(glass, door leaves). With zones, every shell face gets the textures of the area it faces.
 """
 
 from __future__ import annotations
@@ -16,12 +20,21 @@ import numpy as np
 
 from mapforge.generator.spec import Area, Door, Layout, SpecError
 from mapforge.mapfile.parser import Brush, MapFile
-from mapforge.mapfile.writer import box_brush, entity
+from mapforge.mapfile.writer import box_brush, entity, polyhedron_brush, prism_brush
 
 WORLD_LIMIT = 4096
 EMPTY, SOLID, SKY = 0, 1, 2
+ZONE_LABEL = 10  # solid cells owned by zone k get ZONE_LABEL + k (keeps zones in separate boxes)
 
 Box = tuple[tuple[int, int, int], tuple[int, int, int]]
+
+# armoury_entity "item" (CS 1.6 FGD)
+ARMOURY_ITEMS = {
+    "mp5navy": 0, "tmp": 1, "p90": 2, "mac10": 3, "ak47": 4, "sg552": 5, "m4a1": 6, "aug": 7,
+    "scout": 8, "g3sg1": 9, "awp": 10, "m3": 11, "xm1014": 12, "m249": 13, "flashbang": 14,
+    "hegrenade": 15, "kevlar": 16, "assaultsuit": 17, "smokegrenade": 18,
+}  # fmt: skip
+BUYING = {"both": 0, "ct": 1, "t": 2, "none": 3}
 
 
 @dataclass
@@ -35,15 +48,16 @@ def door_box(door: Door, areas: dict[str, Area], wall: int) -> Box:
     """The empty box cut through the wall between the two areas of a door.
 
     The areas must be exactly `wall` units apart on one axis and overlap by at least the door
-    width on the other; the door is centred on that overlap (+ offset).
+    width on the other; the door is centred on that overlap (+ offset). A window/vent starts
+    `sill` units above the higher floor.
     """
     a, b = (areas[n] for n in door.between)
     ax0, ay0, ax1, ay1 = a.rect
     bx0, by0, bx1, by1 = b.rect
-    floor = max(a.floor, b.floor)
+    floor = max(a.floor, b.floor) + door.sill
     height = door.height or min(a.top, b.top) - floor
-    if min(a.top, b.top) < floor + height:
-        raise SpecError(f"door {door.name}: taller than the lower of its two areas")
+    if height <= 0 or min(a.top, b.top) < floor + height:
+        raise SpecError(f"door {door.name}: sill + height go above the lower of its two ceilings")
     # (gap between the areas, axis the door goes through, wall start, wall end)
     sides = (
         (bx0 - ax1, "x", ax1, bx0),  # b east of a
@@ -72,7 +86,9 @@ def door_box(door: Door, areas: dict[str, Area], wall: int) -> Box:
     )
 
 
-def _solid_cells(voids: list[Box], sky_over: list[Area], shell: Box) -> tuple[list, np.ndarray]:
+def _solid_cells(
+    voids: list[Box], sky_over: list[Area], shell: Box, owners: list[tuple[Area, int]]
+) -> tuple[list, np.ndarray]:
     (sx0, sy0, sz0), (sx1, sy1, sz1) = shell
     axes = []
     for i, (lo, hi) in enumerate(((sx0, sx1), (sy0, sy1), (sz0, sz1))):
@@ -90,7 +106,18 @@ def _solid_cells(voids: list[Box], sky_over: list[Area], shell: Box) -> tuple[li
     cy = (np.array(ys[:-1]) + np.array(ys[1:])) / 2
     cz = (np.array(zs[:-1]) + np.array(zs[1:])) / 2
     gx, gy, gz = np.meshgrid(cx, cy, cz, indexing="ij")
-    label = np.full(gx.shape, SOLID, dtype=np.int8)
+    label = np.full(gx.shape, SOLID, dtype=np.int16)
+    if any(k for _, k in owners):
+        # each solid cell belongs to the zone of the nearest area, so no box spans two zones
+        best = np.full(gx.shape, np.inf)
+        for a, k in owners:
+            x0, y0, x1, y1 = a.rect
+            d = (np.maximum(np.maximum(x0 - gx, gx - x1), 0)
+                 + np.maximum(np.maximum(y0 - gy, gy - y1), 0)
+                 + np.maximum(np.maximum(a.floor - gz, gz - a.top), 0))  # fmt: skip
+            closer = d < best
+            best[closer] = d[closer]
+            label[closer] = SOLID if k == 0 else ZONE_LABEL + k
     for a in sky_over:
         x0, y0, x1, y1 = a.rect
         label[(gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > a.top)] = SKY
@@ -124,58 +151,157 @@ def _greedy_boxes(label: np.ndarray) -> list[tuple[int, slice, slice, slice]]:
     return boxes
 
 
-def _stair_boxes(layout: Layout) -> list[Box]:
+def _along(a: Area, axis: str, start: int) -> tuple[str, int, int, int]:
+    """(axis letter, sign, coordinate where the feature begins, far end of the area)."""
+    x0, y0, x1, y1 = a.rect
+    along = axis[1]
+    sign = 1 if axis[0] == "+" else -1
+    lo, hi = (x0, x1) if along == "x" else (y0, y1)
+    begin = lo + start if sign > 0 else hi - start
+    end = hi if sign > 0 else lo
+    return along, sign, begin, end
+
+
+def _stair_boxes(layout: Layout) -> list[tuple[Box, Area]]:
     out = []
     for st in layout.stairs:
         a = layout.areas[st.area]
         x0, y0, x1, y1 = a.rect
         n = st.rise // st.step
-        along = st.axis[1]
-        sign = 1 if st.axis[0] == "+" else -1
-        lo, hi = (x0, x1) if along == "x" else (y0, y1)
-        begin = lo + st.start if sign > 0 else hi - st.start
-        end = hi if sign > 0 else lo
+        along, sign, begin, end = _along(a, st.axis, st.start)
         for i in range(1, n + 1):
             # step i reaches from its front edge to the far end of the area (a solid flight)
             front = begin + sign * (i - 1) * st.run
             s0, s1 = sorted((front, end))
             z1 = a.floor + i * st.step
             if along == "x":
-                out.append(((s0, y0, a.floor), (s1, y1, z1)))
+                out.append((((s0, y0, a.floor), (s1, y1, z1)), a))
             else:
-                out.append(((x0, s0, a.floor), (x1, s1, z1)))
+                out.append((((x0, s0, a.floor), (x1, s1, z1)), a))
     return out
 
 
-def _spawn_points(
-    area: Area, count: int, facing: tuple[float, float], offset: tuple[int, int] = (0, 0)
-) -> list[str]:
-    x0, y0, x1, y1 = area.rect
-    margin, spacing = 48, 64
-    cols = max(1, (x1 - x0 - 2 * margin) // spacing + 1)
-    rows = max(1, (y1 - y0 - 2 * margin) // spacing + 1)
-    if cols * rows < count:
-        raise SpecError(f"spawn area {area.name} fits {cols * rows} spawns, needs {count}")
-    pts = []
-    cxm, cym = (x0 + x1) / 2 + offset[0], (y0 + y1) / 2 + offset[1]
-    grid = sorted(
-        (
-            (x0 + margin + c * spacing, y0 + margin + r * spacing)
-            for r in range(rows)
-            for c in range(cols)
-        ),
-        key=lambda p: (p[0] - cxm) ** 2 + (p[1] - cym) ** 2,
-    )  # fill from the middle of the area outwards
-    yaw = math.degrees(math.atan2(facing[1] - cym, facing[0] - cxm))
-    for x, y in grid[:count]:
-        # hull origin 36 above the feet + ~8 units clearance off the floor (TWHL)
-        pts.append(f"{x} {y} {area.floor + 44}|0 {yaw:.0f} 0")
-    return pts
+def _profile_brush(a: Area, along: str, profile: list[tuple[int, int]], tex) -> Brush:
+    """Prism across the whole area width from a convex (along, z) profile."""
+    x0, y0, x1, y1 = a.rect
+    if along == "x":
+        side0 = [(u, y0, z) for u, z in profile]
+        side1 = [(u, y1, z) for u, z in profile]
+    else:
+        side0 = [(x0, u, z) for u, z in profile]
+        side1 = [(x1, u, z) for u, z in profile]
+    n = len(profile)
+    faces = [side0, side1] + [
+        [side0[i], side0[(i + 1) % n], side1[(i + 1) % n], side1[i]] for i in range(n)
+    ]
+    return polyhedron_brush(faces, tex)
+
+
+def _stair_clips(layout: Layout, tex: str) -> list[Brush]:
+    """A player-clip ramp resting on the step nosings of each `clip: true` flight."""
+    out = []
+    for st in layout.stairs:
+        if not st.clip:
+            continue
+        a = layout.areas[st.area]
+        n = st.rise // st.step
+        if n < 2:
+            continue
+        along, sign, begin, end = _along(a, st.axis, st.start)
+        lo, hi = (a.rect[0], a.rect[2]) if along == "x" else (a.rect[1], a.rect[3])
+        top = begin + sign * (n - 1) * st.run  # front of the last step
+        foot = begin - sign * st.run  # where the nosing line meets the floor
+        edge = lo if sign > 0 else hi
+        if (foot - edge) * sign < 0:  # the line meets the floor outside the area: start higher
+            z_edge = a.floor + abs(edge - foot) * st.step // st.run
+            if abs(edge - foot) * st.step % st.run:
+                raise SpecError(f"stairs {st.name}: clip ramp would be off the grid")
+            prof = [(edge, a.floor), (edge, z_edge), (top, a.floor + st.rise), (top, a.floor)]
+        else:
+            prof = [(foot, a.floor), (top, a.floor + st.rise), (top, a.floor)]
+        out.append(_profile_brush(a, along, prof, tex))
+    return out
+
+
+def _ramp_brushes(layout: Layout, surf) -> list[Brush]:
+    out = []
+    for rp in layout.ramps:
+        a = layout.areas[rp.area]
+        along, sign, begin, end = _along(a, rp.axis, rp.start)
+        top = begin + sign * rp.length
+        z0, z1 = a.floor, a.floor + rp.rise
+        out.append(_profile_brush(a, along, [(begin, z0), (top, z1), (top, z0)], surf(a)))
+        if top != end:  # the rest of the area is raised
+            s0, s1 = sorted((top, end))
+            x0, y0, x1, y1 = a.rect
+            lo, hi = ((s0, y0, z0), (s1, y1, z1)) if along == "x" else ((x0, s0, z0), (x1, s1, z1))
+            out.append(box_brush(lo, hi, surf(a)))
+    return out
+
+
+def _wedge_brushes(layout: Layout, surf) -> list[Brush]:
+    out = []
+    for w in layout.wedges:
+        a = layout.areas[w.area]
+        x0, y0, x1, y1 = a.rect
+        dx, dy = w.size
+        cx, sx = (x1, -1) if "e" in w.corner else (x0, 1)
+        cy, sy = (y1, -1) if "n" in w.corner else (y0, 1)
+        tri = [(cx, cy), (cx + sx * dx, cy), (cx, cy + sy * dy)]
+        out.append(prism_brush(tri, a.floor, a.floor + (w.height or a.height), surf(a)))
+    return out
+
+
+def _ladder_box(layout: Layout, ld) -> Box:
+    a = layout.areas[ld.area]
+    x0, y0, x1, y1 = a.rect
+    depth = 8
+    z0, z1 = a.floor, a.floor + ld.height
+    if ld.wall[1] == "x":
+        c = (y0 + y1) // 2 + ld.pos
+        xa, xb = (x1 - depth, x1) if ld.wall[0] == "+" else (x0, x0 + depth)
+        return ((xa, c - ld.width // 2, z0), (xb, c + ld.width // 2, z1))
+    c = (x0 + x1) // 2 + ld.pos
+    ya, yb = (y1 - depth, y1) if ld.wall[0] == "+" else (y0, y0 + depth)
+    return ((c - ld.width // 2, ya, z0), (c + ld.width // 2, yb, z1))
+
+
+def _face_textures(lo: tuple, hi: tuple, voids: list[tuple[Box, Area]], tex_of) -> dict[str, str]:
+    """Per side of a shell box: the texture of the area it faces (largest touching overlap)."""
+    out = {}
+    for axis in range(3):
+        for sign, coord in ((-1, lo[axis]), (1, hi[axis])):
+            o = [i for i in range(3) if i != axis]
+            best, best_a = 0, None
+            for (vlo, vhi), area in voids:
+                touch = vhi[axis] == coord if sign < 0 else vlo[axis] == coord
+                if not touch:
+                    continue
+                ov = 1
+                for i in o:
+                    ov *= max(0, min(hi[i], vhi[i]) - max(lo[i], vlo[i]))
+                if ov > best:
+                    best, best_a = ov, area
+            side = "xyz"[axis]
+            key = ("+" if sign > 0 else "-") + side
+            t = tex_of(best_a)
+            out[key] = t["floor"] if key == "+z" else t["ceiling"] if key == "-z" else t["wall"]
+    return out
 
 
 def generate(layout: Layout) -> Generated:
     tex = layout.textures
     areas = layout.areas
+    zone_names = sorted(layout.zones)
+
+    def tex_of(a: Area | None) -> dict[str, str]:
+        z = layout.zones.get(a.zone) if a is not None and a.zone else None
+        return {**tex, **{k: v for k, v in (z or {}).items() if k in tex}}
+
+    def surf(a: Area | None) -> dict[str, str]:
+        t = tex_of(a)
+        return {"top": t["floor"], "bottom": t["ceiling"], "side": t["wall"]}
+
     voids: dict[str, Box] = {
         a.name: ((a.rect[0], a.rect[1], a.floor), (a.rect[2], a.rect[3], a.top))
         for a in areas.values()
@@ -188,7 +314,10 @@ def generate(layout: Layout) -> Generated:
         raise SpecError(f"map exceeds ±{WORLD_LIMIT} units: {lo.tolist()} .. {hi.tolist()}")
     shell: Box = (tuple(int(v) for v in lo), tuple(int(v) for v in hi))
     outdoor = [a for a in areas.values() if a.outdoor]
-    (xs, ys, zs), label = _solid_cells(list(voids.values()), outdoor, shell)
+    owners = [(a, zone_names.index(a.zone) + 1 if a.zone else 0) for a in areas.values()]
+    (xs, ys, zs), label = _solid_cells(list(voids.values()), outdoor, shell, owners)
+    door_area = {d.name: areas[d.between[0]] for d in layout.doors}
+    void_areas = [(b, areas.get(n) or door_area[n]) for n, b in voids.items()]
 
     world = entity(
         {
@@ -200,27 +329,74 @@ def generate(layout: Layout) -> Generated:
             "message": layout.name,
         }
     )
-    surf = {"top": tex["floor"], "bottom": tex["ceiling"], "side": tex["wall"]}
     for lab, si, sj, sk in _greedy_boxes(label):
         b_lo = (xs[si.start], ys[sj.start], zs[sk.start])
         b_hi = (xs[si.stop], ys[sj.stop], zs[sk.stop])
-        world.brushes.append(box_brush(b_lo, b_hi, tex["sky"] if lab == SKY else surf))
+        if lab == SKY:
+            t: str | dict[str, str] = tex["sky"]
+        elif layout.zones:
+            t = _face_textures(b_lo, b_hi, void_areas, tex_of)
+        else:
+            t = surf(None)
+        world.brushes.append(box_brush(b_lo, b_hi, t))
     n_shell = len(world.brushes)
-    for b_lo, b_hi in _stair_boxes(layout):
-        world.brushes.append(box_brush(b_lo, b_hi, surf))
+
+    # Solids inside the empty space. With `detail`, they go into one func_detail (SDHLT): they
+    # still block and are lit like world, but do not split vis leaves.
+    inner: list[Brush] = []
+    for (b_lo, b_hi), a in _stair_boxes(layout):
+        inner.append(box_brush(b_lo, b_hi, surf(a)))
+    inner += _ramp_brushes(layout, surf)
+    inner += _wedge_brushes(layout, surf)
     for c in layout.cover:
         a = areas[c.area]
         (px, py), (w, d, h) = c.pos, c.size
-        world.brushes.append(
+        z0 = a.floor + c.z
+        inner.append(
             box_brush(
-                (px - w // 2, py - d // 2, a.floor),
-                (px + w // 2, py + d // 2, a.floor + h),
-                tex["cover"],
+                (px - w // 2, py - d // 2, z0),
+                (px + w // 2, py + d // 2, z0 + h),
+                c.texture or tex_of(a)["cover"],
             )
         )
     ents = [world]
+    if layout.detail and inner:
+        ents.append(entity({"classname": "func_detail", "zhlt_detaillevel": "1"}, inner))
+    else:
+        world.brushes += inner
+    world.brushes += _stair_clips(layout, tex["clip"])
 
-    # Lights: sun for outdoor areas, a grid of point lights in indoor areas (and doors).
+    # Openings: glass panes and door leaves fill the opening's box.
+    for d in layout.doors:
+        (o_lo, o_hi) = voids[d.name]
+        if d.glass:
+            ents.append(entity({"classname": "func_breakable", "material": "0", "health": "20",
+                                "rendermode": "2", "renderamt": "110"},
+                               [box_brush(o_lo, o_hi, tex["glass"])]))  # fmt: skip
+        elif d.gate == "sliding":
+            ents.append(entity({"classname": "func_door", "angle": "-1", "speed": "160",
+                                "wait": "3", "lip": "8", "targetname": f"gate_{d.name}"},
+                               [box_brush(o_lo, o_hi, tex["door"])]))  # fmt: skip
+        elif d.gate == "rotating":
+            # hinge (ORIGIN brush) at the low end of the opening's long side
+            ax = 0 if (o_hi[0] - o_lo[0]) > (o_hi[1] - o_lo[1]) else 1
+            h_lo = list(o_lo)
+            h_hi = list(o_hi)
+            h_hi[ax] = o_lo[ax] + 16
+            ents.append(entity({"classname": "func_door_rotating", "distance": "90",
+                                "speed": "120", "wait": "3", "targetname": f"gate_{d.name}"},
+                               [box_brush(o_lo, o_hi, tex["door"]),
+                                box_brush(tuple(h_lo), tuple(h_hi), tex["origin"])]))  # fmt: skip
+
+    # Ladders: a non-solid ladder texture against the wall + the climbable func_ladder volume.
+    for ld in layout.ladders:
+        l_lo, l_hi = _ladder_box(layout, ld)
+        ents.append(
+            entity({"classname": "func_illusionary"}, [box_brush(l_lo, l_hi, tex["ladder"])])
+        )
+        ents.append(entity({"classname": "func_ladder"}, [box_brush(l_lo, l_hi, tex["trigger"])]))
+
+    # Lights: sun for outdoor areas, a grid of point lights in indoor areas (zone colour).
     if outdoor:
         sun = layout.sky.get("sun", {})
         r, g, bl = sun.get("color", [255, 240, 215])
@@ -238,12 +414,12 @@ def generate(layout: Layout) -> Generated:
                 }
             )
         )
-    lcfg = layout.lights
-    spacing = int(lcfg.get("spacing", 384))
-    lr, lg, lb = lcfg.get("color", [255, 236, 210])
     for a in areas.values():
         if a.outdoor:
             continue
+        lcfg = {**layout.lights, **((layout.zones.get(a.zone) or {}).get("light") or {})}
+        spacing = int(lcfg.get("spacing", 384))
+        lr, lg, lb = lcfg.get("color", [255, 236, 210])
         x0, y0, x1, y1 = a.rect
         nx, ny = max(1, round((x1 - x0) / spacing)), max(1, round((y1 - y0) / spacing))
         for i in range(nx):
@@ -294,14 +470,62 @@ def generate(layout: Layout) -> Generated:
                 )
             )
 
+    # Weapons on the floor and map rules.
+    for wp in layout.weapons:
+        item = wp["item"]
+        code = ARMOURY_ITEMS.get(str(item).lower(), item)
+        if not isinstance(code, int):
+            raise SpecError(f"weapon {item!r}: unknown item (one of {sorted(ARMOURY_ITEMS)})")
+        a = areas[wp["area"]]
+        origin = f"{wp['pos'][0]} {wp['pos'][1]} {a.floor + 16}"
+        count = str(int(wp.get("count", 1)))
+        ents.append(entity({"classname": "armoury_entity", "item": str(code), "count": count,
+                            "origin": origin}))  # fmt: skip
+    if layout.map_parameters:
+        mp = layout.map_parameters
+        buying = BUYING.get(str(mp.get("buying", "both")).lower())
+        if buying is None:
+            raise SpecError(f"map_parameters.buying: one of {sorted(BUYING)}")
+        props = {"classname": "info_map_parameters", "buying": str(buying),
+                 "origin": f"{int(lo[0]) + 32} {int(lo[1]) + 32} {int(lo[2]) + 32}"}  # fmt: skip
+        if "bombradius" in mp:
+            props["bombradius"] = str(int(mp["bombradius"]))
+        ents.append(entity(props))
+
     stats = {
-        "brushes": len(world.brushes),
+        "brushes": len(world.brushes) + (len(inner) if layout.detail else 0),
         "shell_brushes": n_shell,
         "areas": len(areas),
         "doors": len(layout.doors),
         "entities": len(ents),
     }
     return Generated(mapfile=MapFile(entities=ents), voids=voids, stats=stats)
+
+
+def _spawn_points(
+    area: Area, count: int, facing: tuple[float, float], offset: tuple[int, int] = (0, 0)
+) -> list[str]:
+    x0, y0, x1, y1 = area.rect
+    margin, spacing = 48, 64
+    cols = max(1, (x1 - x0 - 2 * margin) // spacing + 1)
+    rows = max(1, (y1 - y0 - 2 * margin) // spacing + 1)
+    if cols * rows < count:
+        raise SpecError(f"spawn area {area.name} fits {cols * rows} spawns, needs {count}")
+    pts = []
+    cxm, cym = (x0 + x1) / 2 + offset[0], (y0 + y1) / 2 + offset[1]
+    grid = sorted(
+        (
+            (x0 + margin + c * spacing, y0 + margin + r * spacing)
+            for r in range(rows)
+            for c in range(cols)
+        ),
+        key=lambda p: (p[0] - cxm) ** 2 + (p[1] - cym) ** 2,
+    )  # fill from the middle of the area outwards
+    yaw = math.degrees(math.atan2(facing[1] - cym, facing[0] - cxm))
+    for x, y in grid[:count]:
+        # hull origin 36 above the feet + ~8 units clearance off the floor (TWHL)
+        pts.append(f"{x} {y} {area.floor + 44}|0 {yaw:.0f} 0")
+    return pts
 
 
 def brushes_of(g: Generated) -> list[Brush]:

@@ -71,6 +71,56 @@ spawns:
 buyzones: true                # func_buyzone over hvert spawn-område
 ```
 
+## Udvidet geometri og entiteter (2026-10-11)
+Alt er valgfrit; et layout uden disse nøgler genereres byte for byte som før.
+
+```yaml
+detail: true                  # cover, trapper, ramper og kiler i én func_detail (SDHLT): blokerer og lyses
+                              # som world, men splitter ikke vis-leaves (færre leaves, hurtigere VIS)
+zones:                        # identitet/callouts: tekstur- og lyssæt pr. zone
+  a: {floor: DEV_FLOOR_RED, wall: DEV_WALL_RED, ceiling: DEV_CEIL_RED, cover: DEV_METAL,
+      light: {color: [255, 200, 180], brightness: 240}}
+areas:
+  - {name: a_site, rect: [...], zone: a}   # hver skalflade får teksturen fra det område, den vender ind mod
+
+doors:
+  - name: mid_a_window
+    between: [mid, a_site]
+    width: 96
+    kind: window              # door (standard) | window (hul fra `sill`; kig/skyd igennem, ikke en rute)
+                              # | vent (kravle-rute: height 40..64)
+    sill: 80                  # bund over det højeste af de to gulve (window: >= 64)
+    height: 64
+    glass: true               # func_breakable-glas i hullet (material glass, rendermode texture)
+  - {name: t_gate, between: [t_spawn, mid], width: 128, gate: sliding}  # func_door (glider op, lukker efter 3 s)
+                              # gate: rotating = func_door_rotating med ORIGIN-hængsel i hullets ene ende
+
+ramps:                        # skråt gulv over hele områdets bredde (<= 45°: rise <= length)
+  - {name: a_ramp, area: a_site, axis: +y, rise: 64, length: 128, start: 128}
+                              # efter rampen er resten af området hævet med `rise` (som stairs)
+wedges:                       # solid trekant i et hjørne: hypotenusen er en skrå væg
+  - {name: b_chamfer, area: b_site, corner: sw, size: [192, 192]}   # ne|nw|se|sw, kateter langs x og y
+                              # (lige lange = 45°). To modsatte kiler gør et rektangel til en skrå korridor
+stairs:
+  - {name: ct_steps, area: ct_spawn, axis: +x, rise: 32, start: 448, clip: true}
+                              # clip: player-clip-rampe på trinenes forkanter (glat bevægelse)
+cover:
+  - {name: b_ledge, area: b_site, pos: [x, y], size: [128, 128, 16], z: 112}
+                              # z = bund over gulvet: platforme, broer, catwalks, stablede kasser (boost)
+  - {name: a_pillar, area: a_site, pos: [x, y], size: [64, 64, 288], texture: DEV_METAL}
+ladders:                      # stige mod en væg: func_illusionary (DEV_LADDER) + func_ladder-volumen, 8 dyb
+  - {name: b_ladder, area: b_site, wall: +x, pos: -96, width: 32, height: 128}
+weapons:                      # armoury_entity på gulvet: item = navn (awp, ak47, kevlar, hegrenade …) eller nummer
+  - {area: mid, pos: [0, 0], item: awp, count: 1}
+map_parameters: {buying: both, bombradius: 500}   # info_map_parameters: buying both|ct|t|none
+```
+
+**Dev-WAD:** ud over grundsættet har `mapforge_dev.wad` tool-teksturerne `CLIP` og `ORIGIN`, entitetsteksturerne `DEV_GLASS`, `DEV_DOOR` og `DEV_LADDER`, zone-tints `DEV_{FLOOR,WALL,CEIL}_{RED,BLUE,GREEN,SAND,GREY}` og landmark-materialerne `DEV_METAL`, `DEV_BRICK`, `DEV_CONCRETE` og `DEV_WOOD`. Alt er proceduralt og vores eget arbejde (CC0).
+
+**Flere niveauer:** områder må ligge over hinanden (forskellig `floor`, ingen overlap i højden), og et cover med `z` er en bro eller catwalk i et højt rum. Ladders, ramper og vinduer forbinder niveauerne. Validatorens gangbarhedsgraf arbejder på den compilede BSP (hulls, hop, crouch og func_ladder), så den forstår niveauerne uden særregler.
+
+**Ikke-rektangulære rum:** to områder, der rører hinanden (ingen væg imellem), bliver ét rum, fx et L-rum eller et rum med forskellig lofthøjde. Kiler skærer hjørner skråt af.
+
 ## Sjæl: koncept, landemærker, chokes, brud (DESIGN_GUIDE.md §9)
 Felter, som generatoren ignorerer, men som Review (rubrikken) og Decide læser, og som loopet ikke må optimere væk:
 
