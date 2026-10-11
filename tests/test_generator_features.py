@@ -352,7 +352,7 @@ def test_stacked_map_compiles_with_texlights(tmp_path):
     make_dev_wad()
     bsp = read_bsp(compile_map(cfg, "de_gen_stack"))
     log = (tmp_path / "build" / "de_gen_stack" / "compile.log").read_text()
-    assert "de_gen_stack.rad" in log
+    assert "de_gen_stack.rad" in log and "Duplication of texlight" not in log
     # lights without a targetname are compiled into the lightmaps and dropped from the .bsp
     assert {"func_ladder", "func_breakable", "env_sound"} <= {
         e.get("classname") for e in bsp.entities

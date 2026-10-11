@@ -176,6 +176,9 @@ def sightline_spread(
 
 def layout_graph(layout: dict[str, Any]) -> dict[str, Any]:
     """Topology from layout.yaml: entrances per site, junctions, Ølsted's C = n + r."""
+    from mapforge.generator.spec import expand_diagonals
+
+    layout = expand_diagonals(layout, int(layout.get("grid", 16)))
     raw = {a["name"]: a for a in layout.get("areas", [])}
     # areas that touch (no wall between them) are one room: an L-room, a split-level hall
     group = {n: n for n in raw}
@@ -216,7 +219,12 @@ def layout_graph(layout: dict[str, Any]) -> dict[str, Any]:
         degree[b] += 1
     sites = layout.get("sites", {})
     site_areas = {k: find(v["area"] if isinstance(v, dict) else v) for k, v in sites.items()}
-    entrances = {k: degree.get(a, 0) for k, a in site_areas.items()}
+    # a door into a dead end (a closet, an office only reachable from the site) is part of the
+    # site, not a way in
+    entrances = {
+        k: sum(1 for x, y in walk_doors if a in (x, y) and degree[y if x == a else x] > 1)
+        for k, a in site_areas.items()
+    }
     ct_areas = {a for a, x in areas.items() if x.get("role") == "ct_spawn"}
     # a site's CT entrance: a door to an area that CT reaches without crossing the site (direct
     # neighbour of the CT spawn area or the spawn itself)

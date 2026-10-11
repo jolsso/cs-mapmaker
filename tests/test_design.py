@@ -30,10 +30,14 @@ def test_layout_graph_windows_are_no_entrances_and_touching_areas_are_one_room()
             {"name": "a_alcove", "rect": [256, 0, 384, 128], "role": "room"},  # touches a
             {"name": "x", "rect": [400, 0, 600, 128], "role": "corridor"},
             {"name": "y", "rect": [0, 272, 256, 400], "role": "corridor"},
+            {"name": "w", "rect": [616, 0, 800, 128], "role": "corridor"},
+            {"name": "office", "rect": [0, -144, 128, -16], "role": "room"},  # dead end
         ],
         "doors": [
             {"between": ["a_alcove", "x"]},  # into the alcove = into the site
             {"between": ["a", "y"], "kind": "window", "sill": 80},
+            {"between": ["x", "w"]},
+            {"between": ["a", "office"]},  # a closet off the site is no entrance
         ],
         "sites": {"A": "a"},
     }

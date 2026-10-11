@@ -86,9 +86,10 @@ def compile_map(cfg: Config, map_name: str, profile: str = "fast") -> Path:
     base = out_dir / map_name
     include = [w for w in wads if w.name in cfg.data.get("wad", {}).get("include", [])]
     extra = {"csg": [arg for w in include for arg in ("-wadinclude", w.name)]}
-    if src.with_suffix(".rad").is_file():  # texture lights written by the generator
+    if src.with_suffix(".rad").is_file():
+        # texture lights from the generator: hlrad reads <map>.rad next to the map by itself
+        # (passing it with -lights as well loads every entry twice)
         shutil.copy2(src.with_suffix(".rad"), out_dir / f"{map_name}.rad")
-        extra["rad"] = ["-lights", str(out_dir / f"{map_name}.rad")]
 
     log_path = out_dir / "compile.log"
     bsp = base.with_suffix(".bsp")
