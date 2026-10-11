@@ -144,6 +144,10 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
             item["z"] = _vec(p["z"], 1, 8, "z")[0]  # raised: platform, bridge, stacked crate
         if p.get("texture"):
             item["texture"] = str(p["texture"])
+        if p.get("shape") and p["shape"] != "box":
+            item["shape"] = str(p["shape"])
+        if p.get("breakable"):
+            item["breakable"] = str(p["breakable"])
         lay["cover"].append(_flow_map(item))
         z = f" raised {item['z']}" if "z" in item else ""
         return f"cover {name} {size} at {pos}{z} in {area['name']}"
@@ -239,22 +243,52 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
                 "pos": _vec(p.get("pos", 0), 1, 8, "pos")[0]}  # fmt: skip
         lay.setdefault("ladders", CommentedSeq()).append(_flow_map(item))
         return f"ladder {item['name']} on the {item['wall']} wall of {area['name']}"
+    if t == "set_breakable":
+        cover = _find(lay.get("cover", []), str(p["target"]), "cover")
+        if cover.get("protected") or cover["name"] in soul_elements(lay):
+            raise ValueError(f"cover {cover['name']!r} is protected (landmark/irregularity)")
+        mat = str(p["material"])
+        if mat == "none":
+            cover.pop("breakable", None)
+        else:
+            cover["breakable"] = mat
+        return f"cover {cover['name']} breakable: {mat}"
+    if t == "add_hatch":
+        lower, upper = (_find(lay["areas"], str(p[k]), "area") for k in ("lower", "upper"))
+        item = {"name": _new_name(lay.get("hatches", []), f"h_{lower['name']}_{upper['name']}"),
+                "lower": lower["name"], "upper": upper["name"],
+                "rect": _flow(_vec(p["rect"], 4, 8, "rect"))}  # fmt: skip
+        if p.get("ladder"):
+            item["ladder"] = str(p["ladder"])
+        lay.setdefault("hatches", CommentedSeq()).append(_flow_map(item))
+        return f"hatch {item['name']} from {lower['name']} up to {upper['name']}"
+    if t == "add_water":
+        area = _find(lay["areas"], str(p["zone"]), "area")
+        _guard_spawn(area)
+        item = {"name": _new_name(lay.get("water", []), f"{area['name']}_water"),
+                "area": area["name"], "depth": _vec(p["depth"], 1, 8, "depth")[0]}  # fmt: skip
+        if p.get("rect"):
+            item["rect"] = _flow(_vec(p["rect"], 4, 8, "rect"))
+        lay.setdefault("water", CommentedSeq()).append(_flow_map(item))
+        return f"water {item['name']} {item['depth']} deep in {area['name']}"
     if t == "remove_element":
         name = str(p["target"])
-        for key in ("ramps", "wedges", "ladders", "cover", "stairs"):
+        for key in ("ramps", "wedges", "ladders", "cover", "stairs", "hatches", "water"):
             hit = next((it for it in lay.get(key, []) or [] if it.get("name") == name), None)
             if hit is not None:
                 if hit.get("protected") or name in soul_elements(lay):
                     raise ValueError(f"{name!r} is protected (landmark/irregularity)")
                 lay[key].remove(hit)
-                return f"{key[:-1] if key != 'stairs' else 'stairs'} {name} removed"
+                what = {"ramps": "ramp", "wedges": "angled wall", "ladders": "ladder",
+                        "hatches": "hatch"}.get(key, key)  # fmt: skip
+                return f"{what} {name} removed"
         window = next((d for d in lay.get("doors", []) if d.get("name") == name), None)
         if window is not None and window.get("kind") == "window":
             if window.get("protected") or name in soul_elements(lay):
                 raise ValueError(f"{name!r} is protected")
             lay["doors"].remove(window)
             return f"window {name} removed"
-        raise ValueError(f"no ramp/wedge/ladder/cover/stairs/window named {name!r}")
+        raise ValueError(f"no ramp/wedge/ladder/cover/stairs/hatch/water/window named {name!r}")
     if t == "remove_connection":
         a, b = str(p["from"]), str(p["to"])
         hits = [d for d in lay["doors"] if set(d["between"]) == {a, b}]
@@ -315,9 +349,11 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
                 if d.get("protected"):
                     raise ValueError(f"door {d['name']!r} to {name} is protected (locked topology)")
                 lay[key].remove(d)
-        for key in ("cover", "stairs", "ramps", "wedges", "ladders", "weapons"):
+        for key in ("cover", "stairs", "ramps", "wedges", "ladders", "weapons", "water", "spots"):
             for it in [it for it in lay.get(key, []) or [] if it.get("area") == name]:
                 lay[key].remove(it)
+        for h in [h for h in lay.get("hatches", []) or [] if name in (h["lower"], h["upper"])]:
+            lay["hatches"].remove(h)
         return f"area {name} removed (now solid), with its doors, cover and stairs"
     raise ValueError(f"change type {t!r} cannot be applied to a layout (phase 6)")
 

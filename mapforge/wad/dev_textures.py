@@ -3,7 +3,8 @@
 Base set (DEV_FLOOR/WALL/CEIL/CRATE), tool textures the compiler treats by name (CLIP,
 ORIGIN, AAATRIGGER, SKY), entity textures (DEV_GLASS, DEV_DOOR, DEV_LADDER), zone tints of
 floor/wall/ceiling (DEV_FLOOR_<ZONE> ..., for callouts: one colour family per zone) and a few
-landmark materials (DEV_METAL, DEV_BRICK, DEV_CONCRETE, DEV_WOOD).
+landmark materials (DEV_METAL, DEV_BRICK, DEV_CONCRETE, DEV_WOOD), light panels
+(DEV_LIGHT, DEV_LIGHT_BLUE: texture lights) and !WATER.
 
 Usage: python -m mapforge.wad.dev_textures
 """
@@ -49,6 +50,11 @@ PALETTE_COLORS = {
     23: (125, 90, 55),  # wood grain
     24: (200, 60, 200),  # tool: clip (magenta)
     25: (240, 200, 40),  # tool: origin
+    26: (255, 246, 220),  # light panel
+    27: (200, 190, 160),  # light panel frame
+    28: (215, 235, 255),  # blue light panel
+    29: (40, 90, 120),  # water
+    30: (70, 130, 160),  # water ripple
 }
 
 # Zone tints: a multiplier on the base floor/wall/ceiling colours (one family per zone).
@@ -114,6 +120,19 @@ def ladder() -> np.ndarray:
     return img
 
 
+def panel(base: int, frame: int) -> np.ndarray:
+    img = np.full((32, 32), base, dtype=np.uint8)
+    img[:2, :] = img[-2:, :] = img[:, :2] = img[:, -2:] = frame
+    return img
+
+
+def water() -> np.ndarray:
+    img = np.full((64, 64), 29, dtype=np.uint8)
+    for r in range(0, 64, 8):
+        img[r, (r * 3) % 64 : (r * 3) % 64 + 12] = 30
+    return img
+
+
 def pattern(base: int, line: int, kind: str) -> np.ndarray:
     img = np.full((64, 64), base, dtype=np.uint8)
     if kind == "metal":
@@ -154,6 +173,9 @@ def dev_textures() -> list[Texture]:
         Texture("DEV_BRICK", pattern(18, 19, "brick"), pal),
         Texture("DEV_CONCRETE", pattern(20, 21, "concrete"), pal),
         Texture("DEV_WOOD", pattern(22, 23, "wood"), pal),
+        Texture("DEV_LIGHT", panel(26, 27), pal),  # texture lights (lights in <map>.rad)
+        Texture("DEV_LIGHT_BLUE", panel(28, 27), pal),
+        Texture("!WATER", water(), pal),  # '!' = liquid for the compiler
     ]
     for zone, tint in ZONE_TINTS.items():
         zp = palette(tint)

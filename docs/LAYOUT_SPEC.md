@@ -118,7 +118,29 @@ weapons:                      # armoury_entity på gulvet: item = navn (awp, ak4
 map_parameters: {buying: both, bombradius: 500}   # info_map_parameters: buying both|ct|t|none
 ```
 
-**Dev-WAD:** ud over grundsættet har `mapforge_dev.wad` tool-teksturerne `CLIP` og `ORIGIN`, entitetsteksturerne `DEV_GLASS`, `DEV_DOOR` og `DEV_LADDER`, zone-tints `DEV_{FLOOR,WALL,CEIL}_{RED,BLUE,GREEN,SAND,GREY}` og landmark-materialerne `DEV_METAL`, `DEV_BRICK`, `DEV_CONCRETE` og `DEV_WOOD`. Alt er proceduralt og vores eget arbejde (CC0).
+### Pakke 2 (2026-10-11): former, materialer, etager, vand, lys og lyd
+```yaml
+cover:
+  - {name: pillar, area: hall, pos: [x, y], size: [64, 64, 192], shape: octagon}   # box | octagon (afskårne hjørner)
+  - {name: crate, area: b_site, pos: [x, y], size: [64, 64, 64], breakable: wood}  # wood|metal|glass|concrete → func_breakable
+  - {name: lamp, area: a_site, pos: [x, y], size: [64, 64, 8], z: 176, texture: DEV_LIGHT}  # teksturlys
+areas:
+  - {name: loft, rect: [...], floor: 176, height: 160}   # oven på `hall` (gulv >= hallens loft + 8)
+  - {name: hall, rect: [...], light: {brightness: 300, spacing: 256}, sound: 17}  # lys pr. område (off: true slukker); env_sound-rumtype
+hatches:                      # lodret hul mellem et område og det ovenpå (stablede etager)
+  - {name: h1, lower: hall, upper: loft, rect: [256, -64, 320, 64], ladder: +x}   # ladder: stige op gennem hullet
+water:                        # væske (!WATER) fra gulvet op til depth; lavt = vade, dybt = svømme
+  - {name: pool, area: b_site, rect: [x0, y0, x1, y1], depth: 24}
+spots:                        # light_spot: pitch -90 = lige ned, cone = [indre, ydre] halvvinkel
+  - {name: s1, area: a_site, pos: [x, y], z: 176, pitch: -90, cone: [30, 45], brightness: 300}
+texlights: {DEV_LIGHT: [255, 236, 200, 900]}   # → maps/<map>/src/<map>.rad, hlrad -lights (kun brugte teksturer)
+sounds: true                  # env_sound i hvert område: rumklang efter størrelse (korridor = tunnel, rum = beton,
+                              # udendørs, vand); `sound:` på et område vælger selv
+diagonals:                    # makro: en 45°-korridor af mindst `width` i et kvadratisk rect (område + to kiler)
+  - {name: diag, rect: [512, 272, 1024, 784], width: 192, dir: ne, height: 192}   # ne: SV→NØ, nw: SØ→NV
+```
+
+**Dev-WAD:** ud over grundsættet har `mapforge_dev.wad` tool-teksturerne `CLIP` og `ORIGIN`, entitetsteksturerne `DEV_GLASS`, `DEV_DOOR` og `DEV_LADDER`, zone-tints `DEV_{FLOOR,WALL,CEIL}_{RED,BLUE,GREEN,SAND,GREY}` og landmark-materialerne `DEV_METAL`, `DEV_BRICK`, `DEV_CONCRETE` og `DEV_WOOD`. Fra pakke 2 også `DEV_LIGHT`, `DEV_LIGHT_BLUE` (teksturlys) og `!WATER`. Alt er proceduralt og vores eget arbejde (CC0).
 
 **Flere niveauer:** områder må ligge over hinanden (forskellig `floor`, ingen overlap i højden), og et cover med `z` er en bro eller catwalk i et højt rum. Ladders, ramper og vinduer forbinder niveauerne. Validatorens gangbarhedsgraf arbejder på den compilede BSP (hulls, hop, crouch og func_ladder), så den forstår niveauerne uden særregler.
 
@@ -149,4 +171,4 @@ Navne i `landmarks[].element`, `irregularities[].element` og `chokes[].door` er 
 `protected: true` på et område, en dør eller et cover betyder, at loopet aldrig flytter, ændrer størrelse på eller fjerner det (låst topologi, fx chokepoint-dørene i de_forge01). Områder med `role: site`, `t_spawn` eller `ct_spawn` er altid låste (site-placeringer, FITNESS).
 
 ## Hvad Decide kan ændre (fase 6)
-Værktøjskassen i `config/fitness.yaml` peger på navne i spec'en: `move_corridor`/`resize_corridor` → et områdes `rect`; `adjust_opening` → en dørs `width`/`height`; `add_cover`/`remove_cover` → `cover`; `move_spawn` → spawn-område; `add_connection`/`remove_connection` → `doors`; `remove_area` (kun på et menneskes annotation) → fjerner et område med dets døre, cover og trapper. Fra 2026-10-11 også: `add_cover` med `z`/`texture`; `add_connection` med `kind: vent`; `add_window` → en dør med `kind: window`; `set_gate` → en dørs `gate`; `add_ramp` → `ramps`; `add_wedge` → `wedges`; `add_ladder` → `ladders`; `remove_element` → fjerner en rampe, kile, stige, cover, trappe eller et vindue ved navn. `add_area` må ligge over/under et andet område (adskilt i højden). Derfor skal alle navne være unikke. Ændringerne anvendes af `mapforge/loop/apply.py` med round-trip-YAML (kommentarer bevares); hver ændring prøve-genereres, og en ændring, der ikke kan bygges (fx en dør mister sin fælles væg), springes over med begrundelse.
+Værktøjskassen i `config/fitness.yaml` peger på navne i spec'en: `move_corridor`/`resize_corridor` → et områdes `rect`; `adjust_opening` → en dørs `width`/`height`; `add_cover`/`remove_cover` → `cover`; `move_spawn` → spawn-område; `add_connection`/`remove_connection` → `doors`; `remove_area` (kun på et menneskes annotation) → fjerner et område med dets døre, cover og trapper. Fra 2026-10-11 også: `add_cover` med `z`/`texture`; `add_connection` med `kind: vent`; `add_window` → en dør med `kind: window`; `set_gate` → en dørs `gate`; `add_ramp` → `ramps`; `add_wedge` → `wedges`; `add_ladder` → `ladders`; `remove_element` → fjerner en rampe, kile, stige, cover, trappe eller et vindue ved navn. `add_area` må ligge over/under et andet område (adskilt i højden). Pakke 2: `add_cover` med `shape`/`breakable`, `set_breakable`, `add_hatch` → `hatches`, `add_water` → `water`. Derfor skal alle navne være unikke. Ændringerne anvendes af `mapforge/loop/apply.py` med round-trip-YAML (kommentarer bevares); hver ændring prøve-genereres, og en ændring, der ikke kan bygges (fx en dør mister sin fælles væg), springes over med begrundelse.

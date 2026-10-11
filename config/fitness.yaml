@@ -72,7 +72,7 @@ allowed_changes:
     max_abs_delta: 256
   add_cover:
     description: Add a box/wall as cover inside a zone; with z a platform, bridge or a crate stacked on another (boost spot)
-    params: [zone, position, size]   # position [x, y], size [w, d, h]; optional z (bottom above the floor), texture
+    params: [zone, position, size]   # position [x, y], size [w, d, h]; optional z (bottom above the floor), texture, shape (box|octagon), breakable (wood|metal|glass|concrete)
   remove_cover:
     description: Remove a piece of cover
     params: [target]
@@ -121,8 +121,20 @@ allowed_changes:
     description: A ladder against a wall of an area up to a platform or upper level
     params: [zone, wall, height]     # wall +x/-x/+y/-y; optional pos (along the wall)
     before_gate_b_only: true
+  set_breakable:
+    description: Make a piece of cover breakable (wood/metal/glass/concrete) or solid again (none)
+    params: [target, material]
+  add_hatch:
+    description: A hole between an area and the one stacked above it, optionally with a ladder (stacked levels)
+    params: [lower, upper, rect]     # rect [x0,y0,x1,y1] inside both; optional ladder +x/-x/+y/-y
+    before_gate_b_only: true
+    max_per_iteration: 1
+  add_water:
+    description: Water from the floor up `depth` in an area (shallow = wading, slows; deep = swimming)
+    params: [zone, depth]            # optional rect
+    before_gate_b_only: true
   remove_element:
-    description: Remove a ramp, angled wall, ladder, cover, stairs or window by name
+    description: Remove a ramp, angled wall, ladder, cover, stairs, hatch, water or window by name
     params: [target]
   lighting:
     description: Light intensity, colour or position

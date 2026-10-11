@@ -210,7 +210,7 @@ def layout_graph(layout: dict[str, Any]) -> dict[str, Any]:
         (find(d["between"][0]), find(d["between"][1]))
         for d in layout.get("doors", [])
         if d.get("kind", "door") != "window"  # a window is a sightline, not an entrance
-    ]
+    ] + [(find(h["lower"]), find(h["upper"])) for h in layout.get("hatches", []) or []]
     for a, b in walk_doors:
         degree[a] += 1
         degree[b] += 1

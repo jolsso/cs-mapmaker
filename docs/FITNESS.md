@@ -76,6 +76,7 @@ Maskinlæsbart i `config/fitness.yaml` → `allowed_changes` (typer, påkrævede
 - Vindue mellem to områder (`add_window`, sill ≥ 64, evt. glas; max 1 pr. iteration), vent som forbindelse (`kind: vent`)
 - Rampe (≤ 45°, ikke i spawn-områder), skrå væg / kile i et hjørne, stige (kun før Gate B)
 - Dørblad i en åbning (`set_gate`: sliding / rotating / none); fjerne et element ved navn (`remove_element`)
+- Pakke 2: ottekantet / knusbart cover (`add_cover shape/breakable`, `set_breakable`), lem mellem stablede etager (`add_hatch`, max 1 pr. iteration), vand (`add_water`), begge kun før Gate B
 - Lys: intensitet, farve, placering (Fase 7)
 
 ## Goodhart-advarsel

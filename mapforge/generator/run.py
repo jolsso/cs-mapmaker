@@ -34,6 +34,11 @@ def main(argv: list[str] | None = None) -> int:
         out,
         header=f"GENERATED from layout.yaml by mapforge.generator – do not edit\n{g.stats}",
     )
+    rad = out.with_suffix(".rad")  # texture lights for hlrad (-lights); none = no file
+    if g.rad:
+        rad.write_text(g.rad, encoding="utf-8", newline="\n")
+    elif rad.exists():
+        rad.unlink()
     print(f"generated {out} {g.stats}")
     return 0
 

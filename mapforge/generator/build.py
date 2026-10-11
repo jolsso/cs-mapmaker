@@ -18,7 +18,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from mapforge.generator.spec import Area, Door, Layout, SpecError
+from mapforge.generator.spec import MATERIALS, Area, Door, Layout, SpecError
 from mapforge.mapfile.parser import Brush, MapFile
 from mapforge.mapfile.writer import box_brush, entity, polyhedron_brush, prism_brush
 
@@ -43,6 +43,30 @@ class Generated:
     mapfile: MapFile
     voids: dict[str, Box]  # area/door name -> empty box
     stats: dict[str, int]
+    rad: str = ""  # texture lights for hlrad -lights (<map>.rad); "" = none used
+
+
+# env_sound room types (HL): tunnel/concrete by size, outside, water
+ROOM_TUNNEL, ROOM_CONCRETE, ROOM_OUTSIDE, ROOM_WATER = (5, 6, 7), (17, 18, 19), 21, 15
+
+
+def _room_type(a: Area, wet: bool) -> int:
+    if wet:
+        return ROOM_WATER
+    if a.outdoor:
+        return ROOM_OUTSIDE
+    x0, y0, x1, y1 = a.rect
+    floor_area = (x1 - x0) * (y1 - y0)
+    size = 0 if floor_area < 256 * 512 else 1 if floor_area < 768 * 768 else 2
+    return (ROOM_TUNNEL if a.role == "corridor" else ROOM_CONCRETE)[size]
+
+
+def _octagon(lo: tuple, hi: tuple, grid: int = 8) -> list[tuple[int, int]]:
+    """A box's footprint with its corners cut (about a quarter of the short side, on the grid)."""
+    (x0, y0), (x1, y1) = lo[:2], hi[:2]
+    c = max(grid, min(x1 - x0, y1 - y0) // 4 // grid * grid)
+    return [(x0 + c, y0), (x1 - c, y0), (x1, y0 + c), (x1, y1 - c), (x1 - c, y1), (x0 + c, y1),
+            (x0, y1 - c), (x0, y0 + c)]  # fmt: skip
 
 
 def door_box(door: Door, areas: dict[str, Area], wall: int) -> Box:
@@ -309,6 +333,9 @@ def generate(layout: Layout) -> Generated:
     }
     for d in layout.doors:
         voids[d.name] = door_box(d, areas, layout.wall)
+    for h in layout.hatches:
+        hx0, hy0, hx1, hy1 = h.rect
+        voids[h.name] = ((hx0, hy0, areas[h.lower].top), (hx1, hy1, areas[h.upper].floor))
     lo = np.min([b[0] for b in voids.values()], axis=0) - layout.wall
     hi = np.max([b[1] for b in voids.values()], axis=0) + layout.wall
     if np.any(np.abs(lo) > WORLD_LIMIT) or np.any(np.abs(hi) > WORLD_LIMIT):
@@ -318,6 +345,7 @@ def generate(layout: Layout) -> Generated:
     owners = [(a, zone_names.index(a.zone) + 1 if a.zone else 0) for a in areas.values()]
     (xs, ys, zs), label = _solid_cells(list(voids.values()), outdoor, shell, owners)
     door_area = {d.name: areas[d.between[0]] for d in layout.doors}
+    door_area.update({h.name: areas[h.lower] for h in layout.hatches})
     void_areas = [(b, areas.get(n) or door_area[n]) for n, b in voids.items()]
 
     world = entity(
@@ -353,17 +381,26 @@ def generate(layout: Layout) -> Generated:
     for rp in layout.ramps:
         inner += [(b, rp.rise) for b in _ramp_brushes(layout, surf, [rp])]
     walls = _wedge_brushes(layout, surf)
+    breakables: list[Brush] = []
+    ents = [world]
     for c in layout.cover:
         a = areas[c.area]
         (px, py), (w, d, h) = c.pos, c.size
         z0 = a.floor + c.z
-        brush = box_brush(
-            (px - w // 2, py - d // 2, z0),
-            (px + w // 2, py + d // 2, z0 + h),
-            c.texture or tex_of(a)["cover"],
-        )
+        c_lo, c_hi = (px - w // 2, py - d // 2, z0), (px + w // 2, py + d // 2, z0 + h)
+        ctex = c.texture or tex_of(a)["cover"]
+        if c.shape == "octagon":
+            brush = prism_brush(_octagon(c_lo, c_hi), c_lo[2], c_hi[2], ctex)
+        else:
+            brush = box_brush(c_lo, c_hi, ctex)
+        if c.breakable:
+            mat = MATERIALS[c.breakable]
+            ents.append(entity({"classname": "func_breakable", "material": str(mat),
+                                "health": "20" if c.breakable == "glass" else "80",
+                                "targetname": f"break_{c.name}"}, [brush]))  # fmt: skip
+            breakables.append(brush)
+            continue
         inner.append((brush, c.z + h))
-    ents = [world]
     detail = [b for b, top in inner if layout.detail and top <= DETAIL_MAX_H]
     world.brushes += walls + [b for b, top in inner if not (layout.detail and top <= DETAIL_MAX_H)]
     if detail:
@@ -400,6 +437,55 @@ def generate(layout: Layout) -> Generated:
         )
         ents.append(entity({"classname": "func_ladder"}, [box_brush(l_lo, l_hi, tex["trigger"])]))
 
+    # Hatches: an optional ladder up through the hole, on one of its sides.
+    for h in layout.hatches:
+        if not h.ladder:
+            continue
+        hx0, hy0, hx1, hy1 = h.rect
+        z0, z1 = areas[h.lower].floor, areas[h.upper].floor
+        if h.ladder[1] == "x":
+            cy = (hy0 + hy1) // 2
+            xa, xb = (hx1 - 8, hx1) if h.ladder[0] == "+" else (hx0, hx0 + 8)
+            l_lo, l_hi = (xa, cy - 16, z0), (xb, cy + 16, z1)
+        else:
+            cx = (hx0 + hx1) // 2
+            ya, yb = (hy1 - 8, hy1) if h.ladder[0] == "+" else (hy0, hy0 + 8)
+            l_lo, l_hi = (cx - 16, ya, z0), (cx + 16, yb, z1)
+        ents.append(
+            entity({"classname": "func_illusionary"}, [box_brush(l_lo, l_hi, tex["ladder"])])
+        )
+        ents.append(entity({"classname": "func_ladder"}, [box_brush(l_lo, l_hi, tex["trigger"])]))
+
+    # Water: liquid brushes (texture !WATER) from the floor up `depth`.
+    for w in layout.water:
+        a = areas[w.area]
+        wx0, wy0, wx1, wy1 = w.rect
+        world.brushes.append(
+            box_brush((wx0, wy0, a.floor), (wx1, wy1, a.floor + w.depth), tex["water"])
+        )
+
+    # Spot lights.
+    for sp in layout.spots:
+        a = areas[sp.area]
+        r, g, bl = sp.color
+        ents.append(entity({"classname": "light_spot",
+                            "origin": f"{sp.pos[0]} {sp.pos[1]} {a.floor + sp.z}",
+                            "angles": f"{sp.pitch} {sp.yaw} 0", "pitch": str(sp.pitch),
+                            "_light": f"{r} {g} {bl} {sp.brightness}",
+                            "_cone": str(sp.cone[0]), "_cone2": str(sp.cone[1])}))  # fmt: skip
+
+    # Room acoustics: an env_sound per area (explicit room type, or by size with `sounds`).
+    wet = {w.area for w in layout.water}
+    for a in areas.values():
+        if a.sound is None and not layout.sounds:
+            continue
+        rt = a.sound if a.sound is not None else _room_type(a, a.name in wet)
+        x0, y0, x1, y1 = a.rect
+        radius = int(((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5 / 2)
+        origin = f"{(x0 + x1) // 2} {(y0 + y1) // 2} {a.floor + 64}"
+        ents.append(entity({"classname": "env_sound", "roomtype": str(rt), "radius": str(radius),
+                            "origin": origin}))  # fmt: skip
+
     # Lights: sun for outdoor areas, a grid of point lights in indoor areas (zone colour).
     if outdoor:
         sun = layout.sky.get("sun", {})
@@ -421,7 +507,10 @@ def generate(layout: Layout) -> Generated:
     for a in areas.values():
         if a.outdoor:
             continue
-        lcfg = {**layout.lights, **((layout.zones.get(a.zone) or {}).get("light") or {})}
+        lcfg = {**layout.lights, **((layout.zones.get(a.zone) or {}).get("light") or {}),
+                **(a.light or {})}  # fmt: skip
+        if lcfg.get("off"):
+            continue
         spacing = int(lcfg.get("spacing", 384))
         lr, lg, lb = lcfg.get("color", [255, 236, 210])
         x0, y0, x1, y1 = a.rect
@@ -503,7 +592,16 @@ def generate(layout: Layout) -> Generated:
         "doors": len(layout.doors),
         "entities": len(ents),
     }
-    return Generated(mapfile=MapFile(entities=ents), voids=voids, stats=stats)
+    mf = MapFile(entities=ents)
+    used = {f.texture for b in mf.brushes() for f in b.faces}
+    rad = "".join(
+        f"{name} {' '.join(str(v) for v in vals)}\n"
+        for name, vals in sorted(layout.texlights.items())
+        if name in used
+    )
+    if breakables:
+        stats["breakables"] = len(breakables)
+    return Generated(mapfile=mf, voids=voids, stats=stats, rad=rad)
 
 
 def _spawn_points(

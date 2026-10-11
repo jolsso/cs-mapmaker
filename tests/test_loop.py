@@ -64,6 +64,26 @@ def test_apply_new_geometry_change_types():
     assert next(c for c in data["cover"] if c.get("z") == 96)["area"] == "mid_top"
 
 
+def test_apply_shapes_breakables_water_and_hatch_checks():
+    changes = [
+        {"type": "add_cover", "params": {"zone": "mid_top", "position": [0, 656],
+                                         "size": [64, 64, 128], "shape": "octagon"}},
+        {"type": "add_cover", "params": {"zone": "mid", "position": [128, 128],
+                                         "size": [64, 64, 64], "breakable": "wood"}},
+        {"type": "set_breakable", "params": {"target": "mid_top_cover", "material": "metal"}},
+        {"type": "add_water", "params": {"zone": "mid", "depth": 24, "rect": [-256, -256, 0, 0]}},
+        {"type": "add_hatch", "params": {"lower": "mid", "upper": "mid_top",
+                                         "rect": [0, 0, 64, 64], "ladder": "+x"}},
+    ]  # fmt: skip
+    new, applied, failed = apply_plan(LAYOUT, changes)
+    assert [a["type"] for a in applied] == ["add_cover", "add_cover", "set_breakable", "add_water"]
+    assert failed[0]["type"] == "add_hatch" and "inside both" in failed[0]["reason"]
+    data = yaml.safe_load(new)
+    assert any(c.get("shape") == "octagon" for c in data["cover"])
+    assert next(c for c in data["cover"] if c["name"] == "mid_top_cover")["breakable"] == "metal"
+    assert data["water"][0]["depth"] == 24
+
+
 def test_policy_counts_windows_per_iteration_and_uses_per_map_locks():
     from mapforge.decide.policy import check_plan, load_fitness, locked_for
 

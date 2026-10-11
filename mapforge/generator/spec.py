@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -22,6 +23,8 @@ class Area:
     outdoor: bool = False
     role: str = "room"
     zone: str | None = None  # texture/light set from Layout.zones (identity, callouts)
+    light: dict[str, Any] | None = None  # point-light override for this area (spacing/colour/...)
+    sound: int | None = None  # env_sound room type (reverb); None = automatic by size if enabled
 
     @property
     def top(self) -> int:
@@ -115,6 +118,49 @@ class Cover:
     size: tuple[int, int, int]
     z: int = 0  # bottom above the area floor
     texture: str | None = None  # default: textures.cover (or the area zone's cover)
+    shape: str = "box"  # box | octagon (round-ish pillars, chamfered crates)
+    breakable: str | None = None  # wood | metal | glass | concrete: a func_breakable
+
+
+SHAPES = ("box", "octagon")
+MATERIALS = {"glass": 0, "wood": 1, "metal": 2, "concrete": 4}  # func_breakable "material"
+
+
+@dataclass(frozen=True)
+class Hatch:
+    """A vertical opening between an area and the one directly above it (stacked levels):
+    a hole through the slab, optionally with a ladder up through it."""
+
+    name: str
+    lower: str
+    upper: str
+    rect: tuple[int, int, int, int]
+    ladder: str | None = None  # +x -x +y -y: the hatch side the ladder stands on; None = drop only
+
+
+@dataclass(frozen=True)
+class Water:
+    """A water volume (texture !WATER: liquid contents) in an area, from the floor up `depth`."""
+
+    name: str
+    area: str
+    rect: tuple[int, int, int, int]
+    depth: int
+
+
+@dataclass(frozen=True)
+class Spot:
+    """A spot light (light_spot) in an area."""
+
+    name: str
+    area: str
+    pos: tuple[int, int]
+    z: int  # above the area floor
+    pitch: int = -90  # -90 = straight down
+    yaw: int = 0
+    cone: tuple[int, int] = (30, 45)  # inner, outer half-angle in degrees
+    brightness: int = 300
+    color: tuple[int, int, int] = (255, 240, 220)
 
 
 @dataclass
@@ -139,6 +185,11 @@ class Layout:
     weapons: list[dict[str, Any]] = field(default_factory=list)  # armoury_entity
     map_parameters: dict[str, Any] = field(default_factory=dict)  # info_map_parameters
     detail: bool = False  # cover/wedges/ramps as func_detail (no vis splits; SDHLT)
+    hatches: list[Hatch] = field(default_factory=list)
+    water: list[Water] = field(default_factory=list)
+    spots: list[Spot] = field(default_factory=list)
+    texlights: dict[str, list[int]] = field(default_factory=dict)  # texture -> [r, g, b, intensity]
+    sounds: bool = False  # env_sound per area: reverb from its size (unless area.sound is set)
 
 
 DEFAULT_TEXTURES = {
@@ -153,7 +204,39 @@ DEFAULT_TEXTURES = {
     "glass": "DEV_GLASS",
     "door": "DEV_DOOR",
     "ladder": "DEV_LADDER",
+    "water": "!WATER",  # '!' = liquid contents for the compiler
 }
+
+DEFAULT_TEXLIGHTS = {"DEV_LIGHT": [255, 236, 200, 900], "DEV_LIGHT_BLUE": [190, 215, 255, 900]}
+
+
+def expand_diagonals(data: dict[str, Any], grid: int) -> dict[str, Any]:
+    """`diagonals:` -> an area + two wedges each: a 45° corridor of at least `width` across a
+    square `rect`. dir nw: from the south-east corner to the north-west one (wedges ne + sw);
+    dir ne: from south-west to north-east (wedges nw + se). Doors go on the free wall ends."""
+    diags = data.get("diagonals") or []
+    if not diags:
+        return data
+    data = dict(data)
+    areas, wedges = list(data.get("areas", [])), list(data.get("wedges", []))
+    for d in diags:
+        x0, y0, x1, y1 = _ints(d.get("rect"), 4, f"diagonal {d.get('name')}.rect")
+        side = x1 - x0
+        if y1 - y0 != side:
+            raise SpecError(f"diagonal {d['name']}: rect must be square")
+        width = int(d["width"])
+        leg = (side - math.ceil(width / math.sqrt(2) / grid) * grid) // grid * grid
+        if leg <= 0:
+            raise SpecError(f"diagonal {d['name']}: width {width} does not fit in {side}")
+        area = {k: v for k, v in d.items() if k not in ("dir", "width")}
+        area.setdefault("role", "corridor")
+        areas.append(area)
+        corners = ("ne", "sw") if d.get("dir", "nw") == "nw" else ("nw", "se")
+        for c in corners:
+            wedges.append({"name": f"{d['name']}_{c}", "area": d["name"], "corner": c,
+                           "size": [leg, leg]})  # fmt: skip
+    data["areas"], data["wedges"] = areas, wedges
+    return data
 
 
 def _ints(v: Any, n: int, what: str) -> tuple[int, ...]:
@@ -167,6 +250,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         raise SpecError("layout needs a 'name'")
     grid = int(data.get("grid", 16))
     wall = int(data.get("wall", 16))
+    data = expand_diagonals(data, grid)
     areas: dict[str, Area] = {}
     for a in data.get("areas", []):
         rect = _ints(a.get("rect"), 4, f"area {a.get('name')}.rect")
@@ -178,6 +262,8 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             outdoor=bool(a.get("outdoor", False)),
             role=a.get("role", "room"),
             zone=a.get("zone"),
+            light=a.get("light"),
+            sound=a.get("sound"),
         )
         if area.name in areas:
             raise SpecError(f"duplicate area {area.name}")
@@ -250,10 +336,18 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             size=_ints(c["size"], 3, f"cover {c['name']}.size"),
             z=int(c.get("z", 0)),
             texture=c.get("texture"),
+            shape=str(c.get("shape", "box")),
+            breakable=c.get("breakable"),
         )
         for c in data.get("cover", [])
     ]
     for c in cover:
+        if c.shape not in SHAPES:
+            raise SpecError(f"cover {c.name}: shape must be one of {SHAPES}")
+        if c.breakable is not None and c.breakable not in MATERIALS:
+            raise SpecError(f"cover {c.name}: breakable must be one of {sorted(MATERIALS)}")
+        if c.shape == "octagon" and min(c.size[:2]) < 32:
+            raise SpecError(f"cover {c.name}: an octagon needs >= 32 units across")
         if c.z < 0 or c.z + c.size[2] > areas[c.area].height:
             raise SpecError(f"cover {c.name}: z {c.z} + height {c.size[2]} leaves its area")
     ramps = []
@@ -312,6 +406,51 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         if lad.height > areas[lad.area].height:
             raise SpecError(f"ladder {lad.name}: taller than its area")
         ladders.append(lad)
+    hatches = []
+    for h in data.get("hatches", []) or []:
+        ht = Hatch(
+            name=h["name"],
+            lower=need(h["lower"], h["name"]),
+            upper=need(h["upper"], h["name"]),
+            rect=_ints(h["rect"], 4, f"hatch {h['name']}.rect"),
+            ladder=h.get("ladder"),
+        )
+        lo, up = areas[ht.lower], areas[ht.upper]
+        hx0, hy0, hx1, hy1 = ht.rect
+        for a in (lo, up):
+            ax0, ay0, ax1, ay1 = a.rect
+            if not (ax0 <= hx0 < hx1 <= ax1 and ay0 <= hy0 < hy1 <= ay1):
+                raise SpecError(
+                    f"hatch {ht.name}: rect must lie inside both {lo.name} and {up.name}"
+                )
+        if up.floor < lo.top + 8:
+            raise SpecError(
+                f"hatch {ht.name}: {up.name} must sit above {lo.name} (floor >= its top + 8)"
+            )
+        if min(hx1 - hx0, hy1 - hy0) < 48:
+            raise SpecError(f"hatch {ht.name}: needs >= 48 units across (a player is 32)")
+        if ht.ladder not in (None, "+x", "-x", "+y", "-y"):
+            raise SpecError(f"hatch {ht.name}: ladder must be +x/-x/+y/-y or absent")
+        hatches.append(ht)
+    water = []
+    for w in data.get("water", []) or []:
+        a = areas[need(w["area"], w["name"])]
+        wt = Water(name=w["name"], area=a.name,
+                   rect=_ints(w.get("rect", list(a.rect)), 4, f"water {w['name']}.rect"),
+                   depth=int(w["depth"]))  # fmt: skip
+        if not (0 < wt.depth <= a.height):
+            raise SpecError(f"water {wt.name}: depth must be 1..{a.height}")
+        water.append(wt)
+    spots = []
+    for sp in data.get("spots", []) or []:
+        spots.append(Spot(
+            name=sp["name"], area=need(sp["area"], sp["name"]),
+            pos=_ints(sp["pos"], 2, f"spot {sp['name']}.pos"), z=int(sp.get("z", 0)),
+            pitch=int(sp.get("pitch", -90)), yaw=int(sp.get("yaw", 0)),
+            cone=_ints(sp.get("cone", [30, 45]), 2, f"spot {sp['name']}.cone"),
+            brightness=int(sp.get("brightness", 300)),
+            color=_ints(sp.get("color", [255, 240, 220]), 3, f"spot {sp['name']}.color"),
+        ))  # fmt: skip
     zones = data.get("zones", {}) or {}
     for a in areas.values():
         if a.zone is not None and a.zone not in zones:
@@ -337,7 +476,8 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             # grid outwards from area centre + offset
             "offset": _ints(sp.get("offset", [0, 0]), 2, f"spawns.{team}.offset"),
         }
-    names = [x.name for group in (doors, stairs, cover, ramps, wedges, ladders) for x in group]
+    groups = (doors, stairs, cover, ramps, wedges, ladders, hatches, water, spots)
+    names = [x.name for group in groups for x in group]
     dup = {n for n in names if names.count(n) > 1 or n in areas}
     if dup:
         raise SpecError(f"names must be unique across areas/doors/stairs/cover: {sorted(dup)}")
@@ -362,6 +502,11 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         weapons=weapons,
         map_parameters=data.get("map_parameters", {}) or {},
         detail=bool(data.get("detail", False)),
+        hatches=hatches,
+        water=water,
+        spots=spots,
+        texlights={**DEFAULT_TEXLIGHTS, **(data.get("texlights") or {})},
+        sounds=bool(data.get("sounds", False)),
     )
 
 

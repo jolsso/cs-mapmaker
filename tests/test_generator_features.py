@@ -249,3 +249,111 @@ def test_feature_map_compiles_and_validates(tmp_path):
     cls = {e.get("classname") for e in bsp.entities}
     assert "func_detail" not in cls  # SDHLT merges func_detail into the world
     assert {"func_ladder", "func_breakable", "func_door", "func_door_rotating"} <= cls
+
+
+STACKED = {
+    "name": "de_gen_stack",
+    "sounds": True,
+    "areas": [
+        {"name": "t_spawn", "rect": [-1024, -256, -512, 256], "height": 192},
+        {
+            "name": "hall",
+            "rect": [-496, -256, 496, 256],
+            "height": 160,
+            "light": {"brightness": 300},
+        },
+        {"name": "loft", "rect": [-496, -256, 496, 256], "floor": 176, "height": 160},
+        {"name": "ct_spawn", "rect": [512, -256, 1024, 256], "height": 192},
+        {"name": "a_site", "rect": [-496, 272, 496, 784], "height": 192},
+        {"name": "b_site", "rect": [-496, -784, 496, -272], "height": 192},
+    ],
+    "diagonals": [{"name": "diag", "rect": [512, 272, 1024, 784], "width": 192, "dir": "ne"}],
+    "doors": [
+        {"name": "t_hall", "between": ["t_spawn", "hall"], "width": 128},
+        {"name": "hall_ct", "between": ["hall", "ct_spawn"], "width": 128},
+        {"name": "hall_a", "between": ["hall", "a_site"], "width": 160},
+        {"name": "hall_b", "between": ["hall", "b_site"], "width": 160},
+    ],
+    "hatches": [
+        {
+            "name": "h1",
+            "lower": "hall",
+            "upper": "loft",
+            "rect": [256, -64, 320, 64],
+            "ladder": "+x",
+        }
+    ],  # fmt: skip
+    "water": [{"name": "pool", "area": "b_site", "rect": [-256, -704, 256, -448], "depth": 24}],
+    "spots": [{"name": "s1", "area": "a_site", "pos": [0, 528], "z": 176}],
+    "cover": [
+        {
+            "name": "pillar",
+            "area": "a_site",
+            "pos": [-256, 528],
+            "size": [64, 64, 192],
+            "shape": "octagon",
+            "texture": "DEV_CONCRETE",
+        },
+        {
+            "name": "crate",
+            "area": "b_site",
+            "pos": [320, -528],
+            "size": [64, 64, 64],
+            "breakable": "wood",
+        },
+        {
+            "name": "lamp",
+            "area": "a_site",
+            "pos": [256, 528],
+            "size": [64, 64, 8],
+            "z": 176,
+            "texture": "DEV_LIGHT",
+        },
+    ],  # fmt: skip
+    "sites": {"A": "a_site", "B": "b_site"},
+    "spawns": {"T": {"area": "t_spawn", "count": 10}, "CT": {"area": "ct_spawn", "count": 10}},
+}
+
+
+def test_stacked_levels_hatch_water_lights_sound_shapes():
+    lay = parse_layout(copy.deepcopy(STACKED))
+    assert {w.name for w in lay.wedges} == {"diag_nw", "diag_se"} and "diag" in lay.areas
+    g = generate(lay)
+    lo, hi = g.voids["h1"]
+    assert lo[2] == 160 and hi[2] == 176  # the hole through the slab
+    cls = [e.classname for e in g.mapfile.entities]
+    assert cls.count("func_ladder") == 1 and "light_spot" in cls and "func_breakable" in cls
+    assert cls.count("env_sound") == len(lay.areas)
+    sounds = {e.properties["roomtype"] for e in g.mapfile.entities if e.classname == "env_sound"}
+    assert "15" in sounds  # the wet site
+    assert any(f.texture == "!WATER" for b in g.mapfile.worldspawn.brushes for f in b.faces)
+    octs = [b for b in g.mapfile.worldspawn.brushes if len(b.faces) == 10]
+    assert octs and not brush_geometry(octs[0]).unbounded
+    assert g.rad.startswith("DEV_LIGHT ")
+    hall = [e for e in g.mapfile.entities if e.classname == "light"]
+    assert any(e.properties["_light"].endswith(" 300") for e in hall)
+
+
+@pytest.mark.slow
+@needs_compilers
+def test_stacked_map_compiles_with_texlights(tmp_path):
+    from mapforge.bsp.reader import read_bsp
+    from mapforge.compile.run import compile_map
+    from mapforge.wad.dev_textures import main as make_dev_wad
+
+    base = load_config()
+    data = copy.deepcopy(base.data)
+    data["paths"].update(maps_dir=str(tmp_path / "maps"), build_dir=str(tmp_path / "build"))
+    cfg = Config(root=base.root, data=data)
+    g = generate(parse_layout(copy.deepcopy(STACKED)))
+    src = tmp_path / "maps" / "de_gen_stack" / "src" / "de_gen_stack.map"
+    write_map(g.mapfile, src)
+    src.with_suffix(".rad").write_text(g.rad)
+    make_dev_wad()
+    bsp = read_bsp(compile_map(cfg, "de_gen_stack"))
+    log = (tmp_path / "build" / "de_gen_stack" / "compile.log").read_text()
+    assert "de_gen_stack.rad" in log
+    # lights without a targetname are compiled into the lightmaps and dropped from the .bsp
+    assert {"func_ladder", "func_breakable", "env_sound"} <= {
+        e.get("classname") for e in bsp.entities
+    }
