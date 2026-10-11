@@ -130,6 +130,28 @@ def test_stop_reasons(tmp_path):
     assert "plateau" in loop.stop_reason(changed=True)
 
 
+def test_review_is_reused_for_an_identical_map(tmp_path, monkeypatch):
+    import json
+
+    loop = _loop(tmp_path)
+    loop.map = "de_x"
+    dirs = [tmp_path / n for n in ("001", "002", "003")]
+    for d in dirs:
+        d.mkdir()
+    (dirs[0] / "de_x.map").write_text("A")
+    (dirs[1] / "de_x.map").write_text("B")
+    (dirs[2] / "de_x.map").write_text("B")
+    for d, passed in ((dirs[0], True), (dirs[1], True)):
+        (d / "review_answer.json").write_text("{}")
+        (d / "review.json").write_text(json.dumps({"passed": passed}))
+    monkeypatch.setattr("mapforge.loop.run.iterations", lambda cfg, m: dirs)
+    loop.state["iteration"] = "003"
+    monkeypatch.setattr(type(loop), "it_dir", property(lambda self: dirs[2]))
+    assert loop._reusable_review() == dirs[1] / "review_answer.json"
+    (dirs[1] / "review.json").write_text(json.dumps({"passed": False}))
+    assert loop._reusable_review() is None
+
+
 def test_decide_stops_on_plateau_before_asking_for_a_plan(tmp_path, monkeypatch):
     monkeypatch.setattr("mapforge.site.build.refresh_site", lambda cfg=None: None)
     loop = _loop(tmp_path)

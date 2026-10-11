@@ -155,6 +155,25 @@ class Loop:
         prev = [p for p in prev if p.is_file()]
         return prev[-1] if prev else None
 
+    def _reusable_review(self) -> Path | None:
+        """The review answer of the newest earlier iteration with a byte-identical .map, if that
+        review passed (a failed one is never reused: the plan changed nothing it asked for)."""
+        name = f"{self.map}.map"
+        cur = self.it_dir / name
+        if not cur.is_file():
+            return None
+        data = cur.read_bytes()
+        for p in reversed(iterations(self.cfg, self.map)):
+            if p.name >= self.state["iteration"]:
+                continue
+            ans, rev = p / "review_answer.json", p / "review.json"
+            if not ((p / name).is_file() and ans.is_file() and rev.is_file()):
+                continue
+            passed = json.loads(rev.read_text(encoding="utf-8")).get("passed")
+            if passed and (p / name).read_bytes() == data:
+                return ans
+        return None
+
     def _hard_fail(self, reached: str, why: str) -> str:
         self.state["counters"]["hard_fail"] += 1
         self.record(reached=reached, why=why)
@@ -168,6 +187,10 @@ class Loop:
         from mapforge.review.run import review_map
 
         answer = self.build / "review_answer.json"
+        if not answer.is_file() and (reused := self._reusable_review()):
+            # same .map as a reviewed iteration (e.g. a confirmation measurement): same verdict
+            shutil.copy2(reused, answer)
+            self.log(f"review reused from {reused.parent.name} (identical .map)")
         if not answer.is_file():
             return self._await("review", self.build / "review_prompt.md", answer)
         r = review_map(self.cfg, self.map, "answer")
