@@ -23,6 +23,13 @@ locked_maps:
     site_locations: []
     landmarks: []
     geometry_frozen: false
+  de_cistern01:
+    theme: ""
+    map_type: "de"
+    topology: ""           # engine test map: nothing locked until a Gate A
+    site_locations: []
+    landmarks: []
+    geometry_frozen: false
 
 # Bot-data targets (>= 100 rounds per measurement). Changed 2026-10-10 after the design
 # research (docs/DESIGN_GUIDE.md §9): YaPB cannot see a map, so bot numbers are sanity checks and
