@@ -78,6 +78,13 @@ tasks:
     cmds:
       - uv run python -m mapforge.decide.run --map {{.MAP}} {{.CLI_ARGS}}
 
+  sketch:
+    desc: Strokes drawn on a map (path annotations) -> angled corridors + knee rooms as layout YAML (MAP=<name>, ID=<annotation>)
+    requires:
+      vars: [MAP]
+    cmds:
+      - uv run python -m mapforge.sketch --map {{.MAP}} {{if .ID}}--id {{.ID}}{{end}} {{.CLI_ARGS}}
+
   history:
     desc: Snapshot the current build of a map into history/<map>/ (MAP=<name>, NOTE="...")
     requires:

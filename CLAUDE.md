@@ -59,6 +59,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf decide MAP=<navn> -- --emit     # ny runs/<map>/<NNN>/ med input-kontrakt + decide-prompt
 ./mf decide MAP=<navn> -- --answer   # tjek plan.json mod config/fitness.yaml → decision.json
 ./mf history MAP=<navn> NOTE="…"   # gem/opdatér version i history/<map>/ (sker automatisk efter render og review)
+./mf sketch MAP=<navn> [ID=<n>]  # skitsestreger (path-annotationer) → skrå korridorer + knæ-rum som layout-YAML
 ./mf site                     # genbyg lokalt website build/site/ (sker også automatisk efter validate/render/review/decide)
 docker compose up -d site     # PÅ VÆRTEN: serverer websitet på http://localhost:8080 (kun 127.0.0.1)
 docker compose up -d live     # PÅ VÆRTEN: live-collector (UDP → SSE på localhost:8090) + annotations-API (map-sidens "Dine ønsker")
@@ -83,7 +84,7 @@ Den visuelle vurdering laves **i Claude Code-sessionen**, ikke af et separat API
 3. `./mf review MAP=<navn> -- --answer` validerer svaret og afgør pass/fail (ingen `critical`/`major`). Pass-reglen ligger i koden, ikke i modellen.
 Decide følger samme mønster: `./mf decide -- --emit` → en subagent læser `runs/<map>/<NNN>/decide_prompt.md` og skriver `plan.json` + `NOTES.md` → `./mf decide -- --answer`.
 **Loopet** (`./mf loop`) bruger samme mønster: når det stopper med exit 3 ("AWAITING review/decide"), start en frisk subagent med den nævnte prompt-fil, lad den skrive svar-filen, og kør `./mf loop MAP=<navn>` igen. Gentag til loopet stopper (exit 0); læs `runs/<map>/LOOP.md`. Ved en gate eller eskalering: stop og skriv en opsummering til mennesket.
-**Nye maps fra dashboardet** ("+ Nyt map" på forsiden, `POST /api/maps` i live-containeren): `maps/<navn>/brief.json` (beskrivelse) + `annotations.json` (skitse på et tomt gitter, verdenskoordinater ±3072). Claude laver `layout.yaml` ud fra begge (DESIGN_GUIDE, LAYOUT_SPEC; skitsen er vejledende, designreglerne gælder), tilføjer en tom `locked_maps.<navn>` i `config/fitness.yaml`, kører generate → validate → render og starter loopet. Skitsens ønsker markeres som udført i første iteration.
+**Nye maps fra dashboardet** ("+ Nyt map" på forsiden, `POST /api/maps` i live-containeren): `maps/<navn>/brief.json` (beskrivelse) + `annotations.json` (skitse på et tomt gitter, verdenskoordinater ±3072). Claude laver `layout.yaml` ud fra begge (DESIGN_GUIDE, LAYOUT_SPEC; skitsen er vejledende, designreglerne gælder), tilføjer en tom `locked_maps.<navn>` i `config/fitness.yaml` (streger i skitsen: `./mf sketch MAP=<navn>` giver skrå korridorer i stregens vinkler at bygge videre på), kører generate → validate → render og starter loopet. Skitsens ønsker markeres som udført i første iteration.
 
 Ubemandede kørsler (uden åben session) kan bruge `uv run task review MAP=<navn> -- --headless` på værten (`claude -p`, samme prompt/skema/regel).
 
