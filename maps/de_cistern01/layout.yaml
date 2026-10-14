@@ -27,8 +27,8 @@ zones:
   t: {floor: DEV_FLOOR_RED, wall: DEV_WALL_RED, ceiling: DEV_CEIL_RED, light: {color: [255, 214, 190]}}
   mid: {floor: DEV_FLOOR_GREY, wall: DEV_WALL_GREY, ceiling: DEV_CEIL_GREY, cover: DEV_METAL}
   a: {floor: DEV_FLOOR_SAND, wall: DEV_WALL_SAND, ceiling: DEV_CEIL_SAND}
-  b: {floor: DEV_FLOOR_BLUE, wall: DEV_CONCRETE, ceiling: DEV_CEIL_BLUE, cover: DEV_CONCRETE,
-      light: {color: [200, 220, 255], brightness: 200}}
+  b: {floor: DEV_FLOOR_BLUE, wall: DEV_CONCRETE, ceiling: DEV_CEIL_BLUE, cover: DEV_CONCRETE, light: {color: [200, 220, 
+            255], brightness: 200}}
   ct: {floor: DEV_FLOOR_GREEN, wall: DEV_WALL_GREEN, ceiling: DEV_CEIL_GREEN}
 
 sky:
@@ -150,6 +150,6 @@ cover:
 
 sites: {A: a_site, B: b_site}
 spawns:
-  T: {area: t_spawn, count: 16}
+  T: {area: t_spawn, count: 16, offset: [-256, 0]}
   CT: {area: ct_spawn, count: 16}
 buyzones: true

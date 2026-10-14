@@ -3619,83 +3619,83 @@
 }
 {
 "classname" "info_player_deathmatch"
-"origin" "-16 -2256 44"
-"angles" "0 90 0"
+"origin" "-272 -2256 44"
+"angles" "0 83 0"
 }
 {
 "classname" "info_player_deathmatch"
-"origin" "-16 -2320 44"
-"angles" "0 90 0"
+"origin" "-272 -2320 44"
+"angles" "0 83 0"
 }
 {
 "classname" "info_player_deathmatch"
-"origin" "48 -2256 44"
-"angles" "0 90 0"
+"origin" "-208 -2256 44"
+"angles" "0 83 0"
 }
 {
 "classname" "info_player_deathmatch"
-"origin" "48 -2320 44"
-"angles" "0 90 0"
+"origin" "-208 -2320 44"
+"angles" "0 83 0"
 }
 {
 "classname" "info_player_deathmatch"
-"origin" "-80 -2256 44"
-"angles" "0 90 0"
+"origin" "-336 -2256 44"
+"angles" "0 83 0"
 }
 {
 "classname" "info_player_deathmatch"
-"origin" "-16 -2192 44"
-"angles" "0 90 0"
+"origin" "-272 -2192 44"
+"angles" "0 83 0"
 }
 {
 "classname" "info_player_deathmatch"
-"origin" "-80 -2320 44"
-"angles" "0 90 0"
+"origin" "-336 -2320 44"
+"angles" "0 83 0"
 }
 {
 "classname" "info_player_deathmatch"
-"origin" "48 -2192 44"
-"angles" "0 90 0"
+"origin" "-208 -2192 44"
+"angles" "0 83 0"
 }
 {
 "classname" "info_player_deathmatch"
-"origin" "-16 -2384 44"
-"angles" "0 90 0"
-}
-{
-"classname" "info_player_deathmatch"
-"origin" "112 -2256 44"
-"angles" "0 90 0"
-}
-{
-"classname" "info_player_deathmatch"
-"origin" "-80 -2192 44"
-"angles" "0 90 0"
-}
-{
-"classname" "info_player_deathmatch"
-"origin" "48 -2384 44"
-"angles" "0 90 0"
-}
-{
-"classname" "info_player_deathmatch"
-"origin" "112 -2320 44"
-"angles" "0 90 0"
-}
-{
-"classname" "info_player_deathmatch"
-"origin" "-80 -2384 44"
-"angles" "0 90 0"
-}
-{
-"classname" "info_player_deathmatch"
-"origin" "112 -2192 44"
-"angles" "0 90 0"
+"origin" "-272 -2384 44"
+"angles" "0 83 0"
 }
 {
 "classname" "info_player_deathmatch"
 "origin" "-144 -2256 44"
-"angles" "0 90 0"
+"angles" "0 83 0"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-336 -2192 44"
+"angles" "0 83 0"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-208 -2384 44"
+"angles" "0 83 0"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-144 -2320 44"
+"angles" "0 83 0"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-336 -2384 44"
+"angles" "0 83 0"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-144 -2192 44"
+"angles" "0 83 0"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-400 -2256 44"
+"angles" "0 83 0"
 }
 {
 "classname" "info_player_start"
