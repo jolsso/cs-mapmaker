@@ -72,6 +72,12 @@ class Loop:
 
     # ---------------------------------------------------------------- state
     def save(self) -> None:
+        # the budget counts the loop's own run time, not the time it stood still (awaiting an
+        # answer, cut off and resumed days later): add the time since the last save in this run
+        now = time.time()
+        if getattr(self, "_mark", None) is not None:
+            self.state["active_s"] = round(self.state.get("active_s", 0.0) + now - self._mark, 1)
+        self._mark = now
         self.root.mkdir(parents=True, exist_ok=True)
         self.state["updated"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.state_file.write_text(
@@ -87,12 +93,6 @@ class Loop:
 
             refresh_site(self.cfg)
 
-        # the budget counts the loop's own run time, not the time it stood still (awaiting an
-        # answer, cut off and resumed days later): add the time since the last save in this run
-        now = time.time()
-        if getattr(self, "_mark", None) is not None:
-            self.state["active_s"] = round(self.state.get("active_s", 0.0) + now - self._mark, 1)
-        self._mark = now
     def log(self, msg: str) -> None:
         print(f"[loop {self.map} {self.state.get('iteration', '-')}] {msg}", flush=True)
 
@@ -473,6 +473,7 @@ class Loop:
             self.log(f"already stopped: {self.state.get('stop_reason')}")
             return 0
         self.state.pop("awaiting", None)
+        self._mark = time.time()  # active time starts now (see save)
         while True:
             step = self.state["step"]
             if step == "build":
@@ -488,7 +489,6 @@ class Loop:
                 if r in (AWAIT, 0):
                     return r
             else:
-        self._mark = time.time()  # active time starts now (see save)
                 raise RuntimeError(f"unknown step {step!r}")
 
     def report(self) -> str:

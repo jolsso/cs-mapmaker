@@ -138,8 +138,8 @@ Begrænsninger:
 - **Demo:** HLTV-proxy i samme container (`+delay 0 +record`), som standard på første server pr. batch; `.dem` hentes til `<out>/<gruppe>/<run>/demos/`.
 - **Live:** med `docker compose up -d live` sender tracker-pluginet positioner (hvert 0,5 spilsekund), kills, plants og rundeudfald som UDP-datagrammer over netværket `mapforge-sim` til `mapforge.live.collector`, der holder tilstanden i hukommelsen og streamer den som Server-Sent Events (localhost:8090). Websitets Live-side tegner alle kørende servere på top-down-kortet med stilling, runde-strip, kill-feed og samlet T-winrate/plant-fordeling pr. map. Intet skrives til disk; uden collectoren kører simuleringen uændret.
 - Output: `build/<map>/sim/` (CSV, server.log, demoer) og `build/<map>/simulation.json`; loopet (fase 6) bruger `--out runs/<map>/<NNN>/sim`.
-
 - **Genoptagelse** (`--resume`, loopet bruger det altid): `<out>/progress.json` skrives efter smoke og før/efter hver batch (bsp-sha256, smoke, færdige batches, den igangværende). En afbrudt kørsel (processen dør, Docker genstartes) fortsætter: smoke springes over, færdige batches og servere (`DONE`) beholdes, og en afbrudt servers efterladte container (`mapforge-<map>-<run_id>`) tømmes for de runder, den nåede (`salvage`; ufærdige runder skæres fra positions/events). Kun de manglende runder spilles, som `<run_id>r1`, `r2` … Ny .bsp = forfra.
+
 ### Analyze (`mapforge/analyze/`) – bygget (fase 5)
 - Input: `build/<map>/sim/` (kun batches; graf- og smoke-runder tæller ikke) + top-down fra Render. Gyldige runder: vinder, ingen mennesker, fulde hold.
 - Metrikker (FITNESS): T-winrate og site-fordeling med Wilson-interval; første kontakt og rundelængde som median med bootstrap-interval (fast seed); døde zoner = andel gangbare 64-celler (≥ halvt dækket af walk-noder) med < 2 % af middeltrafikken; kill-koncentration = største andel kills (offerets position) i én 128-celle. Score = vægtet afstand til målintervallerne (`config/fitness.yaml` → weights).
@@ -151,8 +151,8 @@ Begrænsninger:
 - **Orchestrator** (`run.py`): tilstandsmaskine i `runs/<map>/loop.json` (+ `LOOP.md`). Pr. iteration `runs/<map>/<NNN>/`: build (generate → compile + validate → render) → review → [simulate → analyze] → decide → apply. Fejler validate eller review, springes simuleringen over (hurtigt loop). Review og Decide besvares i Claude Code-sessionen af en frisk subagent pr. prompt; loopet skriver prompten og stopper med exit 3, og næste `./mf loop` samler svaret op.
 - **Måling og rollback:** analyse mod bedste måling (`--baseline`). Ny bedste = lavere score og ikke "værre" ud over støjen. Er en måling "værre", anvendes næste plan på den bedste versions layout (rollback).
 - **Stopkriterier** (`config/fitness.yaml` → stop/budget): mål ramt 2 målinger i træk (→ Gate B), plateau 5 målinger, hårde krav fejler 3 i træk, review fejler 5 i træk, max iterationer/wall clock, Decide eskalerer, eller Decide foreslår intet uden at målene er ramt.
-- **Apply** (`apply.py`): værktøjskassens ændringer på `layout.yaml` (round-trip-YAML), hver prøve-genereret; låste roller (site/spawns) og `protected` afvises. `applied.json` viser anvendt/sprunget over/afvist af politik.
 - **Budget og Docker:** `budget.max_wall_clock_h` tæller kun loopets aktive køretid (`active_s` i loop.json, lagt til ved hver gemning i en kørsel), ikke tid hvor det venter på et svar eller stod afbrudt. Loopet nægter at starte, hvis Docker-socket'en ikke svarer (`docker_problem`), og `mf`/`mf.ps1` tjekker `docker info` først.
+- **Apply** (`apply.py`): værktøjskassens ændringer på `layout.yaml` (round-trip-YAML), hver prøve-genereret; låste roller (site/spawns) og `protected` afvises. `applied.json` viser anvendt/sprunget over/afvist af politik.
 
 ## Repo-struktur
 
