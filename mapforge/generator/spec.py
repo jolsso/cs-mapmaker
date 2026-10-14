@@ -316,22 +316,28 @@ def corridor_poly(c: dict[str, Any], grid: int) -> tuple[list[list[int]], str, i
 
 def expand_corridors(data: dict[str, Any], grid: int) -> dict[str, Any]:
     """`corridors:` -> a polygon area each (any grid angle), plus a ramp along it with `rise`
-    and the doors at both ends with `between: [from_area, to_area]`."""
+    and the doors at both ends with `between: [from_area, to_area]`. `height` is the head room
+    over the (sloped) floor, so a rising corridor is `rise` taller than that. With `between`,
+    `floor` (at the `from` end) and `rise` default to the floors of the two areas it joins."""
     cors = data.get("corridors") or []
     if not cors:
         return data
     data = dict(data)
     areas, ramps = list(data.get("areas", [])), list(data.get("ramps", []))
     doors = list(data.get("doors", []))
+    floors = {a.get("name"): int(a.get("floor", 0)) for a in areas}
     for c in cors:
         poly, along, half, length = corridor_poly(c, grid)
-        rise = int(c.get("rise", 0))
-        floor = int(c.get("floor", 0))
+        ends = list(c.get("between") or ())
+        f0, f1 = (floors.get(n, 0) for n in ends) if len(ends) == 2 else (0, 0)
+        floor = int(c.get("floor", f0))
+        rise = int(c.get("rise", f1 - floor))
         xs, ys = [p[0] for p in poly], [p[1] for p in poly]
         area = {k: v for k, v in c.items()
                 if k not in ("from", "to", "width", "rise", "between", "door_width")}  # fmt: skip
         area.update(rect=[min(xs), min(ys), max(xs), max(ys)], poly=poly,
-                    floor=floor + min(rise, 0))  # fmt: skip
+                    floor=floor + min(rise, 0),
+                    height=int(c.get("height", 192)) + abs(rise))  # fmt: skip
         area.setdefault("role", "corridor")
         areas.append(area)
         if rise:
@@ -502,6 +508,11 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             raise SpecError(f"cover {c.name}: an octagon needs >= 32 units across")
         if c.z < 0 or c.z + c.size[2] > areas[c.area].height:
             raise SpecError(f"cover {c.name}: z {c.z} + height {c.size[2]} leaves its area")
+        corners = (c.pos[0] - c.size[0] / 2, c.pos[1] - c.size[1] / 2, c.pos[0] + c.size[0] / 2)
+        if any(v % 8 for v in (*corners, c.pos[1] + c.size[1] / 2, c.z, c.size[2])):
+            raise SpecError(
+                f"cover {c.name}: its corners must be on the 8-unit grid (pos +- size/2)"
+            )
         if not areas[c.area].inside(*c.pos):
             raise SpecError(f"cover {c.name}: pos {list(c.pos)} is outside the floor of {c.area}")
     ramps = []

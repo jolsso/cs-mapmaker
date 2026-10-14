@@ -238,3 +238,47 @@ def test_angled_map_compiles_and_validates(tmp_path):
     v = validate_map(cfg, "de_gen_angle")
     errors = [f for f in v["findings"] if f["severity"] == "error"]
     assert v["ok"], errors
+
+
+def test_rising_corridor_keeps_its_head_room_at_the_top():
+    lt = lay()
+    assert lt.areas["t_long"].height == 192 + 64
+    lo, hi = door_box(next(d for d in lt.doors if d.name == "t_long_to"), lt.areas, 16)
+    assert hi[2] - lo[2] == 192  # the full head room at the high end, not 192 - rise
+
+
+def test_corridor_floor_and_rise_follow_the_areas_it_joins():
+    data = copy.deepcopy(ANGLED)
+    c = data["corridors"][0]
+    del c["floor"], c["rise"]  # t_spawn at 0, a_site at 64
+    lt = parse_layout(data)
+    assert lt.areas["t_long"].floor == 0
+    assert [(r.axis, r.rise) for r in lt.ramps] == [("+y", 64)]
+
+
+def test_spawns_keep_clear_of_cover_and_cover_is_on_the_grid():
+    crate = {"name": "c", "area": "ct_spawn", "pos": [1280, 0], "size": [64, 64, 64]}
+    g = generate(lay(cover=[crate]))
+    for e in g.mapfile.entities:
+        if e.classname == "info_player_start":
+            x, y, _ = (float(v) for v in e.properties["origin"].split())
+            assert not (1280 - 64 < x < 1280 + 64 and -64 < y < 64), (x, y)
+    with pytest.raises(SpecError, match="8-unit grid"):
+        lay(cover=[{**crate, "pos": [1280, 4]}])
+
+
+def test_a_bridge_is_its_own_level_in_the_layout_graph():
+    lg = layout_graph(copy.deepcopy(ANGLED))
+    # street: t_st, st_ct, st_low on the ground; n_deck, s_deck lead onto the bridge
+    assert "street" not in lg["four_way"] and lg["three_way"] == 2  # street, south
+    data = yaml_viaduct()
+    assert layout_graph(data)["four_way"] == []
+
+
+def yaml_viaduct():
+    from pathlib import Path
+
+    import yaml
+
+    path = Path(__file__).resolve().parent.parent / "maps" / "de_viaduct01" / "layout.yaml"
+    return yaml.safe_load(path.read_text(encoding="utf-8"))

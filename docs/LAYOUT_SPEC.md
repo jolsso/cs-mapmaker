@@ -153,14 +153,17 @@ corridors:                    # makro: skrå korridor i vilkårlig grid-vinkel �
     to: [-960, 960]           # så de sidder på almindelige vægge (her y=272 og y=960)
     width: 128                # bredde målt på tværs af skråningen; enderne bliver width / cos(vinkel)
     floor: 0
-    height: 192
+    height: 192               # loftshøjde over det (skrå) gulv: med rise bliver området rise højere
     rise: 64                  # valgfri: rampe hele vejen fra from til to (negativ = nedad); <= længde/2
-    between: [t_spawn, a_site]  # valgfri: døre <name>_from / <name>_to i hele endens bredde (door_width)
+    between: [t_spawn, a_site]  # valgfri: døre <name>_from / <name>_to i hele endens bredde (door_width);
+                              # floor og rise udelades så normalt: de følger de to områders gulve
 bridges:                      # gangbart dæk tværs over et højt område, væg til væg langs axis
   - {name: deck, area: street, axis: y, z: 176, width: 128, pos: 0, thickness: 16, rail: 40}
                               # z = dækkets top over gulvet; >= 80 fri under (z - thickness) og over;
                               # rail = rækværk i begge sider (0 = intet); lys under dækket sættes selv
 ```
+- **Layout-grafen** (validatorens site-indgange/kryds): en dør i dækhøjde fører ind på broen, ikke ned i rummet under den; broen er sit eget niveau.
+- **Cover og spawns:** et covers hjørner skal ligge på 8-gitteret, og spawns springer pladser over, hvor de ville stå i (eller tættere end 16 units på) cover.
 - **Polygon-områder:** spawns, lys, cover og stiger skal ligge på polygonens gulv (spawns/lys filtreres, cover og stiger giver fejl). En `poly` der er et akse-rettet rektangel, bliver et almindeligt område.
 - **Overgange:** et område må ligge oven over et andet (forskellig `floor`, ingen overlap i højden), også over et udendørs område: skallen omkring det (gulvplade, sidevægge og tag, hvis det ikke selv er udendørs) bliver solid i stedet for himmel, så en overdækket gangbro kan krydse en åben gade.
 - **Broer i det fri:** et højt udendørs område med `bridges:` og rum på begge sider i dækhøjde (døre fra rummene ender på dækket) giver to niveauer i samme rum: man ser og skyder mellem dem.

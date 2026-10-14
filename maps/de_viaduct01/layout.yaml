@@ -1,0 +1,112 @@
+# de_viaduct01 – engine test map for angles and levels (phase 6b, 2026-10-14): polygon areas,
+# angled corridors at non-45° grid angles (flat, rising and falling), an open bridge across a
+# tall outdoor canal between two galleries.
+name: de_viaduct01
+grid: 16
+wall: 16
+sounds: true
+
+concept: "Viadukten: en kanal skærer mappet over; broen over kanalen er den høje vej fra T's galleri til A short, kanalbunden den lave vej til B"
+archetype: stacked
+landmarks:
+  - {name: Broen, element: canal_bridge, zone: mid, function: "dæk over kanalen; callout; to niveauer i samme rum"}
+  - {name: Piazzaen, element: a_site, zone: a, function: "femkantet plads; skrå vægge giver vinkler uden kasser"}
+  - {name: Skrænten, element: t_climb, zone: t, function: "skrå rampe-korridor fra T op til galleriet"}
+chokes:
+  - {name: Long-porten, door: d_long_choke, type: doorway, engagement: long, utility: smoke}
+  - {name: Short-mundingen, door: a_short_to, type: doorway, engagement: close, utility: flash}
+  - {name: B-long-enden, door: b_long_to, type: doorway, engagement: long, utility: smoke}
+  - {name: B-short-døren, door: d_b_short_choke, type: doorway, engagement: close, utility: molotov}
+irregularities:
+  - {element: b_long, purpose: "11° skrå korridor: sigtelinjen går ikke lige gennem"}
+  - {element: a_short, purpose: "skrå korridor ned fra galleriet åbner skævt ind på pladsen"}
+intended_strategies:
+  T: ["rush B long", "kanalen → B short", "op ad skrænten, over broen → A short", "split A long + A short"]
+  CT: ["2-1-2 (A long, broen, B)", "stack A, retake B via ct_to_b", "hold broen fra a_gallery"]
+
+zones:
+  t: {floor: DEV_FLOOR_RED, wall: DEV_WALL_RED, ceiling: DEV_CEIL_RED, light: {color: [255, 214, 190]}}
+  mid: {floor: DEV_FLOOR_GREY, wall: DEV_BRICK, ceiling: DEV_CEIL_GREY, cover: DEV_METAL}
+  a: {floor: DEV_FLOOR_SAND, wall: DEV_WALL_SAND, ceiling: DEV_CEIL_SAND}
+  b: {floor: DEV_FLOOR_BLUE, wall: DEV_CONCRETE, ceiling: DEV_CEIL_BLUE, cover: DEV_CONCRETE}
+  ct: {floor: DEV_FLOOR_GREEN, wall: DEV_WALL_GREEN, ceiling: DEV_CEIL_GREEN}
+
+sky:
+  name: desert
+  sun: {pitch: -55, yaw: 120, color: [255, 238, 210], brightness: 300, ambient: 100}
+
+areas:
+  # T side (south)
+  - {name: t_spawn, rect: [-768, -2560, 512, -1984], height: 256, outdoor: true, role: t_spawn, zone: t}
+  - {name: t_to_a, rect: [528, -2400, 1360, -2144], height: 192, role: corridor, zone: t}
+  - {name: t_to_b, rect: [-1584, -2400, -784, -2144], height: 192, role: corridor, zone: t}
+  - {name: mid_s, rect: [-192, -1968, 192, -1232], height: 224, role: corridor, zone: t}
+  # mid: the canal (tall, open) with the bridge; galleries at deck level on both sides
+  - {name: canal, rect: [-384, -1216, 384, 640], height: 384, outdoor: true, role: mid, zone: mid}
+  - {name: b_gallery, rect: [-1152, -480, -400, -224], floor: 160, height: 160, role: room, zone: mid}
+  - {name: a_gallery, rect: [400, -480, 1152, -224], floor: 160, height: 160, role: room, zone: mid}
+  - {name: mid_n, rect: [-192, 656, 192, 1104], height: 224, role: corridor, zone: mid}
+  - {name: b_short, rect: [-1392, 880, -208, 1136], height: 224, role: corridor, zone: b}
+  # A (east): long street, the plaza (pentagon)
+  - {name: a_long, rect: [1376, -2400, 1760, 384], height: 320, outdoor: true, role: corridor, zone: a}
+  - name: a_site
+    poly: [[1184, 400], [1904, 400], [2304, 784], [2304, 1424], [1888, 1680], [1184, 1680]]
+    height: 320
+    outdoor: true
+    role: site
+    zone: a
+  # B (west)
+  - {name: b_site, rect: [-2304, 656, -1408, 1680], height: 256, role: site, zone: b}
+  # CT (north)
+  - {name: ct_spawn, rect: [-128, 1456, 896, 2032], height: 256, outdoor: true, role: ct_spawn, zone: ct}
+  - {name: ct_to_a, rect: [912, 1456, 1168, 1904], height: 224, role: corridor, zone: a}
+  - {name: ct_to_b, rect: [-1392, 1456, -144, 1712], height: 224, role: corridor, zone: b}
+
+corridors:
+  # T up to the B-side gallery: 1:9 ramp at 19°
+  - {name: t_climb, from: [-560, -1968], to: [-1072, -496], width: 128, height: 160,
+     between: [t_spawn, b_gallery], zone: t}
+  # B long: 11° to the west
+  - {name: b_long, from: [-1360, -2128], to: [-1904, 640], width: 128, height: 192,
+     between: [t_to_b, b_site], zone: b}
+  # A short: from the A-side gallery down onto the plaza, 28°
+  - {name: a_short, from: [1040, -208], to: [1264, 384], width: 128, height: 160,
+     between: [a_gallery, a_site], zone: a}
+
+bridges:
+  - {name: canal_bridge, area: canal, axis: x, pos: -352, z: 176, width: 128}
+
+doors:
+  - {name: d_t_a, between: [t_spawn, t_to_a], width: 192}
+  - {name: d_a_long_in, between: [t_to_a, a_long], width: 192}
+  - {name: d_long_choke, between: [a_long, a_site], width: 160}
+  - {name: d_t_b, between: [t_spawn, t_to_b], width: 192}
+  - {name: d_t_mid, between: [t_spawn, mid_s], width: 192}
+  - {name: d_mid_s, between: [mid_s, canal], width: 192}
+  - {name: d_gallery_w, between: [b_gallery, canal], width: 112}
+  - {name: d_gallery_e, between: [a_gallery, canal], width: 112}
+  - {name: d_canal_n, between: [canal, mid_n], width: 160}
+  - {name: d_mid_b, between: [mid_n, b_short], width: 160}
+  - {name: d_b_short_choke, between: [b_short, b_site], width: 160}
+  - {name: d_ct_a, between: [ct_spawn, ct_to_a], width: 192}
+  - {name: d_cta_site, between: [ct_to_a, a_site], width: 192}
+  - {name: d_ct_b, between: [ct_spawn, ct_to_b], width: 192}
+  - {name: d_ctb_site, between: [ct_to_b, b_site], width: 192}
+
+cover:
+  - {name: canal_crate_s, area: canal, pos: [-192, -800], size: [64, 64, 64]}
+  - {name: canal_crate_n, area: canal, pos: [192, 128], size: [96, 64, 64]}
+  - {name: a_box, area: a_site, pos: [1760, 1040], size: [96, 96, 64]}
+  - {name: a_box_top, area: a_site, pos: [1760, 1040], size: [48, 48, 48], z: 64}
+  - {name: a_crate, area: a_site, pos: [2048, 1312], size: [64, 64, 64], breakable: wood}
+  - {name: a_long_crate, area: a_long, pos: [1648, -1104], size: [64, 128, 64]}
+  - {name: b_pillar_w, area: b_site, pos: [-2048, 1168], size: [96, 96, 256], shape: octagon}
+  - {name: b_pillar_e, area: b_site, pos: [-1664, 1168], size: [96, 96, 256], shape: octagon}
+  - {name: b_crate, area: b_site, pos: [-1856, 1424], size: [96, 96, 64]}
+  - {name: ct_crate, area: ct_spawn, pos: [512, 1760], size: [64, 64, 64]}
+
+sites: {A: a_site, B: b_site}
+spawns:
+  T: {area: t_spawn, count: 16}
+  CT: {area: ct_spawn, count: 16}
+buyzones: true

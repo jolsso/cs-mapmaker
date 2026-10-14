@@ -208,12 +208,29 @@ def layout_graph(layout: dict[str, Any]) -> dict[str, Any]:
                     )
                     group[drop] = keep
     areas = {n: raw[n] for n in raw if find(n) == n}
-    degree = {n: 0 for n in areas}
+    # a bridge is its own level: a door that opens at its deck leads onto the bridge, not into
+    # the room under it (dropping off the deck is no route choice)
+    decks = {}
+    for br in layout.get("bridges", []) or []:
+        node = f"{br['area']}/{br['name']}"
+        areas[node] = {"name": node, "role": "corridor"}
+        decks.setdefault(br["area"], []).append((node, raw[br["area"]].get("floor", 0) + br["z"]))
+
+    def end(door: dict[str, Any], i: int) -> str:
+        name = door["between"][i]
+        other = raw.get(door["between"][1 - i], {})
+        sill = max(raw.get(name, {}).get("floor", 0), other.get("floor", 0)) + door.get("sill", 0)
+        for node, top in decks.get(name, []):
+            if abs(sill - top) <= 18:  # level with the deck (a step at most)
+                return node
+        return find(name)
+
     walk_doors = [
-        (find(d["between"][0]), find(d["between"][1]))
+        (end(d, 0), end(d, 1))
         for d in layout.get("doors", [])
         if d.get("kind", "door") != "window"  # a window is a sightline, not an entrance
     ] + [(find(h["lower"]), find(h["upper"])) for h in layout.get("hatches", []) or []]
+    degree = {n: 0 for n in areas}
     for a, b in walk_doors:
         degree[a] += 1
         degree[b] += 1

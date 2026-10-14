@@ -620,7 +620,14 @@ def generate(layout: Layout) -> Generated:
     centre = ((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2)
     for team, cls in (("T", "info_player_deathmatch"), ("CT", "info_player_start")):
         sp = layout.spawns[team]
-        for p in _spawn_points(areas[sp["area"]], sp["count"], centre, sp.get("offset", (0, 0))):
+        blocked = [  # cover a player would stand in (bottom lower than a standing hull)
+            ((c.pos[0] - c.size[0] // 2, c.pos[1] - c.size[1] // 2),
+             (c.pos[0] + c.size[0] // 2, c.pos[1] + c.size[1] // 2))
+            for c in layout.cover if c.area == sp["area"] and c.z < 80
+        ]  # fmt: skip
+        for p in _spawn_points(
+            areas[sp["area"]], sp["count"], centre, sp.get("offset", (0, 0)), blocked
+        ):
             origin, angles = p.split("|")
             ents.append(entity({"classname": cls, "origin": origin, "angles": angles}))
 
@@ -693,7 +700,11 @@ def generate(layout: Layout) -> Generated:
 
 
 def _spawn_points(
-    area: Area, count: int, facing: tuple[float, float], offset: tuple[int, int] = (0, 0)
+    area: Area,
+    count: int,
+    facing: tuple[float, float],
+    offset: tuple[int, int] = (0, 0),
+    blocked: list[tuple[tuple[int, int], tuple[int, int]]] = (),
 ) -> list[str]:
     x0, y0, x1, y1 = area.rect
     margin, spacing = 48, 64
@@ -709,6 +720,11 @@ def _spawn_points(
             for r in range(rows)
             for c in range(cols)
             if area.inside(x0 + margin + c * spacing, y0 + margin + r * spacing, margin=32)
+            and not any(  # 16 (half hull) + 16 free around a spawn
+                lo[0] - 32 < x0 + margin + c * spacing < hi[0] + 32
+                and lo[1] - 32 < y0 + margin + r * spacing < hi[1] + 32
+                for lo, hi in blocked
+            )
         ),
         key=lambda p: (p[0] - cxm) ** 2 + (p[1] - cym) ** 2,
     )  # fill from the middle of the area outwards
