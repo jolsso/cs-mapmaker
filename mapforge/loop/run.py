@@ -450,8 +450,21 @@ class Loop:
         if not changed and not (
             c["targets_met"] and self.state["history"][-1].get("reached") == "simulate"
         ):
+            refused = self._refused()
+            if refused:  # Decide did propose: say what stood in the way, not "nothing proposed"
+                return (f"ingen af Decides ændringer kunne anvendes ({refused}) → mennesket "
+                        f"(se runs/{self.map}/{self.state['iteration']}/applied.json)")  # fmt: skip
             return "Decide foreslog ingen ændringer (og målene er ikke ramt) → mennesket"
         return None
+
+    def _refused(self) -> str:
+        """Why this iteration's proposed changes were not applied ('' if none were proposed)."""
+        if "iteration" not in self.state:
+            return ""
+        a = _load(self.it_dir / "applied.json") or {}
+        why = [f"{x['type']}: {x.get('reason', '?')}" for x in a.get("failed", [])]
+        why += [f"{x['type']}: {x.get('reason', '?')}" for x in a.get("rejected_by_policy", [])]
+        return "; ".join(why)[:300]
 
     def _await(self, what: str, prompt: Path, answer: Path) -> int:
         self.state["awaiting"] = {

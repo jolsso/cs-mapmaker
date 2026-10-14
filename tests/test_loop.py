@@ -259,3 +259,15 @@ def test_loop_refuses_to_start_without_docker(tmp_path, monkeypatch, capsys):
     )
     assert loop_run.main(["--map", "de_nothing", "--init"]) == 1
     assert "Docker svarer ikke" in capsys.readouterr().err
+
+
+def test_stop_says_why_proposed_changes_did_not_apply(tmp_path, monkeypatch):
+    import json
+
+    loop = _loop(tmp_path)
+    monkeypatch.setattr(type(loop), "it_dir", property(lambda self: tmp_path))
+    (tmp_path / "applied.json").write_text(json.dumps({"failed": [
+        {"type": "bend_corridor", "reason": "area 'b_long' is a landmark/irregularity (locked)"}
+    ], "rejected_by_policy": []}))  # fmt: skip
+    reason = loop.stop_reason(changed=False)
+    assert "kunne anvendes" in reason and "irregularity" in reason
