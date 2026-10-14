@@ -64,7 +64,7 @@ docker compose up -d site     # PÅ VÆRTEN: serverer websitet på http://localh
 docker compose up -d live     # PÅ VÆRTEN: live-collector (UDP → SSE på localhost:8090) + annotations-API (map-sidens "Dine ønsker")
 ./mf simulate MAP=<navn>      # HLDS + YaPB-bots: smoke + batches → build/<map>/simulation.json (-- --smoke-only | --watch | --rounds N; SOURCE=reference)
 ./mf analyze MAP=<navn>       # simulation → build/<map>/analysis/ (metrics.json, report.md, heatmaps, delta) (-- --baseline FILE)
-./mf loop MAP=<navn> -- --init [--force-sim]   # start det autonome loop (runs/<map>/loop.json)
+./mf loop MAP=<navn> -- --init [--force-sim]   # start det autonome loop (runs/<map>/loop.json); afbryder Docker eller processen, genoptager næste kørsel simuleringen (færdige batches/servere beholdes, runder reddes fra efterladte containere)
 ./mf loop MAP=<navn>          # fortsæt; exit 3 = venter på et Review/Decide-svar (se nedenfor)
 ./mf loop MAP=<navn> -- --status
 ```

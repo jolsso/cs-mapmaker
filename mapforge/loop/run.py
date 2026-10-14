@@ -225,7 +225,8 @@ class Loop:
         d = self.it_dir
         self.state["force_sim"] = False  # only the baseline measurement may skip the review gate
         t0 = time.time()
-        code = simulate(["--map", self.map, "--out", str(d / "sim")])
+        # --resume: an iteration cut off while simulating goes on where it stopped
+        code = simulate(["--map", self.map, "--out", str(d / "sim"), "--resume"])
         sim = _load(d / "sim" / "simulation.json") or {}
         if code != 0 or not sim.get("summary"):
             self.record(reached="smoke" if not (sim.get("smoke") or {}).get("ok") else "simulate",

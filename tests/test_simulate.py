@@ -128,3 +128,58 @@ def test_graph_reachability_along_links():
     g = Graph(2, np.array([[0, 0, 0], [80, 0, 0], [160, 0, 0], [2000, 0, 0]], float),
               np.zeros(4, int), [[1], [0, 2], [1], []])  # fmt: skip
     assert reachable(g, np.array([[0, 0, 0]])).tolist() == [True, True, True, False]
+
+
+def _csv_run(d, run_id, rounds, partial_round=None):
+    d.mkdir(parents=True, exist_ok=True)
+    head = "run_id,round,start_time,end_time,winner,reason,plant_site,t_alive_end,ct_alive_end,"
+    head += "humans_on_team,t_players,ct_players\n"
+    rows = "".join(f"{run_id},{r},0,1,T,elimination,,1,0,0,5,5\n" for r in range(1, rounds + 1))
+    (d / "rounds.csv").write_text(head + rows)
+    last = partial_round or rounds
+    pos = "run_id,round,t,player_id\n" + "".join(
+        f"{run_id},{r},0.0,1\n" for r in range(1, last + 1)
+    )
+    (d / "positions.csv").write_text(pos)
+
+
+def test_complete_rounds_drops_the_unfinished_round(tmp_path):
+    from mapforge.simulate.run import complete_rounds
+
+    _csv_run(tmp_path, "b01s0", 3, partial_round=4)  # cut off during round 4
+    assert complete_rounds(tmp_path) == 3
+    assert (tmp_path / "positions.csv").read_text().splitlines()[-1].startswith("b01s0,3,")
+    assert complete_rounds(tmp_path / "missing") == 0
+
+
+def test_resumed_group_keeps_finished_servers_and_tops_up_the_cut_ones(tmp_path, monkeypatch):
+    import mapforge.simulate.run as sim_run
+
+    s = object.__new__(sim_run.Simulation)
+    s.out, s.map_name, s.sim, s.distance = tmp_path, "de_x", {"demo": "none", "timescale": 4}, 64
+    s.graph, s.timescale, s.log = tmp_path / "none.graph", 4.0, lambda m: None
+    s.client = s.tag = s.bsp = None
+    # server 0 finished, server 1 was cut off after 3 of 5 rounds (data still in its container),
+    # server 2 never logged a round
+    _csv_run(tmp_path / "b01" / "b01s0", "b01s0", 5)
+    (tmp_path / "b01" / "b01s0" / "DONE").write_text("1")
+    left_over = {"b01s1": 3}
+
+    def fake_salvage(client, map_name, run_id, out_dir):
+        if run_id in left_over:
+            _csv_run(out_dir, run_id, left_over.pop(run_id), partial_round=4)
+            return True
+        return False
+
+    ran = []
+
+    def fake_run(client, tag, sim, job, log):
+        ran.append((job.run_id, job.rounds))
+        return {"run_id": job.run_id, "done": True}
+
+    monkeypatch.setattr(sim_run, "salvage", fake_salvage)
+    monkeypatch.setattr(sim_run, "run_server", fake_run)
+    monkeypatch.setattr(sim_run.Simulation, "_cache_graph", lambda self, jobs: None)
+    statuses = s.run_group("b01", 15, 3, resume=True)
+    assert sorted(ran) == [("b01s1r1", 2), ("b01s2", 5)]
+    assert {x["run_id"] for x in statuses} == {"b01s0", "b01s1r1", "b01s2"}

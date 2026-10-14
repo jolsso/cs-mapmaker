@@ -102,6 +102,25 @@ def live_network(client: Any, sim: dict[str, Any]) -> str | None:
     return net if c.status == "running" and net in c.attrs["NetworkSettings"]["Networks"] else None
 
 
+def salvage(client: Any, map_name: str, run_id: str, out_dir: Path) -> bool:
+    """Data of a server whose run was cut off (the forge process died, Docker restarted): its
+    container is left behind, stopped or still running. Fetch what it logged into out_dir and
+    remove it; True if there was one."""
+    name = f"mapforge-{map_name}-{run_id}"
+    found = False
+    for old in client.containers.list(all=True, filters={"name": f"^{name}$"}):
+        found = True
+        try:
+            if old.status == "running":
+                old.kill()
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "server.log").write_bytes(old.logs())
+            _fetch(old, f"{CSTRIKE}/logs/mapforge/{map_name}_{run_id}", out_dir)
+        finally:
+            old.remove(force=True)
+    return found
+
+
 def run_server(
     client: Any, tag: str, sim: dict[str, Any], job: ServerJob, log=print
 ) -> dict[str, Any]:

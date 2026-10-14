@@ -34,8 +34,10 @@ import numpy as np
 
 from mapforge.config import Config, load_config
 from mapforge.simulate.records import assign_plant_sites, load_run, valid_round
-from mapforge.simulate.server import ServerJob, run_server
+from mapforge.simulate.server import ServerJob, run_server, salvage
 from mapforge.simulate.stats import stop_decision, summarize
+
+PROGRESS = "progress.json"
 
 
 def _sha(path: Path) -> str:
@@ -60,6 +62,23 @@ def graph_cache(cfg: Config, map_name: str, bsp_sha: str) -> Path:
 def graph_meta(graph: Path) -> dict[str, Any]:
     p = graph.with_suffix(".json")
     return json.loads(p.read_text(encoding="utf-8")) if p.is_file() else {}
+
+
+def complete_rounds(run_dir: Path) -> int:
+    """Keep only the rounds a cut-off server finished: rows of later (unfinished) rounds are
+    dropped from positions.csv / events.csv. Returns the number of finished rounds."""
+    rounds_csv = run_dir / "rounds.csv"
+    if not rounds_csv.is_file():
+        return 0
+    lines = rounds_csv.read_text(encoding="utf-8").splitlines()[1:]
+    last = max((int(ln.split(",")[1]) for ln in lines if ln.strip()), default=0)
+    for name in ("positions.csv", "events.csv"):
+        f = run_dir / name
+        if f.is_file():
+            head, *rows = f.read_text(encoding="utf-8").splitlines(keepends=True)
+            keep = [r for r in rows if r.strip() and int(r.split(",", 2)[1]) <= last]
+            f.write_text(head + "".join(keep), encoding="utf-8", newline="")
+    return len([ln for ln in lines if ln.strip()])
 
 
 def load_dir(sim_dir: Path) -> tuple[dict[str, list[dict]], list[str]]:
@@ -144,10 +163,12 @@ class Simulation:
     def log(self, msg: str) -> None:
         print(msg, flush=True)
 
-    def _job(self, group: str, index: int, rounds: int, demo: bool | None = None) -> ServerJob:
+    def _job(
+        self, group: str, index: int, rounds: int, demo: bool | None = None, suffix: str = ""
+    ) -> ServerJob:
         dist = graph_meta(self.graph).get("distance") or self.distance
         demo_mode = self.sim.get("demo", "none")
-        run_id = f"{group}s{index}"
+        run_id = f"{group}s{index}{suffix}"
         return ServerJob(
             map_name=self.map_name,
             run_id=run_id,
@@ -165,16 +186,41 @@ class Simulation:
         )
 
     def run_group(
-        self, group: str, rounds: int, servers: int, demo: bool | None = None
+        self, group: str, rounds: int, servers: int, demo: bool | None = None, resume: bool = False
     ) -> list[dict]:
+        """Run a group of servers. With `resume` (a group that was cut off): servers that finished
+        are kept, the rounds a cut-off server finished are salvaged from its left-over container,
+        and only the missing rounds are played (run ids <group>s<i>r1, r2, ... per cut)."""
         per_server = math.ceil(rounds / servers)
-        jobs = [self._job(group, i, per_server, demo) for i in range(servers)]
-        with ThreadPoolExecutor(max_workers=servers) as pool:
+        jobs, kept = [], []
+        for i in range(servers):
+            job = self._job(group, i, per_server, demo)
+            if resume:
+                if (job.out_dir / "DONE").is_file():
+                    kept.append({"run_id": job.run_id, "done": True, "resumed": "kept"})
+                    continue
+                have, k = 0, 0
+                while True:  # the run and its earlier top-ups
+                    run_id = job.run_id + (f"r{k}" if k else "")
+                    d = self.out / group / run_id
+                    found = salvage(self.client, self.map_name, run_id, d)
+                    if not (found or d.exists()):
+                        break
+                    have += complete_rounds(d)
+                    k += 1
+                if have >= per_server:
+                    kept.append({"run_id": job.run_id, "done": True, "resumed": f"{have} salvaged"})
+                    continue
+                if k:
+                    self.log(f"  {job.run_id}: {have} rounds salvaged, {per_server - have} to go")
+                    job = self._job(group, i, per_server - have, demo, suffix=f"r{k}")
+            jobs.append(job)
+        with ThreadPoolExecutor(max_workers=max(1, len(jobs))) as pool:
             statuses = list(
                 pool.map(lambda j: run_server(self.client, self.tag, self.sim, j, self.log), jobs)
             )
         self._cache_graph(jobs)
-        return statuses
+        return kept + statuses
 
     def _cache_graph(self, jobs: list[ServerJob]) -> None:
         if self.graph.is_file():
@@ -242,7 +288,15 @@ class Simulation:
         smoke["graph_distance"] = self.distance
         return smoke, statuses
 
-    def run(self, smoke_only: bool, no_smoke: bool) -> dict[str, Any]:
+    def checkpoint(self, report: dict[str, Any], batches: list[str], current: Any = None) -> None:
+        """<out>/progress.json: what is done, so a cut-off run can resume (--resume)."""
+        keep = ("smoke", "graph_attempts", "groups", "graph")
+        state = {k: report[k] for k in keep if k in report}
+        state.update(bsp_sha256=self.bsp_sha, distance=self.distance, batches=batches,
+                     current=current)  # fmt: skip
+        (self.out / PROGRESS).write_text(json.dumps(state, indent=2), encoding="utf-8")
+
+    def run(self, smoke_only: bool, no_smoke: bool, resume: dict | None = None) -> dict[str, Any]:
         t0 = time.time()
         report: dict[str, Any] = {
             "map": self.map_name,
@@ -263,7 +317,12 @@ class Simulation:
         ok = True
         report["graph_attempts"] = []
         tried: list[int] = []
-        while True:
+        resumed = bool(resume and (resume.get("smoke") or {}).get("ok") and self.graph.is_file())
+        if resumed:
+            self.log(f"resume: smoke done, batches done: {resume.get('batches') or '-'}")
+            report.update({k: resume[k] for k in ("smoke", "graph_attempts", "groups")})
+            report["resumed"] = True
+        while not resumed:
             tag = f"_d{self.distance}"
             if not self.graph.is_file():
                 # YaPB analyses a new map on first start and then re-adds only quota - 1 bots
@@ -287,6 +346,8 @@ class Simulation:
             if smoke["ok"]:
                 meta = graph_meta(self.graph) | {"verified": True}
                 self.graph.with_suffix(".json").write_text(json.dumps(meta), encoding="utf-8")
+                report["graph"] = str(self.graph)
+                self.checkpoint(report, [])
                 break
             only_sites = all(c["ok"] for k, c in smoke["checks"].items() if k != "sites_reached")
             tried.append(self.distance)
@@ -306,14 +367,30 @@ class Simulation:
         else:
             stop_reason = "smoke only" if smoke_only else ""
         summary: dict[str, Any] = {}
-        while ok and not smoke_only:
-            name = f"b{len(groups) + 1:02d}"
-            remaining = self.max_rounds - (summary.get("rounds") or 0)
-            rounds = min(int(self.sim["batch_rounds"]), max(remaining, 1))
-            self.log(f"batch {name}: {rounds} rounds on {self.servers} servers ...")
-            statuses = self.run_group(name, rounds, self.servers)
+        pending = (resume or {}).get("current") if resumed else None
+        finished = False
+        if resumed:
+            groups = list(resume.get("batches") or [])
+            if groups and not pending:  # cut off between batches: where did the count stand?
+                data, _ = self.data(groups)
+                valid = [r for r in data["rounds"] if valid_round(r, self.per_team)]
+                summary = summarize(valid, float(self.sim["confidence"]), self.targets)
+                finished, stop_reason = stop_decision(summary, self.min_rounds, self.max_rounds)
+        while ok and not smoke_only and not finished:
+            if pending:  # the batch that was cut off
+                name, rounds = pending["name"], int(pending["rounds"])
+                self.log(f"batch {name}: resuming ({rounds} rounds on {self.servers} servers) ...")
+            else:
+                name = f"b{len(groups) + 1:02d}"
+                remaining = self.max_rounds - (summary.get("rounds") or 0)
+                rounds = min(int(self.sim["batch_rounds"]), max(remaining, 1))
+                self.log(f"batch {name}: {rounds} rounds on {self.servers} servers ...")
+            self.checkpoint(report, groups, {"name": name, "rounds": rounds})
+            statuses = self.run_group(name, rounds, self.servers, resume=bool(pending))
+            pending = None
             groups.append(name)
             report["groups"].append({"name": name, "servers": statuses})
+            self.checkpoint(report, groups)
             data, errors = self.data(groups)
             valid = [r for r in data["rounds"] if valid_round(r, self.per_team)]
             summary = summarize(valid, float(self.sim["confidence"]), self.targets)
@@ -366,6 +443,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--smoke-only", action="store_true")
     parser.add_argument("--no-smoke", action="store_true")
     parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="go on with a cut-off run in --out (same .bsp): finished batches and servers are "
+        "kept, rounds are salvaged from left-over containers",
+    )
+    parser.add_argument(
         "--watch", action="store_true", help="1 server in real time, to join as spectator"
     )
     args = parser.parse_args(argv)
@@ -375,10 +458,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no .bsp for {args.map} (compile it, or use --source reference)", file=sys.stderr)
         return 1
     out = args.out or cfg.path("build_dir") / args.map / "sim"
-    if out.exists():
+    progress = None
+    if args.resume and (out / PROGRESS).is_file():
+        progress = json.loads((out / PROGRESS).read_text(encoding="utf-8"))
+        if progress.get("bsp_sha256") != _sha(bsp):
+            print("resume: the .bsp changed since the cut-off run, starting over", flush=True)
+            progress = None
+    if progress is None and out.exists():
         shutil.rmtree(out)
-    out.mkdir(parents=True)
-    report = Simulation(cfg, args.map, bsp, out, args).run(args.smoke_only, args.no_smoke)
+    out.mkdir(parents=True, exist_ok=True)
+    report = Simulation(cfg, args.map, bsp, out, args).run(
+        args.smoke_only, args.no_smoke, resume=progress
+    )
     text = json.dumps(report, indent=2, ensure_ascii=False)
     (out / "simulation.json").write_text(text, encoding="utf-8")
     if args.out is None:  # an explicit --out (watch session, loop iteration) keeps the build's
