@@ -142,7 +142,8 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [x] Pakke 2: ottekantede søjler, knusbart cover (`func_breakable`), lys pr. område, spotlys (`light_spot`), teksturlys (`<map>.rad` → hlrad `-lights`), rumklang (`env_sound` efter størrelse), lemme mellem stablede etager med stige, vand (`!WATER`), diagonal-korridor som makro; værktøjskassen: `set_breakable`, `add_hatch`, `add_water`
 - [x] Nyt testmap til pakke 2: `de_cistern01` (B under jorden med ramper, kontor over B via lem og stige, vand, ottekantede søjler, knusbare kasser, spot-/teksturlys, rumklang); review bestået (3,6)
 - [x] Dashboard: "+ Nyt map" – start et map med en beskrivelse og en skitse (brief.json + annotations på et tomt gitter); Claude laver layoutet ud fra dem
-- [ ] Skrå korridorer i vilkårlig vinkel (i dag 45° og grid-forhold via kilernes kateter), flere niveauer med overlap i højden (broer over korridorer)
+- [x] Skrå korridorer i vilkårlig vinkel og flere niveauer med overlap i højden (2026-10-14): konvekse polygon-områder (`poly`), `corridors:`-makro (vilkårlig grid-vinkel, rampe, døre), `bridges:` (dæk med rækværk i høje områder), rum stablet over udendørs områder får solid skal i stedet for himmel; værktøjskassen: `add_bridge`, `move_corridor` på skrå områder. Walk-grafen går nu ind i vents i plan med gulvet (CALIBRATION.md)
+- [ ] Testmap til vinkler og niveauer, itereret af loopet (feature-forbedringer undervejs)
 
 **Accept:** et genereret map med de nye features compiler, validerer uden fejl, simuleres (YaPB når begge sites) og forbedres af loopet uden manuelle trin.
 

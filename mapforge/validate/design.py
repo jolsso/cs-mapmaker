@@ -176,9 +176,9 @@ def sightline_spread(
 
 def layout_graph(layout: dict[str, Any]) -> dict[str, Any]:
     """Topology from layout.yaml: entrances per site, junctions, Ølsted's C = n + r."""
-    from mapforge.generator.spec import expand_diagonals
+    from mapforge.generator.spec import expand_macros
 
-    layout = expand_diagonals(layout, int(layout.get("grid", 16)))
+    layout = expand_macros(layout, int(layout.get("grid", 16)))
     raw = {a["name"]: a for a in layout.get("areas", [])}
     # areas that touch (no wall between them) are one room: an L-room, a split-level hall
     group = {n: n for n in raw}

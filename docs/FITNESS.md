@@ -77,6 +77,7 @@ Maskinlæsbart i `config/fitness.yaml` → `allowed_changes` (typer, påkrævede
 - Rampe (≤ 45°, ikke i spawn-områder), skrå væg / kile i et hjørne, stige (kun før Gate B)
 - Dørblad i en åbning (`set_gate`: sliding / rotating / none); fjerne et element ved navn (`remove_element`)
 - Pakke 2: ottekantet / knusbart cover (`add_cover shape/breakable`, `set_breakable`), lem mellem stablede etager (`add_hatch`, max 1 pr. iteration), vand (`add_water`), begge kun før Gate B
+- Vinkler og niveauer (2026-10-14): bro tværs over et højt område (`add_bridge`, max 1 pr. iteration, kun før Gate B); `move_corridor` flytter også polygon-områder og skrå korridorer
 - Lys: intensitet, farve, placering (Fase 7)
 
 ## Goodhart-advarsel

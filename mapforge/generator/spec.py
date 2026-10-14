@@ -25,10 +25,44 @@ class Area:
     zone: str | None = None  # texture/light set from Layout.zones (identity, callouts)
     light: dict[str, Any] | None = None  # point-light override for this area (spacing/colour/...)
     sound: int | None = None  # env_sound room type (reverb); None = automatic by size if enabled
+    # convex floor plan (counter-clockwise grid vertices) inside `rect` = its bounding box; the
+    # rest of the box is solid (angled walls at any grid angle). None = the whole rect
+    poly: tuple[tuple[int, int], ...] | None = None
 
     @property
     def top(self) -> int:
         return self.floor + self.height
+
+    def side_span(self, side: str) -> tuple[int, int] | None:
+        """The open stretch of the bounding-box wall on `side` (+x -x +y -y), along that wall:
+        the whole side for a rect, the polygon edge lying on it for a poly (None: only a corner
+        or nothing touches it, so no door can go there)."""
+        x0, y0, x1, y1 = self.rect
+        axis = 0 if side[1] == "x" else 1
+        at = (x1 if side[0] == "+" else x0) if axis == 0 else (y1 if side[0] == "+" else y0)
+        if self.poly is None:
+            return (y0, y1) if axis == 0 else (x0, x1)
+        on = sorted(p[1 - axis] for p in self.poly if p[axis] == at)
+        return (on[0], on[-1]) if len(on) >= 2 else None
+
+    def inside(self, x: float, y: float, margin: float = 0) -> bool:
+        """(x, y) lies in the floor plan, at least `margin` from every wall."""
+        x0, y0, x1, y1 = self.rect
+        if not (x0 + margin <= x <= x1 - margin and y0 + margin <= y <= y1 - margin):
+            return False
+        pts = self.poly or ()
+        for (px, py), (qx, qy) in zip(pts, pts[1:] + pts[:1], strict=True):
+            ex, ey = qx - px, qy - py  # counter-clockwise: the inside is on the left
+            if (ex * (y - py) - ey * (x - px)) / math.hypot(ex, ey) < margin:
+                return False
+        return True
+
+    def centroid(self) -> tuple[float, float]:
+        if self.poly is None:
+            x0, y0, x1, y1 = self.rect
+            return (x0 + x1) / 2, (y0 + y1) / 2
+        n = len(self.poly)
+        return sum(p[0] for p in self.poly) / n, sum(p[1] for p in self.poly) / n
 
 
 DOOR_KINDS = ("door", "window", "vent")
@@ -163,6 +197,24 @@ class Spot:
     color: tuple[int, int, int] = (255, 240, 220)
 
 
+@dataclass(frozen=True)
+class Bridge:
+    """A walkable deck across an area from wall to wall along `axis`, its top `z` above the
+    floor, with railings on both long sides: one level crossing over another in a tall room."""
+
+    name: str
+    area: str
+    axis: str  # x | y: the direction the bridge runs (it spans the whole area that way)
+    z: int
+    width: int = 96
+    pos: int = 0  # centreline offset across the bridge, from the area's middle
+    thickness: int = 16
+    rail: int = 40  # railing height above the deck (0 = none)
+
+
+BRIDGE_CLEARANCE = 80  # under the deck and over it: a standing player (72) + margin
+
+
 @dataclass
 class Layout:
     name: str
@@ -190,6 +242,7 @@ class Layout:
     spots: list[Spot] = field(default_factory=list)
     texlights: dict[str, list[int]] = field(default_factory=dict)  # texture -> [r, g, b, intensity]
     sounds: bool = False  # env_sound per area: reverb from its size (unless area.sound is set)
+    bridges: list[Bridge] = field(default_factory=list)
 
 
 DEFAULT_TEXTURES = {
@@ -239,6 +292,93 @@ def expand_diagonals(data: dict[str, Any], grid: int) -> dict[str, Any]:
     return data
 
 
+def corridor_poly(c: dict[str, Any], grid: int) -> tuple[list[list[int]], str, int, int]:
+    """An angled corridor's floor plan: a parallelogram from `from` to `to` (the middles of its
+    two ends) whose ends are square to the main axis, so they sit on ordinary walls and take
+    ordinary doors. The end width is the corridor `width` measured across the slant, rounded up
+    to the grid. Returns (polygon, main axis x|y, half end width, length along the axis)."""
+    fx, fy = _ints(c.get("from"), 2, f"corridor {c.get('name')}.from")
+    tx, ty = _ints(c.get("to"), 2, f"corridor {c.get('name')}.to")
+    if any(v % grid for v in (fx, fy, tx, ty)):
+        raise SpecError(f"corridor {c['name']}: from/to must be on the {grid}-unit grid")
+    along = "y" if abs(ty - fy) >= abs(tx - fx) else "x"
+    length, drift = (abs(ty - fy), abs(tx - fx)) if along == "y" else (abs(tx - fx), abs(ty - fy))
+    if length == 0:
+        raise SpecError(f"corridor {c['name']}: from and to are the same point")
+    width = int(c["width"])
+    half = math.ceil(width / 2 * math.hypot(length, drift) / length / grid) * grid
+    if along == "y":
+        poly = [[fx - half, fy], [fx + half, fy], [tx + half, ty], [tx - half, ty]]
+    else:
+        poly = [[fx, fy - half], [tx, ty - half], [tx, ty + half], [fx, fy + half]]
+    return poly, along, half, length
+
+
+def expand_corridors(data: dict[str, Any], grid: int) -> dict[str, Any]:
+    """`corridors:` -> a polygon area each (any grid angle), plus a ramp along it with `rise`
+    and the doors at both ends with `between: [from_area, to_area]`."""
+    cors = data.get("corridors") or []
+    if not cors:
+        return data
+    data = dict(data)
+    areas, ramps = list(data.get("areas", [])), list(data.get("ramps", []))
+    doors = list(data.get("doors", []))
+    for c in cors:
+        poly, along, half, length = corridor_poly(c, grid)
+        rise = int(c.get("rise", 0))
+        floor = int(c.get("floor", 0))
+        xs, ys = [p[0] for p in poly], [p[1] for p in poly]
+        area = {k: v for k, v in c.items()
+                if k not in ("from", "to", "width", "rise", "between", "door_width")}  # fmt: skip
+        area.update(rect=[min(xs), min(ys), max(xs), max(ys)], poly=poly,
+                    floor=floor + min(rise, 0))  # fmt: skip
+        area.setdefault("role", "corridor")
+        areas.append(area)
+        if rise:
+            i = 1 if along == "y" else 0
+            up = (c["to"][i] > c["from"][i]) == (rise > 0)  # uphill towards `to`
+            ramps.append({"name": f"{c['name']}_ramp", "area": c["name"],
+                          "axis": ("+" if up else "-") + along, "rise": abs(rise),
+                          "length": length})  # fmt: skip
+        for end, other in zip(("from", "to"), c.get("between") or (), strict=False):
+            doors.append({"name": f"{c['name']}_{end}", "between": [other, c["name"]],
+                          "width": int(c.get("door_width", 2 * half))})  # fmt: skip
+    data["areas"], data["ramps"], data["doors"] = areas, ramps, doors
+    return data
+
+
+def expand_macros(data: dict[str, Any], grid: int) -> dict[str, Any]:
+    """All shorthand in a layout (diagonals, corridors) as plain areas, wedges, ramps, doors;
+    polygon areas get their bounding box as `rect` (tools that read rects see that)."""
+    data = expand_corridors(expand_diagonals(data, grid), grid)
+    if any(a.get("poly") and not a.get("rect") for a in data.get("areas", [])):
+        data = dict(data)
+        data["areas"] = [
+            {**a, "rect": [min(p[0] for p in a["poly"]), min(p[1] for p in a["poly"]),
+                           max(p[0] for p in a["poly"]), max(p[1] for p in a["poly"])]}
+            if a.get("poly") and not a.get("rect") else a
+            for a in data["areas"]
+        ]  # fmt: skip
+    return data
+
+
+def _convex_ccw(points: Any, grid: int, what: str) -> tuple[tuple[int, int], ...]:
+    if not isinstance(points, (list, tuple)) or len(points) < 3:
+        raise SpecError(f"{what}: a polygon needs >= 3 points")
+    pts = [_ints(p, 2, what) for p in points]
+    if any(v % grid for p in pts for v in p):
+        raise SpecError(f"{what}: vertices must be on the {grid}-unit grid")
+    area2 = sum(p[0] * q[1] - q[0] * p[1] for p, q in zip(pts, pts[1:] + pts[:1], strict=True))
+    if area2 < 0:
+        pts.reverse()
+    n = len(pts)
+    for i in range(n):
+        (ax, ay), (bx, by), (cx, cy) = pts[i], pts[(i + 1) % n], pts[(i + 2) % n]
+        if (bx - ax) * (cy - by) - (by - ay) * (cx - bx) <= 0:
+            raise SpecError(f"{what}: polygon must be convex without collinear points")
+    return tuple(pts)
+
+
 def _ints(v: Any, n: int, what: str) -> tuple[int, ...]:
     if not isinstance(v, (list, tuple)) or len(v) != n or not all(isinstance(x, int) for x in v):
         raise SpecError(f"{what}: expected {n} integers, got {v!r}")
@@ -250,10 +390,21 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         raise SpecError("layout needs a 'name'")
     grid = int(data.get("grid", 16))
     wall = int(data.get("wall", 16))
-    data = expand_diagonals(data, grid)
+    data = expand_macros(data, grid)
     areas: dict[str, Area] = {}
     for a in data.get("areas", []):
-        rect = _ints(a.get("rect"), 4, f"area {a.get('name')}.rect")
+        poly = None
+        if a.get("poly") is not None:
+            poly = _convex_ccw(a["poly"], grid, f"area {a.get('name')}.poly")
+            bbox = (min(p[0] for p in poly), min(p[1] for p in poly),
+                    max(p[0] for p in poly), max(p[1] for p in poly))  # fmt: skip
+            if a.get("rect") is not None and tuple(a["rect"]) != bbox:
+                raise SpecError(f"area {a.get('name')}: rect must be the bounding box of poly")
+            if len(poly) == 4 and all(p[0] in bbox[::2] and p[1] in bbox[1::2] for p in poly):
+                poly = None  # an axis-aligned rectangle: a plain area
+            rect = bbox
+        else:
+            rect = _ints(a.get("rect"), 4, f"area {a.get('name')}.rect")
         area = Area(
             name=a["name"],
             rect=rect,
@@ -264,6 +415,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             zone=a.get("zone"),
             light=a.get("light"),
             sound=a.get("sound"),
+            poly=poly,
         )
         if area.name in areas:
             raise SpecError(f"duplicate area {area.name}")
@@ -350,6 +502,8 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             raise SpecError(f"cover {c.name}: an octagon needs >= 32 units across")
         if c.z < 0 or c.z + c.size[2] > areas[c.area].height:
             raise SpecError(f"cover {c.name}: z {c.z} + height {c.size[2]} leaves its area")
+        if not areas[c.area].inside(*c.pos):
+            raise SpecError(f"cover {c.name}: pos {list(c.pos)} is outside the floor of {c.area}")
     ramps = []
     for r in data.get("ramps", []):
         rp = Ramp(
@@ -407,6 +561,12 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             raise SpecError(f"ladder {lad.name}: wall must be +x/-x/+y/-y")
         if lad.height > areas[lad.area].height:
             raise SpecError(f"ladder {lad.name}: taller than its area")
+        la = areas[lad.area]
+        span = la.side_span(lad.wall)
+        x0, y0, x1, y1 = la.rect
+        c = ((y0 + y1) // 2 if lad.wall[1] == "x" else (x0 + x1) // 2) + lad.pos
+        if span is None or not span[0] <= c - lad.width // 2 < c + lad.width // 2 <= span[1]:
+            raise SpecError(f"ladder {lad.name}: not on the {lad.wall} wall of {lad.area}")
         ladders.append(lad)
     hatches = []
     for h in data.get("hatches", []) or []:
@@ -453,6 +613,31 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             brightness=int(sp.get("brightness", 300)),
             color=_ints(sp.get("color", [255, 240, 220]), 3, f"spot {sp['name']}.color"),
         ))  # fmt: skip
+    bridges = []
+    for b in data.get("bridges", []) or []:
+        br = Bridge(
+            name=b["name"], area=need(b["area"], b["name"]), axis=str(b["axis"]), z=int(b["z"]),
+            width=int(b.get("width", 96)), pos=int(b.get("pos", 0)),
+            thickness=int(b.get("thickness", 16)), rail=int(b.get("rail", 40)),
+        )  # fmt: skip
+        if br.axis not in ("x", "y"):
+            raise SpecError(f"bridge {br.name}: axis must be x or y (the way it runs)")
+        if any(v % 8 for v in (br.z, br.width, br.pos, br.thickness, br.rail)):
+            raise SpecError(f"bridge {br.name}: z/width/pos/thickness/rail must be on the 8 grid")
+        a = areas[br.area]
+        if br.width < 64 or br.thickness < 8 or br.rail < 0:
+            raise SpecError(f"bridge {br.name}: width >= 64, thickness >= 8, rail >= 0")
+        if br.z - br.thickness < BRIDGE_CLEARANCE or a.height - br.z < BRIDGE_CLEARANCE:
+            raise SpecError(
+                f"bridge {br.name}: needs {BRIDGE_CLEARANCE} units free under the deck and over "
+                f"it (z - thickness and height - z; area {a.name} is {a.height} high)"
+            )
+        x0, y0, x1, y1 = a.rect
+        lo, hi = (y0, y1) if br.axis == "x" else (x0, x1)
+        c = (lo + hi) // 2 + br.pos
+        if c - br.width // 2 < lo or c + br.width // 2 > hi:
+            raise SpecError(f"bridge {br.name}: pos/width put it outside {a.name}")
+        bridges.append(br)
     zones = data.get("zones", {}) or {}
     for a in areas.values():
         if a.zone is not None and a.zone not in zones:
@@ -478,7 +663,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             # grid outwards from area centre + offset
             "offset": _ints(sp.get("offset", [0, 0]), 2, f"spawns.{team}.offset"),
         }
-    groups = (doors, stairs, cover, ramps, wedges, ladders, hatches, water, spots)
+    groups = (doors, stairs, cover, ramps, wedges, ladders, hatches, water, spots, bridges)
     names = [x.name for group in groups for x in group]
     dup = {n for n in names if names.count(n) > 1 or n in areas}
     if dup:
@@ -509,6 +694,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         spots=spots,
         texlights={**DEFAULT_TEXLIGHTS, **(data.get("texlights") or {})},
         sounds=bool(data.get("sounds", False)),
+        bridges=bridges,
     )
 
 

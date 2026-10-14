@@ -20,7 +20,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from mapforge.generator.build import generate
-from mapforge.generator.spec import SpecError, parse_layout
+from mapforge.generator.spec import SpecError, expand_macros, parse_layout
 
 LOCKED_ROLES = {"site", "t_spawn", "ct_spawn"}
 
@@ -62,10 +62,13 @@ def _find(items: list, name: str, what: str) -> Any:
     raise ValueError(f"no {what} named {name!r}")
 
 
+AREA_KEYS = ("areas", "diagonals", "corridors")  # corridors: angled, from `from` to `to`
+
+
 def _area(lay: Any, name: str, what: str = "area") -> Any:
-    """An area by name: a plain area or a `diagonals:` corridor (moving/resizing its rect also
-    moves its wedges, which the generator derives)."""
-    for it in [*(lay.get("areas") or []), *(lay.get("diagonals") or [])]:
+    """An area by name: a plain area, a `diagonals:` or an angled `corridors:` corridor (moving
+    its rect / ends also moves the wedges, ramp and doors the generator derives)."""
+    for it in [x for k in AREA_KEYS for x in lay.get(k) or []]:
         if it.get("name") == name:
             return it
     raise ValueError(f"no {what} named {name!r}")
@@ -122,13 +125,23 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         area = _area(lay, str(p["target"]), "area")
         _guard_area(area, lay)
         dx, dy = _vec(p["delta"], 2, grid, "delta")
-        x0, y0, x1, y1 = area["rect"]
-        area["rect"] = _flow([x0 + dx, y0 + dy, x1 + dx, y1 + dy])
+        if "from" in area:  # an angled corridor: both ends
+            for end in ("from", "to"):
+                x, y = area[end]
+                area[end] = _flow([x + dx, y + dy])
+            return f"{area['name']} moved by [{dx}, {dy}]"
+        if area.get("poly"):
+            area["poly"] = _flow([_flow([x + dx, y + dy]) for x, y in area["poly"]])
+        if area.get("rect") is not None:
+            x0, y0, x1, y1 = area["rect"]
+            area["rect"] = _flow([x0 + dx, y0 + dy, x1 + dx, y1 + dy])
         return f"{area['name']} moved by [{dx}, {dy}]"
     if t == "resize_corridor":
         area = _area(lay, str(p["target"]), "area")
         _guard_area(area, lay)
         (d,) = _vec(p["length_delta"], 1, grid, "length_delta")
+        if "from" in area or area.get("poly"):
+            raise ValueError(f"{area['name']} is angled: move it (move_corridor), not resize it")
         x0, y0, x1, y1 = area["rect"]
         along_x = (x1 - x0) >= (y1 - y0)
         at_start = str(p.get("end", "end")) in ("start", "min", "west", "south")
@@ -271,6 +284,19 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
             item["ladder"] = str(p["ladder"])
         lay.setdefault("hatches", CommentedSeq()).append(_flow_map(item))
         return f"hatch {item['name']} from {lower['name']} up to {upper['name']}"
+    if t == "add_bridge":
+        area = _area(lay, str(p["zone"]), "area")
+        _guard_spawn(area)
+        item = {"name": _new_name(lay.get("bridges", []), f"{area['name']}_bridge"),
+                "area": area["name"], "axis": str(p["axis"]),
+                "z": _vec(p["z"], 1, 8, "z")[0],
+                "width": _vec(p.get("width", 96), 1, 8, "width")[0]}  # fmt: skip
+        if p.get("pos"):
+            item["pos"] = _vec(p["pos"], 1, 8, "pos")[0]
+        if "rail" in p:
+            item["rail"] = _vec(p["rail"], 1, 8, "rail")[0]
+        lay.setdefault("bridges", CommentedSeq()).append(_flow_map(item))
+        return f"bridge {item['name']} across {area['name']} along {item['axis']} at {item['z']}"
     if t == "add_water":
         area = _area(lay, str(p["zone"]), "area")
         _guard_spawn(area)
@@ -282,14 +308,14 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         return f"water {item['name']} {item['depth']} deep in {area['name']}"
     if t == "remove_element":
         name = str(p["target"])
-        for key in ("ramps", "wedges", "ladders", "cover", "stairs", "hatches", "water"):
+        for key in ("ramps", "wedges", "ladders", "cover", "stairs", "hatches", "water", "bridges"):
             hit = next((it for it in lay.get(key, []) or [] if it.get("name") == name), None)
             if hit is not None:
                 if hit.get("protected") or name in soul_elements(lay):
                     raise ValueError(f"{name!r} is protected (landmark/irregularity)")
                 lay[key].remove(hit)
                 what = {"ramps": "ramp", "wedges": "angled wall", "ladders": "ladder",
-                        "hatches": "hatch"}.get(key, key)  # fmt: skip
+                        "hatches": "hatch", "bridges": "bridge"}.get(key, key)  # fmt: skip
                 return f"{what} {name} removed"
         window = next((d for d in lay.get("doors", []) if d.get("name") == name), None)
         if window is not None and window.get("kind") == "window":
@@ -297,7 +323,9 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
                 raise ValueError(f"{name!r} is protected")
             lay["doors"].remove(window)
             return f"window {name} removed"
-        raise ValueError(f"no ramp/wedge/ladder/cover/stairs/hatch/water/window named {name!r}")
+        raise ValueError(
+            f"no ramp/wedge/ladder/cover/stairs/hatch/water/bridge/window named {name!r}"
+        )
     if t == "remove_connection":
         a, b = str(p["from"]), str(p["to"])
         hits = [d for d in lay["doors"] if set(d["between"]) == {a, b}]
@@ -310,14 +338,15 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         return f"door {door['name']} between {a} and {b} removed"
     if t == "add_area":
         name = str(p["name"])
-        if any(x["name"] == name for x in [*lay["areas"], *(lay.get("diagonals") or [])]):
+        if any(x["name"] == name for k in AREA_KEYS for x in lay.get(k) or []):
             raise ValueError(f"an area named {name!r} exists already")
         x0, y0, x1, y1 = _vec(p["rect"], 4, grid, "rect")
         if not (x0 < x1 and y0 < y1):
             raise ValueError("rect must be [x0, y0, x1, y1] with x0 < x1, y0 < y1")
         (h,) = _vec(p.get("height", 160), 1, grid, "height")
         fl = _vec(p.get("floor", 0), 1, grid, "floor")[0]
-        for other in [*lay["areas"], *(lay.get("diagonals") or [])]:
+        expanded = expand_macros(dict(lay), grid)["areas"]  # corridors and polygons have rects
+        for other in expanded:
             ox0, oy0, ox1, oy1 = other["rect"]
             of = int(other.get("floor", 0))
             above_or_below = fl >= of + int(other.get("height", 192)) + 16 or of >= fl + h + 16
@@ -352,13 +381,14 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         area = _area(lay, str(p["target"]), "area")
         _guard_area(area, lay)
         name = area["name"]
-        lay["areas" if area in lay["areas"] else "diagonals"].remove(area)
+        next(lay[k] for k in AREA_KEYS if area in (lay.get(k) or [])).remove(area)
         for key in ("doors",):
             for d in [d for d in lay.get(key, []) if name in d["between"]]:
                 if d.get("protected"):
                     raise ValueError(f"door {d['name']!r} to {name} is protected (locked topology)")
                 lay[key].remove(d)
-        for key in ("cover", "stairs", "ramps", "wedges", "ladders", "weapons", "water", "spots"):
+        for key in ("cover", "stairs", "ramps", "wedges", "ladders", "weapons", "water", "spots",
+                    "bridges"):  # fmt: skip
             for it in [it for it in lay.get(key, []) or [] if it.get("area") == name]:
                 lay[key].remove(it)
         for h in [h for h in lay.get("hatches", []) or [] if name in (h["lower"], h["upper"])]:

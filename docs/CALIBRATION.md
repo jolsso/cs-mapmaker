@@ -36,6 +36,7 @@ de_queens_v1 (custom map i installationen, 0 bomb targets, 2 spawns pr. hold) er
 | de_prodigy, de_torn har 4 `func_bomb_target` | Brushes inden for 128 units er ét site. |
 | de_torn: 11067 texinfo, de_chateau: 2,29 MB lightmaps – over HLSDK-limits | HLSDK `MAX_MAP_*` er compiler-limits. texinfo → 32767, models → 512, lighting → compiler-grænse. > 100 % = error, > 90 % = headroom-politik. |
 | de_mon: 4 CT-spawns kan kun komme videre med et hop | Walk-grafen fik hop (duck-jump ≤ 54) og crouch (vents). |
+| de_gen_angle (2026-10-14): en 48 høj vent i plan med gulvet blev aldrig gået ind i | Crouch prøvede kun løft på 18/54 (hullet når 54 op), og en hull, der hviler præcis på gulvplanet, tæller som solid, når `_settle` runder ned til z-gitteret. Nu prøves løft på ét z-trin først, og et skridt uden loftshøjde til trinhøjden løftes ét z-trin. |
 | de_prodigy: en spawn 4 units fra en væg blev snappet ind i væggen | Seed prøver de omkringliggende grid-punkter. |
 | Korridor-checket fandt 20+ "smalle passager" på alle maps – mest kanter og catwalks | En passage skal have væg på begge sider; kant mod et fald tæller ikke. Clusters < 4 celler ignoreres. På referencemaps er normerne info. |
 | Tæt scanning af hele world-bounds: ~1,9 mia. opslag på de_mon | Erstattet af flood-fill fra spawns (kun nåbart område). |

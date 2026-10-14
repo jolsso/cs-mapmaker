@@ -272,7 +272,10 @@ def build_walk_graph(
             oz = np.repeat(origin[:, 2], nd)
             # 1. walk (step up if there is head room for it)
             step_ok = np.repeat(~solid(origin + [0, 0, max_step]), nd)
-            ztop = oz + np.where(step_ok, max_step, 0.0)
+            # no room to step up (crawling through a vent): still lift one z step, as a hull
+            # resting exactly on the floor plane counts as solid once _settle floors it
+            nudge = np.repeat(~solid(origin + [0, 0, z_step]), nd) * z_step
+            ztop = oz + np.where(step_ok, max_step, nudge)
             free = ~solid(np.column_stack([nxy, ztop]))
             got, _ = b.land(src[free], nxy[free], ztop[free], s, 2 * max_step + 36, max_drop)
             new_ids.append(got)
@@ -288,7 +291,9 @@ def build_walk_graph(
             if s == STAND and crouch and blocked.any():
                 # 3. crouch under something, 4. duck-jump into a crouch-height opening
                 cz = feet[:, 2].repeat(nd) + hz[CROUCH]
-                for lift in (max_step, jump_height):
+                # (one z step first: a flush vent lower than step + crouch hull, e.g. 48 high;
+                # exactly on the floor plane counts as solid, and _settle floors to the z grid)
+                for lift in (z_step, max_step, jump_height):
                     if not blocked.any():
                         break
                     z = cz + lift

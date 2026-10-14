@@ -15,10 +15,11 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 
-from mapforge.generator.spec import MATERIALS, Area, Door, Layout, SpecError
+from mapforge.generator.spec import MATERIALS, Area, Bridge, Door, Layout, SpecError
 from mapforge.mapfile.parser import Brush, MapFile
 from mapforge.mapfile.writer import box_brush, entity, polyhedron_brush, prism_brush
 
@@ -83,15 +84,21 @@ def door_box(door: Door, areas: dict[str, Area], wall: int) -> Box:
     height = door.height or min(a.top, b.top) - floor
     if height <= 0 or min(a.top, b.top) < floor + height:
         raise SpecError(f"door {door.name}: sill + height go above the lower of its two ceilings")
-    # (gap between the areas, axis the door goes through, wall start, wall end)
+    # (gap between the areas, axis the door goes through, wall start, wall end, a's side)
     sides = (
-        (bx0 - ax1, "x", ax1, bx0),  # b east of a
-        (ax0 - bx1, "x", bx1, ax0),  # b west of a
-        (by0 - ay1, "y", ay1, by0),  # b north of a
-        (ay0 - by1, "y", by1, ay0),  # b south of a
+        (bx0 - ax1, "x", ax1, bx0, "+x"),  # b east of a
+        (ax0 - bx1, "x", bx1, ax0, "-x"),  # b west of a
+        (by0 - ay1, "y", ay1, by0, "+y"),  # b north of a
+        (ay0 - by1, "y", by1, ay0, "-y"),  # b south of a
     )
-    for gap, axis, w_lo, w_hi in sides:
-        s0, s1 = (max(ay0, by0), min(ay1, by1)) if axis == "x" else (max(ax0, bx0), min(ax1, bx1))
+    flip = {"+": "-", "-": "+"}
+    for gap, axis, w_lo, w_hi, side in sides:
+        # the open stretch of both walls (an angled area only opens where its polygon has an
+        # edge on its bounding box)
+        sa, sb = a.side_span(side), b.side_span(flip[side[0]] + side[1])
+        if sa is None or sb is None:
+            continue
+        s0, s1 = max(sa[0], sb[0]), min(sa[1], sb[1])
         if s1 - s0 < door.width:
             continue
         if gap == 0:
@@ -107,18 +114,38 @@ def door_box(door: Door, areas: dict[str, Area], wall: int) -> Box:
         return ((o0, w_lo, floor), (o1, w_hi, floor + height))
     raise SpecError(
         f"door {door.name}: {door.between[0]} and {door.between[1]} do not share a wall "
-        f"(they must be exactly {wall} units apart with >= {door.width} units of overlap)"
+        f"(they must be exactly {wall} units apart with >= {door.width} units of overlap; "
+        "an angled area only opens on the polygon edges that lie on its bounding box)"
     )
 
 
+def _overpasses(voids: list[tuple[Box, bool]], sky_over: list[Area], wall: int) -> list[Box]:
+    """Space stacked over an outdoor area (a corridor crossing above a street) sits in that
+    area's sky: its shell (`wall` thick: floor slab, side walls and, unless it is outdoor
+    itself, a roof) must be solid there, not sky. (box, outdoor) voids -> shell boxes."""
+    out = []
+    for (lo, hi), open_top in voids:
+        for a in sky_over:
+            x0, y0, x1, y1 = a.rect
+            if lo[2] >= a.top and lo[0] < x1 and hi[0] > x0 and lo[1] < y1 and hi[1] > y0:
+                top = hi[2] if open_top else hi[2] + wall
+                out.append(((lo[0] - wall, lo[1] - wall, a.top), (hi[0] + wall, hi[1] + wall, top)))
+                break
+    return out
+
+
 def _solid_cells(
-    voids: list[Box], sky_over: list[Area], shell: Box, owners: list[tuple[Area, int]]
+    voids: list[Box],
+    sky_over: list[Area],
+    shell: Box,
+    owners: list[tuple[Area, int]],
+    overpasses: list[Box] = (),
 ) -> tuple[list, np.ndarray]:
     (sx0, sy0, sz0), (sx1, sy1, sz1) = shell
     axes = []
     for i, (lo, hi) in enumerate(((sx0, sx1), (sy0, sy1), (sz0, sz1))):
         cuts = {lo, hi}
-        for b in voids:
+        for b in [*voids, *overpasses]:
             cuts |= {b[0][i], b[1][i]}
         for a in sky_over:  # split at outdoor area edges so sky cells line up with them
             if i < 2:
@@ -146,6 +173,9 @@ def _solid_cells(
     for a in sky_over:
         x0, y0, x1, y1 = a.rect
         label[(gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > a.top)] = SKY
+    for (x0, y0, z0), (x1, y1, z1) in overpasses:
+        inside = (gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > z0) & (gz < z1)
+        label[inside & (label == SKY)] = SOLID
     for (x0, y0, z0), (x1, y1, z1) in voids:
         label[(gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > z0) & (gz < z1)] = EMPTY
     return axes, label
@@ -277,6 +307,38 @@ def _wedge_brushes(layout: Layout, surf) -> list[Brush]:
     return out
 
 
+def _poly_fill(a: Area) -> list[list[tuple[int, int]]]:
+    """Triangles filling the part of a polygon area's bounding box outside the polygon: each
+    slanted edge with the box corner it faces (the corner sees the whole convex chain, so the
+    fans of the four corners tile the leftover exactly)."""
+    if a.poly is None:
+        return []
+    x0, y0, x1, y1 = a.rect
+    out = []
+    pts = a.poly
+    for p, q in zip(pts, pts[1:] + pts[:1], strict=True):
+        nx, ny = q[1] - p[1], p[0] - q[0]  # outward normal of a counter-clockwise edge
+        if nx == 0 or ny == 0:
+            continue  # an axis-aligned edge of a convex polygon lies on the bounding box
+        out.append([(x1 if nx > 0 else x0, y1 if ny > 0 else y0), p, q])
+    return out
+
+
+def _bridge_boxes(br: Bridge, a: Area) -> list[Box]:
+    """A bridge's deck (first) and its railings: wall to wall along its axis."""
+    x0, y0, x1, y1 = a.rect
+    top = a.floor + br.z
+    lo, hi = (y0, y1) if br.axis == "x" else (x0, x1)
+    c = (lo + hi) // 2 + br.pos
+    c0, c1 = c - br.width // 2, c + br.width // 2
+    parts = [(c0, c1, top - br.thickness, top)]
+    if br.rail:
+        parts += [(c0, c0 + 8, top, top + br.rail), (c1 - 8, c1, top, top + br.rail)]
+    if br.axis == "x":
+        return [((x0, s0, z0), (x1, s1, z1)) for s0, s1, z0, z1 in parts]
+    return [((s0, y0, z0), (s1, y1, z1)) for s0, s1, z0, z1 in parts]
+
+
 def _ladder_box(layout: Layout, ld) -> Box:
     a = layout.areas[ld.area]
     x0, y0, x1, y1 = a.rect
@@ -343,7 +405,10 @@ def generate(layout: Layout) -> Generated:
     shell: Box = (tuple(int(v) for v in lo), tuple(int(v) for v in hi))
     outdoor = [a for a in areas.values() if a.outdoor]
     owners = [(a, zone_names.index(a.zone) + 1 if a.zone else 0) for a in areas.values()]
-    (xs, ys, zs), label = _solid_cells(list(voids.values()), outdoor, shell, owners)
+    over = _overpasses(
+        [(b, n in areas and areas[n].outdoor) for n, b in voids.items()], outdoor, layout.wall
+    )
+    (xs, ys, zs), label = _solid_cells(list(voids.values()), outdoor, shell, owners, over)
     door_area = {d.name: areas[d.between[0]] for d in layout.doors}
     door_area.update({h.name: areas[h.lower] for h in layout.hatches})
     void_areas = [(b, areas.get(n) or door_area[n]) for n, b in voids.items()]
@@ -381,6 +446,13 @@ def generate(layout: Layout) -> Generated:
     for rp in layout.ramps:
         inner += [(b, rp.rise) for b in _ramp_brushes(layout, surf, [rp])]
     walls = _wedge_brushes(layout, surf)
+    for a in areas.values():  # angled walls of polygon areas: structural, like wedges
+        walls += [prism_brush(tri, a.floor, a.top, surf(a)) for tri in _poly_fill(a)]
+    for br in layout.bridges:
+        a = areas[br.area]
+        for i, (b_lo, b_hi) in enumerate(_bridge_boxes(br, a)):  # deck, then railings
+            inner.append((box_brush(b_lo, b_hi, surf(a) if i == 0 else tex_of(a)["cover"]),
+                          b_hi[2] - a.floor))  # fmt: skip
     breakables: list[Brush] = []
     ents = [world]
     for c in layout.cover:
@@ -504,29 +576,45 @@ def generate(layout: Layout) -> Generated:
                 }
             )
         )
+
+    def light_cfg(a: Area) -> tuple[dict[str, Any], str]:
+        lcfg = {**layout.lights, **((layout.zones.get(a.zone) or {}).get("light") or {}),
+                **(a.light or {})}  # fmt: skip
+        lr, lg, lb = lcfg.get("color", [255, 236, 210])
+        return lcfg, f"{lr} {lg} {lb} {lcfg.get('brightness', 220)}"
+
     for a in areas.values():
         if a.outdoor:
             continue
-        lcfg = {**layout.lights, **((layout.zones.get(a.zone) or {}).get("light") or {}),
-                **(a.light or {})}  # fmt: skip
+        lcfg, light = light_cfg(a)
         if lcfg.get("off"):
             continue
         spacing = int(lcfg.get("spacing", 384))
-        lr, lg, lb = lcfg.get("color", [255, 236, 210])
         x0, y0, x1, y1 = a.rect
         nx, ny = max(1, round((x1 - x0) / spacing)), max(1, round((y1 - y0) / spacing))
-        for i in range(nx):
-            for j in range(ny):
-                ents.append(
-                    entity(
-                        {
-                            "classname": "light",
-                            "origin": f"{x0 + (x1 - x0) * (2 * i + 1) // (2 * nx)} "
-                            f"{y0 + (y1 - y0) * (2 * j + 1) // (2 * ny)} {a.top - 24}",
-                            "_light": f"{lr} {lg} {lb} {lcfg.get('brightness', 220)}",
-                        }
-                    )
-                )
+        pts = [(x0 + (x1 - x0) * (2 * i + 1) // (2 * nx), y0 + (y1 - y0) * (2 * j + 1) // (2 * ny))
+               for i in range(nx) for j in range(ny)]  # fmt: skip
+        if a.poly is not None:  # a polygon area: only the lights over its floor
+            pts = [p for p in pts if a.inside(*p, margin=32)]
+            if not pts:
+                cx, cy = a.centroid()
+                pts = [(int(cx) // 8 * 8, int(cy) // 8 * 8)]
+        for px, py in pts:
+            ents.append(entity({"classname": "light", "origin": f"{px} {py} {a.top - 24}",
+                                "_light": light}))  # fmt: skip
+    for br in layout.bridges:
+        # the deck shades the floor under it (also from the sun): lights under it along its length
+        a = areas[br.area]
+        lcfg, light = light_cfg(a)
+        d_lo, d_hi = _bridge_boxes(br, a)[0]
+        i = 0 if br.axis == "x" else 1
+        n = max(1, round((d_hi[i] - d_lo[i]) / int(lcfg.get("spacing", 384))))
+        for k in range(n):
+            p = [(d_lo[0] + d_hi[0]) // 2, (d_lo[1] + d_hi[1]) // 2]
+            p[i] = d_lo[i] + (d_hi[i] - d_lo[i]) * (2 * k + 1) // (2 * n)
+            if a.inside(*p, margin=32):
+                ents.append(entity({"classname": "light", "origin": f"{p[0]} {p[1]} {d_lo[2] - 16}",
+                                    "_light": light}))  # fmt: skip
 
     # Spawns face the middle of the map.
     centre = ((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2)
@@ -620,9 +708,12 @@ def _spawn_points(
             (x0 + margin + c * spacing, y0 + margin + r * spacing)
             for r in range(rows)
             for c in range(cols)
+            if area.inside(x0 + margin + c * spacing, y0 + margin + r * spacing, margin=32)
         ),
         key=lambda p: (p[0] - cxm) ** 2 + (p[1] - cym) ** 2,
     )  # fill from the middle of the area outwards
+    if len(grid) < count:
+        raise SpecError(f"spawn area {area.name} fits {len(grid)} spawns, needs {count}")
     yaw = math.degrees(math.atan2(facing[1] - cym, facing[0] - cxm))
     for x, y in grid[:count]:
         # hull origin 36 above the feet + ~8 units clearance off the floor (TWHL)

@@ -96,7 +96,9 @@ def touched_areas(a: dict[str, Any], layout: dict[str, Any]) -> list[str]:
         return []
     x0, y0, x1, y1 = bbox(a, 0 if a["kind"] == "rect" else 32)
     hits = []
-    for area in [*layout.get("areas", []), *(layout.get("diagonals") or [])]:
+    from mapforge.generator.spec import expand_macros
+
+    for area in expand_macros(layout, int(layout.get("grid", 16)))["areas"]:
         ax0, ay0, ax1, ay1 = area["rect"]
         if ax0 < x1 and x0 < ax1 and ay0 < y1 and y0 < ay1:
             hits.append(area["name"])

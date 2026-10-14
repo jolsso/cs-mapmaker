@@ -140,6 +140,32 @@ diagonals:                    # makro: en 45°-korridor af mindst `width` i et k
   - {name: diag, rect: [512, 272, 1024, 784], width: 192, dir: ne, height: 192}   # ne: SV→NØ, nw: SØ→NV
 ```
 
+### Vinkler og niveauer (2026-10-14): skrå rum i vilkårlig vinkel, broer, overgange
+```yaml
+areas:
+  - name: hex                 # konveks grundplan (grid-vertices, vilkårlig rækkefølge); rect = bounding box
+    poly: [[1024, 400], [1216, 272], [1408, 272], [1536, 400], [1536, 624], [1024, 624]]
+    height: 192               # resten af boxen er solid (prismer); døre kun på polygon-kanter, der
+                              # ligger på boxens sider (fx kanten y=272 fra x 1216 til 1408)
+corridors:                    # makro: skrå korridor i vilkårlig grid-vinkel → poly-område (+ rampe + døre)
+  - name: t_long
+    from: [-1280, 272]        # midten af den ene ende (på grid); enderne står vinkelret på hovedaksen,
+    to: [-960, 960]           # så de sidder på almindelige vægge (her y=272 og y=960)
+    width: 128                # bredde målt på tværs af skråningen; enderne bliver width / cos(vinkel)
+    floor: 0
+    height: 192
+    rise: 64                  # valgfri: rampe hele vejen fra from til to (negativ = nedad); <= længde/2
+    between: [t_spawn, a_site]  # valgfri: døre <name>_from / <name>_to i hele endens bredde (door_width)
+bridges:                      # gangbart dæk tværs over et højt område, væg til væg langs axis
+  - {name: deck, area: street, axis: y, z: 176, width: 128, pos: 0, thickness: 16, rail: 40}
+                              # z = dækkets top over gulvet; >= 80 fri under (z - thickness) og over;
+                              # rail = rækværk i begge sider (0 = intet); lys under dækket sættes selv
+```
+- **Polygon-områder:** spawns, lys, cover og stiger skal ligge på polygonens gulv (spawns/lys filtreres, cover og stiger giver fejl). En `poly` der er et akse-rettet rektangel, bliver et almindeligt område.
+- **Overgange:** et område må ligge oven over et andet (forskellig `floor`, ingen overlap i højden), også over et udendørs område: skallen omkring det (gulvplade, sidevægge og tag, hvis det ikke selv er udendørs) bliver solid i stedet for himmel, så en overdækket gangbro kan krydse en åben gade.
+- **Broer i det fri:** et højt udendørs område med `bridges:` og rum på begge sider i dækhøjde (døre fra rummene ender på dækket) giver to niveauer i samme rum: man ser og skyder mellem dem.
+- Decide: `add_bridge` (`zone`, `axis`, `z`, valgfri `width`/`pos`/`rail`), `remove_element` fjerner en bro; `move_corridor` flytter også polygon-områder og skrå korridorer (begge ender), `resize_corridor` afviser skrå områder.
+
 **Dev-WAD:** ud over grundsættet har `mapforge_dev.wad` tool-teksturerne `CLIP` og `ORIGIN`, entitetsteksturerne `DEV_GLASS`, `DEV_DOOR` og `DEV_LADDER`, zone-tints `DEV_{FLOOR,WALL,CEIL}_{RED,BLUE,GREEN,SAND,GREY}` og landmark-materialerne `DEV_METAL`, `DEV_BRICK`, `DEV_CONCRETE` og `DEV_WOOD`. Fra pakke 2 også `DEV_LIGHT`, `DEV_LIGHT_BLUE` (teksturlys) og `!WATER`. Alt er proceduralt og vores eget arbejde (CC0).
 
 **Flere niveauer:** områder må ligge over hinanden (forskellig `floor`, ingen overlap i højden), og et cover med `z` er en bro eller catwalk i et højt rum. Ladders, ramper og vinduer forbinder niveauerne. Validatorens gangbarhedsgraf arbejder på den compilede BSP (hulls, hop, crouch og func_ladder), så den forstår niveauerne uden særregler.
