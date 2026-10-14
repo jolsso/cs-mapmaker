@@ -72,6 +72,12 @@ class Loop:
 
             refresh_site(self.cfg)
 
+        # the budget counts the loop's own run time, not the time it stood still (awaiting an
+        # answer, cut off and resumed days later): add the time since the last save in this run
+        now = time.time()
+        if getattr(self, "_mark", None) is not None:
+            self.state["active_s"] = round(self.state.get("active_s", 0.0) + now - self._mark, 1)
+        self._mark = now
     def log(self, msg: str) -> None:
         print(f"[loop {self.map} {self.state.get('iteration', '-')}] {msg}", flush=True)
 
@@ -423,9 +429,9 @@ class Loop:
             return f"plateau: ingen forbedring i {c['since_best']} målinger"
         if done_its >= int(budget.get("max_iterations", 20)):
             return f"budget: {done_its} iterationer"
-        hours = (time.time() - self.state.get("started_ts", time.time())) / 3600
+        hours = self.state.get("active_s", 0.0) / 3600
         if hours >= float(budget.get("max_wall_clock_h", 12)):
-            return f"budget: {hours:.1f} timer"
+            return f"budget: {hours:.1f} timers aktiv køretid"
         if not changed and not (
             c["targets_met"] and self.state["history"][-1].get("reached") == "simulate"
         ):
@@ -467,6 +473,7 @@ class Loop:
                 if r in (AWAIT, 0):
                     return r
             else:
+        self._mark = time.time()  # active time starts now (see save)
                 raise RuntimeError(f"unknown step {step!r}")
 
     def report(self) -> str:
@@ -475,7 +482,8 @@ class Loop:
         best = s.get("best")
         lines = [f"# Loop – {s.get('map')}", "",
                  f"Status: **{s.get('status')}**" + (f" – {s.get('stop_reason')}" if s.get("stop_reason") else ""),
-                 f"Startet {s.get('started')} · opdateret {s.get('updated')} · nu: iteration {s.get('iteration')}, trin {s.get('step')}",
+                 f"Startet {s.get('started')} · opdateret {s.get('updated')} · aktiv køretid {s.get('active_s', 0) / 3600:.1f} t"
+                 f" · nu: iteration {s.get('iteration')}, trin {s.get('step')}",
                  f"Bedste måling: {best['iteration'] + ' (score ' + str(best['score']) + ')' if best else '–'}", "",
                  "| iteration | nåede | review | score | T-winrate | A-plants | ift. bedste | ændringer |",
                  "|---|---|---|---|---|---|---|---|"]  # fmt: skip

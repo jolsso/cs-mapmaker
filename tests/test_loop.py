@@ -228,3 +228,17 @@ def test_apply_moves_angled_areas_and_adds_bridges():
     data = yaml.safe_load(new)
     assert [b["name"] for b in data["bridges"]] == ["street_bridge"]
     assert next(c for c in data["corridors"] if c["name"] == "t_long")["to"] == [-944, 960]
+
+
+def test_budget_counts_active_run_time_only(tmp_path, monkeypatch):
+    import time
+
+    loop = _loop(tmp_path)
+    monkeypatch.setattr("mapforge.site.build.refresh_site", lambda cfg=None: None)
+    loop.state["started_ts"] = time.time() - 3 * 24 * 3600  # started three days ago, then cut off
+    assert loop.stop_reason(changed=True) is None
+    loop._mark = time.time() - 2 * 3600  # this run has been busy for two hours
+    loop.save()
+    assert 7100 < loop.state["active_s"] < 7300
+    loop.state["active_s"] = 13 * 3600
+    assert "aktiv køretid" in loop.stop_reason(changed=True)
