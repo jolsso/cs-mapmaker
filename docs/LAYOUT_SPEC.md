@@ -155,6 +155,8 @@ corridors:                    # makro: skrå korridor i vilkårlig grid-vinkel �
     floor: 0
     height: 192               # loftshøjde over det (skrå) gulv: med rise bliver området rise højere
     rise: 64                  # valgfri: rampe hele vejen fra from til to (negativ = nedad); <= længde/2
+    via: [[-1120, 640]]       # valgfri: knæk; hvert punkt bliver et lille kvadratisk knæ-rum (<name>_knee1 …),
+                              # stykkerne <name>, <name>_2 …; rise fordeles efter længde; bryder lange sigtelinjer
     between: [t_spawn, a_site]  # valgfri: døre <name>_from / <name>_to i hele endens bredde (door_width);
                               # floor og rise udelades så normalt: de følger de to områders gulve
 bridges:                      # gangbart dæk tværs over et højt område, væg til væg langs axis
@@ -168,7 +170,7 @@ bridges:                      # gangbart dæk tværs over et højt område, væg
 - **Overgange:** et område må ligge oven over et andet (forskellig `floor`, ingen overlap i højden), også over et udendørs område: skallen omkring det (gulvplade, sidevægge og tag, hvis det ikke selv er udendørs) bliver solid i stedet for himmel, så en overdækket gangbro kan krydse en åben gade.
 - **Broer i det fri:** et højt udendørs område med `bridges:` og rum på begge sider i dækhøjde (døre fra rummene ender på dækket) giver to niveauer i samme rum: man ser og skyder mellem dem.
 - **Skitser:** `./mf sketch MAP=<map>` gør streger tegnet på dashboardet (path-annotationer) til layout-YAML: stregen forenkles (Ramer–Douglas–Peucker, `--tolerance`) til knæk på gitteret, hvert knæk bliver et lille kvadratisk rum (`s<id>_knee<i>`), hvert stykke en `corridors:`-post (`s<id>_<k>`) med døre ind i knæene. Stregens ender står åbne: de forbindes til de områder, den er tegnet fra og til. Stykker tæt på 45° afvises (brug `diagonals:`).
-- Decide: `add_bridge` (`zone`, `axis`, `z`, valgfri `width`/`pos`/`rail`), `remove_element` fjerner en bro; `move_corridor` flytter også polygon-områder og skrå korridorer (begge ender), `resize_corridor` afviser skrå områder.
+- Decide: `bend_corridor` (`target`, `via`: knæk en skrå korridor, `[]` retter den ud igen), `add_bridge` (`zone`, `axis`, `z`, valgfri `width`/`pos`/`rail`), `remove_element` fjerner en bro; `move_corridor` flytter også polygon-områder og skrå korridorer (begge ender), `resize_corridor` afviser skrå områder.
 
 **Dev-WAD:** ud over grundsættet har `mapforge_dev.wad` tool-teksturerne `CLIP` og `ORIGIN`, entitetsteksturerne `DEV_GLASS`, `DEV_DOOR` og `DEV_LADDER`, zone-tints `DEV_{FLOOR,WALL,CEIL}_{RED,BLUE,GREEN,SAND,GREY}` og landmark-materialerne `DEV_METAL`, `DEV_BRICK`, `DEV_CONCRETE` og `DEV_WOOD`. Fra pakke 2 også `DEV_LIGHT`, `DEV_LIGHT_BLUE` (teksturlys) og `!WATER`. Alt er proceduralt og vores eget arbejde (CC0).
 

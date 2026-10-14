@@ -24,9 +24,7 @@ import yaml
 
 from mapforge import annotations
 from mapforge.config import load_config
-from mapforge.generator.spec import SpecError, corridor_poly
-
-WALL = 16
+from mapforge.generator.spec import SpecError, corridor_chain
 
 
 def simplify(points: list[list[float]], tolerance: float) -> list[list[float]]:
@@ -76,53 +74,8 @@ def corridors_from_stroke(
     vs = bends(points, grid, width, tolerance)
     if len(vs) < 2:
         raise SpecError(f"{name}: the stroke is too short for a corridor (< {3 * width} units)")
-    n = len(vs) - 1
-    # knee rooms: wide enough for the end of every corridor that meets them
-    side = {i: 2 * (width // 2 // grid + 2) * grid for i in range(1, n)}
-    for _ in range(3):  # the corridor ends depend on the knee sizes and the other way round
-        cors = []
-        for k in range(n):
-            (ax, ay), (bx, by) = vs[k], vs[k + 1]
-            along_y = abs(by - ay) >= abs(bx - ax)
-            sgn = 1 if (by - ay if along_y else bx - ax) > 0 else -1
-            fx, fy, tx, ty = ax, ay, bx, by
-            if k > 0:  # start on the knee's wall (one wall away from it)
-                off = sgn * (side[k] // 2 + WALL)
-                fy, fx = (ay + off, ax) if along_y else (ay, ax + off)
-            if k < n - 1:
-                off = sgn * (side[k + 1] // 2 + WALL)
-                ty, tx = (by - off, bx) if along_y else (by, bx - off)
-            c = {"name": f"{name}_{k + 1}", "from": [fx, fy], "to": [tx, ty], "width": width,
-                 "height": height}  # fmt: skip
-            try:
-                _, along, half, _ = corridor_poly(c, grid)
-            except SpecError as exc:
-                raise SpecError(f"{name}: bends too close together ({exc})") from exc
-            if (along == "y") != along_y:  # moving the ends onto the knees tipped it past 45°
-                raise SpecError(f"{name}: stretch {k + 1} is too close to 45° for its knees; "
-                                "draw it steeper or flatter, or use `diagonals:`")  # fmt: skip
-            cors.append((c, half))
-        grown = False
-        for k, (_, half) in enumerate(cors):
-            for i in (k, k + 1):
-                if i in side and side[i] < 2 * half + 2 * grid:
-                    side[i], grown = 2 * half + 2 * grid, True
-        if not grown:
-            break
-    areas = [
-        {"name": f"{name}_knee{i}", "rect": [vs[i][0] - s // 2, vs[i][1] - s // 2,
-                                             vs[i][0] + s // 2, vs[i][1] + s // 2],
-         "height": height, "role": "corridor"}
-        for i, s in side.items()
-    ]  # fmt: skip
-    doors = []
-    for k, (c, half) in enumerate(cors):
-        for i in (k, k + 1):
-            if i in side:
-                knee = f"{name}_knee{i}"
-                doors.append({"name": f"{c['name']}_knee{i}", "between": [c["name"], knee],
-                              "width": 2 * half})  # fmt: skip
-    return {"areas": areas, "corridors": [c for c, _ in cors], "doors": doors}
+    knees, cors, doors = corridor_chain(vs, name, grid, width, height)
+    return {"areas": knees, "corridors": [c for c, _ in cors], "doors": doors}
 
 
 def sketch_yaml(map_name: str, ann_id: int | None = None, **kw: Any) -> str:

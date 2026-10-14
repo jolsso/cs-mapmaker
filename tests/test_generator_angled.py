@@ -240,6 +240,22 @@ def test_angled_map_compiles_and_validates(tmp_path):
     assert v["ok"], errors
 
 
+def test_a_bent_corridor_gets_knees_spread_rise_and_keeps_its_end_doors():
+    data = copy.deepcopy(ANGLED)
+    c = data["corridors"][0]  # t_spawn (0) -> a_site (64), from [-1280, 272] to [-960, 960]
+    del c["floor"], c["rise"]
+    c["via"] = [[-1104, 576]]
+    lt = parse_layout(data)
+    assert {"t_long", "t_long_2", "t_long_knee1"} <= set(lt.areas)
+    knee = lt.areas["t_long_knee1"]
+    assert 0 < knee.floor < 64 and knee.floor % 16 == 0  # the rise is spread over the bend
+    doors = {d.name: d.between for d in lt.doors}
+    assert doors["t_long_from"] == ("t_spawn", "t_long")
+    assert doors["t_long_to"] == ("a_site", "t_long_2")
+    assert {"d_t_long_knee1", "d_t_long_2_knee1"} <= set(doors)
+    generate(lt)  # every piece shares its walls
+
+
 def test_rising_corridor_keeps_its_head_room_at_the_top():
     lt = lay()
     assert lt.areas["t_long"].height == 192 + 64

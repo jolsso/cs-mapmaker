@@ -147,6 +147,11 @@ allowed_changes:
     description: Water from the floor up `depth` in an area (shallow = wading, slows; deep = swimming)
     params: [zone, depth]            # optional rect
     before_gate_b_only: true
+  bend_corridor:
+    description: Bend an angled corridor (corridors:) through one or more points, each becoming a small knee room; breaks a long straight sightline. via [] straightens it again
+    params: [target, via]            # via [[x, y], ...] on the grid; the end doors keep their names
+    before_gate_b_only: true
+    max_per_iteration: 1
   add_bridge:
     description: A walkable deck with railings across a tall area, wall to wall (one level crossing over another)
     params: [zone, axis, z]          # axis x/y = the way it runs; z = deck top above the floor (>= 80 + 16 under it, >= 80 over it); optional width (96), pos, rail (40, 0 = none)

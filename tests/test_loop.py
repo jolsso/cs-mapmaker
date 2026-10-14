@@ -220,14 +220,20 @@ def test_apply_moves_angled_areas_and_adds_bridges():
         {"type": "add_bridge", "params": {"zone": "street", "axis": "y", "z": 48}},
         {"type": "remove_element", "params": {"target": "deck"}},
         {"type": "move_corridor", "params": {"target": "t_long", "delta": [16, 0]}},
+        {"type": "bend_corridor", "params": {"target": "t_long", "via": [-1088, 576]}},
+        {"type": "bend_corridor", "params": {"target": "street", "via": [0, 0]}},
     ]  # fmt: skip
     new, applied, failed = apply_plan(text, changes)
-    assert [f["type"] for f in failed] == ["move_corridor", "resize_corridor", "add_bridge"]
+    assert [f["type"] for f in failed] == [
+        "move_corridor", "resize_corridor", "add_bridge", "bend_corridor"
+    ]  # fmt: skip
+    assert "not an angled corridor" in failed[3]["reason"]
     assert "share a wall" in failed[0]["reason"]  # the hex no longer sits one wall from CT
     assert "angled" in failed[1]["reason"] and "free under" in failed[2]["reason"]
     data = yaml.safe_load(new)
     assert [b["name"] for b in data["bridges"]] == ["street_bridge"]
-    assert next(c for c in data["corridors"] if c["name"] == "t_long")["to"] == [-944, 960]
+    t_long = next(c for c in data["corridors"] if c["name"] == "t_long")
+    assert t_long["to"] == [-944, 960] and t_long["via"] == [[-1088, 576]]
 
 
 def test_budget_counts_active_run_time_only(tmp_path, monkeypatch):

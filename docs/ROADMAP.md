@@ -143,9 +143,10 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [x] Nyt testmap til pakke 2: `de_cistern01` (B under jorden med ramper, kontor over B via lem og stige, vand, ottekantede søjler, knusbare kasser, spot-/teksturlys, rumklang); review bestået (3,6)
 - [x] Dashboard: "+ Nyt map" – start et map med en beskrivelse og en skitse (brief.json + annotations på et tomt gitter); Claude laver layoutet ud fra dem
 - [x] Skrå korridorer i vilkårlig vinkel og flere niveauer med overlap i højden (2026-10-14): konvekse polygon-områder (`poly`), `corridors:`-makro (vilkårlig grid-vinkel, rampe, døre), `bridges:` (dæk med rækværk i høje områder), rum stablet over udendørs områder får solid skal i stedet for himmel; værktøjskassen: `add_bridge`, `move_corridor` på skrå områder. Walk-grafen går nu ind i vents i plan med gulvet (CALIBRATION.md)
-- [ ] Testmap til vinkler og niveauer, itereret af loopet (feature-forbedringer undervejs)
+- [ ] Testmap til vinkler og niveauer, itereret af loopet (feature-forbedringer undervejs): `de_viaduct01` (2026-10-14) – validering 0/0, review bestået, første måling score 0,016
 - [x] Loop-robusthed (2026-10-14): budget tæller kun aktiv køretid, en afbrudt simulering genoptages (færdige batches/servere beholdes, runder reddes fra efterladte containere), Docker tjekkes før start
 - [x] Skitsestreger → skrå korridorer (`./mf sketch`, 2026-10-14)
+- [x] Knæk på skrå korridorer (`via:`, værktøjskassen `bend_corridor`, 2026-10-14): fundet af loopet på de_viaduct01 – en skrå korridor er stadig en lige sigtelinje langs sin egen akse
 
 **Accept:** et genereret map med de nye features compiler, validerer uden fejl, simuleres (YaPB når begge sites) og forbedres af loopet uden manuelle trin.
 

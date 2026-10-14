@@ -314,11 +314,79 @@ def corridor_poly(c: dict[str, Any], grid: int) -> tuple[list[list[int]], str, i
     return poly, along, half, length
 
 
+def corridor_chain(
+    points: list[list[int]],
+    name: str,
+    grid: int = 16,
+    width: int = 128,
+    height: int = 192,
+    first_plain: bool = False,
+) -> tuple[list[dict[str, Any]], list[tuple[dict[str, Any], int]], list[dict[str, Any]]]:
+    """A corridor through bends: a square knee room on every inner point and an angled stretch
+    between them, its ends one wall from the knees. Returns (knees, [(stretch, half end width)],
+    doors stretch <-> knee). Stretches are named <name>_1, _2, ... (with `first_plain` the first
+    one is <name> itself, so a `corridors:` entry keeps its name), knees <name>_knee1, ..."""
+    vs = [list(p) for p in points]
+    n = len(vs) - 1
+    seg_names = [name if first_plain and k == 0 else f"{name}_{k + 1}" for k in range(n)]
+    # knee rooms: wide enough for the end of every stretch that meets them
+    side = {i: 2 * (width // 2 // grid + 2) * grid for i in range(1, n)}
+    for _ in range(3):  # the stretch ends depend on the knee sizes and the other way round
+        cors = []
+        for k in range(n):
+            (ax, ay), (bx, by) = vs[k], vs[k + 1]
+            along_y = abs(by - ay) >= abs(bx - ax)
+            sgn = 1 if (by - ay if along_y else bx - ax) > 0 else -1
+            fx, fy, tx, ty = ax, ay, bx, by
+            if k > 0:  # start on the knee's wall (one wall away from it)
+                off = sgn * (side[k] // 2 + 16)
+                fy, fx = (ay + off, ax) if along_y else (ay, ax + off)
+            if k < n - 1:
+                off = sgn * (side[k + 1] // 2 + 16)
+                ty, tx = (by - off, bx) if along_y else (by, bx - off)
+            c = {"name": seg_names[k], "from": [fx, fy], "to": [tx, ty], "width": width,
+                 "height": height}  # fmt: skip
+            try:
+                _, along, half, _ = corridor_poly(c, grid)
+            except SpecError as exc:
+                raise SpecError(f"{name}: bends too close together ({exc})") from exc
+            if (along == "y") != along_y:  # moving the ends onto the knees tipped it past 45
+                raise SpecError(f"{name}: stretch {k + 1} is too close to 45 degrees for its "
+                                "knees; move the bend, or use `diagonals:`")  # fmt: skip
+            cors.append((c, half))
+        grown = False
+        for k, (_, half) in enumerate(cors):
+            for i in (k, k + 1):
+                if i in side and side[i] < 2 * half + 2 * grid:
+                    side[i], grown = 2 * half + 2 * grid, True
+        if not grown:
+            break
+    knees = [
+        {"name": f"{name}_knee{i}", "rect": [vs[i][0] - s // 2, vs[i][1] - s // 2,
+                                             vs[i][0] + s // 2, vs[i][1] + s // 2],
+         "height": height, "role": "corridor"}
+        for i, s in side.items()
+    ]  # fmt: skip
+    doors = []
+    for k, (c, half) in enumerate(cors):
+        for i in (k, k + 1):
+            if i in side:
+                knee = f"{name}_knee{i}"
+                doors.append({"name": f"d_{c['name']}_knee{i}", "between": [c["name"], knee],
+                              "width": 2 * half})  # fmt: skip
+    return knees, cors, doors
+
+
+CARRY = ("zone", "light", "sound", "outdoor", "protected")  # corridor keys its pieces keep
+
+
 def expand_corridors(data: dict[str, Any], grid: int) -> dict[str, Any]:
     """`corridors:` -> a polygon area each (any grid angle), plus a ramp along it with `rise`
     and the doors at both ends with `between: [from_area, to_area]`. `height` is the head room
     over the (sloped) floor, so a rising corridor is `rise` taller than that. With `between`,
-    `floor` (at the `from` end) and `rise` default to the floors of the two areas it joins."""
+    `floor` (at the `from` end) and `rise` default to the floors of the two areas it joins.
+    `via: [[x, y], ...]` bends it: a knee room at every via point, the rise spread over the
+    stretches by length; the end doors keep their names <name>_from / <name>_to."""
     cors = data.get("corridors") or []
     if not cors:
         return data
@@ -326,15 +394,12 @@ def expand_corridors(data: dict[str, Any], grid: int) -> dict[str, Any]:
     areas, ramps = list(data.get("areas", [])), list(data.get("ramps", []))
     doors = list(data.get("doors", []))
     floors = {a.get("name"): int(a.get("floor", 0)) for a in areas}
-    for c in cors:
+    skip = ("from", "to", "width", "rise", "between", "door_width", "via")
+
+    def one(c: dict[str, Any], floor: int, rise: int, ends: dict[str, str]) -> None:
         poly, along, half, length = corridor_poly(c, grid)
-        ends = list(c.get("between") or ())
-        f0, f1 = (floors.get(n, 0) for n in ends) if len(ends) == 2 else (0, 0)
-        floor = int(c.get("floor", f0))
-        rise = int(c.get("rise", f1 - floor))
         xs, ys = [p[0] for p in poly], [p[1] for p in poly]
-        area = {k: v for k, v in c.items()
-                if k not in ("from", "to", "width", "rise", "between", "door_width")}  # fmt: skip
+        area = {k: v for k, v in c.items() if k not in skip}
         area.update(rect=[min(xs), min(ys), max(xs), max(ys)], poly=poly,
                     floor=floor + min(rise, 0),
                     height=int(c.get("height", 192)) + abs(rise))  # fmt: skip
@@ -346,9 +411,46 @@ def expand_corridors(data: dict[str, Any], grid: int) -> dict[str, Any]:
             ramps.append({"name": f"{c['name']}_ramp", "area": c["name"],
                           "axis": ("+" if up else "-") + along, "rise": abs(rise),
                           "length": length})  # fmt: skip
-        for end, other in zip(("from", "to"), c.get("between") or (), strict=False):
-            doors.append({"name": f"{c['name']}_{end}", "between": [other, c["name"]],
+        for door, other in ends.items():
+            doors.append({"name": door, "between": [other, c["name"]],
                           "width": int(c.get("door_width", 2 * half))})  # fmt: skip
+
+    for c in cors:
+        ends = list(c.get("between") or ())
+        f0, f1 = (floors.get(n, 0) for n in ends) if len(ends) == 2 else (0, 0)
+        floor = int(c.get("floor", f0))
+        rise = int(c.get("rise", f1 - floor))
+        names = dict(zip((f"{c['name']}_from", f"{c['name']}_to"), ends, strict=False))
+        if not c.get("via"):
+            one(c, floor, rise, names)
+            continue
+        pts = [list(_ints(p, 2, f"corridor {c['name']}.via"))
+               for p in (c["from"], *c["via"], c["to"])]  # fmt: skip
+        if any(v % grid for p in pts for v in p):
+            raise SpecError(f"corridor {c['name']}: via points must be on the {grid}-unit grid")
+        width, height = int(c["width"]), int(c.get("height", 192))
+        knees, segs, inner = corridor_chain(pts, c["name"], grid, width, height, first_plain=True)
+        dist = [0.0]
+        for p, q in zip(pts, pts[1:], strict=False):
+            dist.append(dist[-1] + math.hypot(q[0] - p[0], q[1] - p[1]))
+
+        def floor_at(i: int, dist=dist, floor=floor, rise=rise) -> int:  # rise spread by length
+            return floor + round(rise * dist[i] / dist[-1] / grid) * grid
+
+        carry = {k: c[k] for k in CARRY if k in c}
+        for i, knee in enumerate(knees, 1):
+            areas.append({**knee, **carry, "floor": floor_at(i)})
+        for k, (seg, _) in enumerate(segs):
+            seg = {**carry, **seg}
+            if "door_width" in c:
+                seg["door_width"] = c["door_width"]
+            seg_ends = {}
+            if k == 0 and ends:
+                seg_ends[f"{c['name']}_from"] = ends[0]
+            if k == len(segs) - 1 and len(ends) == 2:
+                seg_ends[f"{c['name']}_to"] = ends[1]
+            one(seg, floor_at(k), floor_at(k + 1) - floor_at(k), seg_ends)
+        doors.extend(inner)
     data["areas"], data["ramps"], data["doors"] = areas, ramps, doors
     return data
 

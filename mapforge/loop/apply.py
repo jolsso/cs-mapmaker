@@ -125,10 +125,12 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         area = _area(lay, str(p["target"]), "area")
         _guard_area(area, lay)
         dx, dy = _vec(p["delta"], 2, grid, "delta")
-        if "from" in area:  # an angled corridor: both ends
+        if "from" in area:  # an angled corridor: both ends and its bends
             for end in ("from", "to"):
                 x, y = area[end]
                 area[end] = _flow([x + dx, y + dy])
+            if area.get("via"):
+                area["via"] = _flow([_flow([x + dx, y + dy]) for x, y in area["via"]])
             return f"{area['name']} moved by [{dx}, {dy}]"
         if area.get("poly"):
             area["poly"] = _flow([_flow([x + dx, y + dy]) for x, y in area["poly"]])
@@ -297,6 +299,20 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
             item["rail"] = _vec(p["rail"], 1, 8, "rail")[0]
         lay.setdefault("bridges", CommentedSeq()).append(_flow_map(item))
         return f"bridge {item['name']} across {area['name']} along {item['axis']} at {item['z']}"
+    if t == "bend_corridor":
+        area = _area(lay, str(p["target"]), "corridor")
+        if "from" not in area:
+            raise ValueError(f"{area['name']} is not an angled corridor (corridors:)")
+        _guard_area(area, lay)
+        pts = p["via"]
+        if pts and not isinstance(pts[0], (list, tuple)):
+            pts = [pts]  # one bend given as [x, y]
+        via = [_vec(v, 2, grid, "via") for v in pts or []]
+        if via:
+            area["via"] = _flow([_flow(v) for v in via])
+            return f"corridor {area['name']} bent through {via}"
+        area.pop("via", None)
+        return f"corridor {area['name']} straightened"
     if t == "add_water":
         area = _area(lay, str(p["zone"]), "area")
         _guard_spawn(area)
