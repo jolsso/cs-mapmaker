@@ -1,6 +1,6 @@
 # Layout-spec (`maps/<map>/layout.yaml`)
 
-Kilden til et genereret map. `./mf generate MAP=<map>` skriver `maps/<map>/src/<map>.map` (genereret – redigér aldrig den direkte). Alle koordinater er heltal på `grid` (standard 16). 1 unit ≈ 1 inch; en spiller er 32×32×72.
+Kilden til et genereret map. `./mf generate MAP=<map>` skriver `maps/<map>/src/<map>.map` (genereret – redigér aldrig den direkte; .map/.rad versioneres ikke, kun `layout.yaml`). Alle koordinater er heltal på `grid` (standard 16). 1 unit ≈ 1 inch; en spiller er 32×32×72.
 
 ## Princip
 Spec'en beskriver kun **tomt rum**: områder (rum, korridorer, udendørs pladser) og døre mellem dem. Alt andet inden for en ydre skal er solidt. Derfor kan et genereret map ikke lække, og alle vertices ligger på grid'et. Områder adskilles af præcis én væg (`wall`, standard 16 units); en dør skærer et hul i den væg.

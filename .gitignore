@@ -12,6 +12,12 @@
 *.log
 *.err
 
+# Generated from maps/<map>/layout.yaml by `./mf generate` (deterministic: layout + generator
+# code reproduce them byte for byte). test_box is hand-written and stays versioned.
+/maps/*/src/*.map
+/maps/*/src/*.rad
+!/maps/test_box/src/test_box.map
+
 # Third-party reference maps (official or community, unknown licenses): local use only
 /test_maps/
 

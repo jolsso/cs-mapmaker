@@ -46,7 +46,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ## Kommandoer (opdatér når de findes)
 **Docker er den officielle vej.** Værten skal kun have Docker. `mf` (sh) / `mf.ps1` (Windows) kører en task i `forge`-containeren (`docker/forge/Dockerfile`, `compose.yaml`) med repoet mountet på `/work`; imaget genbygges automatisk (cached) når `uv.lock` eller `config/pipeline.yaml` ændres. Task runner er [go-task](https://taskfile.dev) (`Taskfile.yml`).
 ```bash
-./mf generate MAP=<navn>      # maps/<navn>/layout.yaml → maps/<navn>/src/<navn>.map (docs/LAYOUT_SPEC.md)
+./mf generate MAP=<navn>      # maps/<navn>/layout.yaml → maps/<navn>/src/<navn>.map (docs/LAYOUT_SPEC.md); genereret, ikke versioneret – kør generate før compile
 ./mf compile MAP=<navn>       # CSG→BSP→VIS→RAD (PROFILE=fast|final, default fast)
 ./mf test                     # pytest (inkl. compile-smoke-test med Linux-binaries)
 ./mf lint                     # ruff check + format --check
