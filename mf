@@ -1,4 +1,8 @@
 #!/bin/sh
 # Run a Taskfile task inside the forge container, e.g. `./mf compile MAP=test_box`.
 # --build keeps the image in sync with config/pipeline.yaml and uv.lock (cached, so cheap).
+if ! docker info >/dev/null 2>&1; then
+  echo "mf: Docker is not responding. Start Docker Desktop (or dockerd) and try again." >&2
+  exit 125
+fi
 exec docker compose -f "$(dirname "$0")/compose.yaml" run --rm --build --quiet-build forge task "$@"

@@ -152,6 +152,7 @@ Begrænsninger:
 - **Måling og rollback:** analyse mod bedste måling (`--baseline`). Ny bedste = lavere score og ikke "værre" ud over støjen. Er en måling "værre", anvendes næste plan på den bedste versions layout (rollback).
 - **Stopkriterier** (`config/fitness.yaml` → stop/budget): mål ramt 2 målinger i træk (→ Gate B), plateau 5 målinger, hårde krav fejler 3 i træk, review fejler 5 i træk, max iterationer/wall clock, Decide eskalerer, eller Decide foreslår intet uden at målene er ramt.
 - **Apply** (`apply.py`): værktøjskassens ændringer på `layout.yaml` (round-trip-YAML), hver prøve-genereret; låste roller (site/spawns) og `protected` afvises. `applied.json` viser anvendt/sprunget over/afvist af politik.
+- **Budget og Docker:** `budget.max_wall_clock_h` tæller kun loopets aktive køretid (`active_s` i loop.json, lagt til ved hver gemning i en kørsel), ikke tid hvor det venter på et svar eller stod afbrudt. Loopet nægter at starte, hvis Docker-socket'en ikke svarer (`docker_problem`), og `mf`/`mf.ps1` tjekker `docker info` først.
 
 ## Repo-struktur
 

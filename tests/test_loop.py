@@ -242,3 +242,14 @@ def test_budget_counts_active_run_time_only(tmp_path, monkeypatch):
     assert 7100 < loop.state["active_s"] < 7300
     loop.state["active_s"] = 13 * 3600
     assert "aktiv køretid" in loop.stop_reason(changed=True)
+
+
+def test_loop_refuses_to_start_without_docker(tmp_path, monkeypatch, capsys):
+    import mapforge.loop.run as loop_run
+
+    monkeypatch.setattr(loop_run, "docker_problem", lambda: "Docker svarer ikke")
+    monkeypatch.setattr(
+        loop_run.Loop, "init", lambda self, force: (_ for _ in ()).throw(AssertionError)
+    )
+    assert loop_run.main(["--map", "de_nothing", "--init"]) == 1
+    assert "Docker svarer ikke" in capsys.readouterr().err

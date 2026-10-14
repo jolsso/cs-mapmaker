@@ -38,6 +38,21 @@ def _load(p: Path) -> Any:
     return json.loads(p.read_text(encoding="utf-8")) if p.is_file() else None
 
 
+def docker_problem() -> str | None:
+    """Why the simulations cannot start (the loop drives HLDS containers through the Docker
+    socket), or None. Checked when the loop starts, not an hour later at the first sim step."""
+    try:
+        import docker
+
+        docker.from_env(timeout=10).ping()
+    except Exception as exc:  # docker.errors.DockerException, connection errors, missing socket
+        return (
+            "Docker svarer ikke (simuleringerne kører i HLDS-containere): start Docker Desktop, "
+            f"og kør loopet igen ({type(exc).__name__}: {exc})"
+        )
+    return None
+
+
 def _rel(cfg: Config, p: Path) -> str:
     try:
         return p.resolve().relative_to(cfg.root.resolve()).as_posix()
@@ -521,9 +536,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.status:
             print(loop.report() if loop.state else f"no loop for {args.map}")
             return 0
+        if args.init and loop.state.get("status") == "running":
+            raise RuntimeError(f"a loop is already running for {args.map} ({loop.state_file})")
+        if problem := docker_problem():
+            raise RuntimeError(problem)
         if args.init:
-            if loop.state.get("status") == "running":
-                raise RuntimeError(f"a loop is already running for {args.map} ({loop.state_file})")
             loop.init(args.force_sim)
         return loop.run()
     except RuntimeError as exc:

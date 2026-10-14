@@ -144,6 +144,7 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [x] Dashboard: "+ Nyt map" – start et map med en beskrivelse og en skitse (brief.json + annotations på et tomt gitter); Claude laver layoutet ud fra dem
 - [x] Skrå korridorer i vilkårlig vinkel og flere niveauer med overlap i højden (2026-10-14): konvekse polygon-områder (`poly`), `corridors:`-makro (vilkårlig grid-vinkel, rampe, døre), `bridges:` (dæk med rækværk i høje områder), rum stablet over udendørs områder får solid skal i stedet for himmel; værktøjskassen: `add_bridge`, `move_corridor` på skrå områder. Walk-grafen går nu ind i vents i plan med gulvet (CALIBRATION.md)
 - [ ] Testmap til vinkler og niveauer, itereret af loopet (feature-forbedringer undervejs)
+- [x] Loop-robusthed (2026-10-14): budget tæller kun aktiv køretid, en afbrudt simulering genoptages (færdige batches/servere beholdes, runder reddes fra efterladte containere), Docker tjekkes før start
 
 **Accept:** et genereret map med de nye features compiler, validerer uden fejl, simuleres (YaPB når begge sites) og forbedres af loopet uden manuelle trin.
 
