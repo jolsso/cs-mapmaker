@@ -12,7 +12,7 @@ layout.yaml → generate → compile → validate → render → review ─┬�
 Værten skal kun have **Docker**. Alt andet (Python, SDHLT-compilere, renderer, HLDS + YaPB-bots) kører i containere.
 
 ```bash
-./mf test                          # pytest i forge-containeren (Windows: .\mf.ps1 test)
+./mf test                          # pytest i forge-containeren (PowerShell: .\mf test)
 ./mf generate MAP=de_viaduct01     # layout.yaml → maps/de_viaduct01/src/de_viaduct01.map
 ./mf validate MAP=de_viaduct01     # compile + validering → build/de_viaduct01/validation.json
 ./mf render MAP=de_viaduct01       # top-down og kamera-renders → build/de_viaduct01/renders/
