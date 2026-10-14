@@ -6,7 +6,8 @@ grid: 16
 wall: 16
 sounds: true
 
-concept: "Viadukten: en kanal skærer mappet over; broen over kanalen er den høje vej fra T's galleri til A short, kanalbunden den lave vej til B"
+concept: "Viadukten: en kanal skærer mappet over; broen over kanalen er den høje vej fra T's galleri til A short, kanalbunden
+  den lave vej til B"
 archetype: stacked
 landmarks:
   - {name: Broen, element: canal_bridge, zone: mid, function: "dæk over kanalen; callout; to niveauer i samme rum"}
@@ -64,14 +65,12 @@ areas:
 
 corridors:
   # T up to the B-side gallery: 1:9 ramp at 19°
-  - {name: t_climb, from: [-560, -1968], to: [-1072, -496], width: 128, height: 160,
-     between: [t_spawn, b_gallery], zone: t}
+  - {name: t_climb, from: [-560, -1968], to: [-1072, -496], width: 128, height: 160, between: [t_spawn, b_gallery], zone: 
+      t}
   # B long: 11° to the west
-  - {name: b_long, from: [-1360, -2128], to: [-1904, 640], width: 128, height: 192,
-     between: [t_to_b, b_site], zone: b}
+  - {name: b_long, from: [-1360, -2128], to: [-1904, 640], width: 128, height: 192, between: [t_to_b, b_site], zone: b}
   # A short: from the A-side gallery down onto the plaza, 28°
-  - {name: a_short, from: [1040, -208], to: [1264, 384], width: 128, height: 160,
-     between: [a_gallery, a_site], zone: a}
+  - {name: a_short, from: [1040, -208], to: [1264, 384], width: 128, height: 160, between: [a_gallery, a_site], zone: a}
 
 bridges:
   - {name: canal_bridge, area: canal, axis: x, pos: -352, z: 176, width: 128}
@@ -104,9 +103,11 @@ cover:
   - {name: b_pillar_e, area: b_site, pos: [-1664, 1168], size: [96, 96, 256], shape: octagon}
   - {name: b_crate, area: b_site, pos: [-1856, 1424], size: [96, 96, 64]}
   - {name: ct_crate, area: ct_spawn, pos: [512, 1760], size: [64, 64, 64]}
+  - {name: a_long_cover, area: a_long, pos: [1512, -400], size: [272, 32, 128]}
+  - {name: a_long_cover_2, area: a_long, pos: [1624, -1296], size: [272, 32, 128]}
 
 sites: {A: a_site, B: b_site}
 spawns:
   T: {area: t_spawn, count: 16}
-  CT: {area: ct_spawn, count: 16}
+  CT: {area: ct_spawn, count: 16, offset: [-256, 0]}
 buyzones: true
