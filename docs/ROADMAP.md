@@ -175,7 +175,8 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [ ] Klient-screenshots (rigtig CS 1.6-klient: decals, modeller, spillets gamma) til stilreviewet ⚠️ VERIFICÉR kamera-scripting i klienten
 - [ ] Lysstyrkekort uden mørke spilzoner
 - [x] Modeller, der følger med spillet (2026-10-15): `models:` i layoutet → `env_sprite` med en `.mdl` fra `cstrike/models` eller `valve/models` (fx `conveyor1-3`, `pallet_with_bags`, `qtruck`, `forklift`, `mbarrel`, `light`); ikke solid i sig selv, `clip: [w, d, h]` lægger en CLIP-boks om. Generatoren tjekker, at filen findes (`paths.model_dirs`). Valgt efter Valve-wiki/TWHL: `env_sprite` frem for `cycler_sprite`, som er buggy og kun til test. Intet distribueres; egne `.mdl` er uden for scope. ⚠️ VERIFICÉR i klienten, at CS 1.6 viser `env_sprite` med en model (ingen kilde bekræfter netop CS 1.6). Vores renderer tegner ikke modeller
-- [ ] Arkitekturdetaljer i `func_detail`: dørkarme, lister, sokler, skrå tage – må ikke ændre gangbarhed eller sigtelinjer
+- [x] Arkitekturdetaljer, del 1 – dørkarme (2026-10-15): `frame: <tekstur>` på en dør giver to karme og et overligger (16 brede, 8 ud af væggen på begge sider) som `func_detail`; overliggeren udelades, hvor der ikke er plads under loftet
+- [ ] Arkitekturdetaljer, del 2: lister/sokler og skrå tage – må ikke ændre gangbarhed eller sigtelinjer
 - [x] Lyd (2026-10-15): `ambient:` i layoutet → `ambient_generic` (loop, radius small/medium/large/everywhere, volumen 1–10) med lyde, spillet selv har (`valve/sound/ambience`, CS falder tilbage på valve); generatoren tjekker, at filen findes (`paths.sound_dirs`). de_forge01: ovnbrummen (A), pumper (B), drypvand (tunneller), vind (mid), maskiner ved spawns
 
 **Accept:** Final compile, ingen mørke zoner, stilreview uden kritiske fund.

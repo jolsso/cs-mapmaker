@@ -189,6 +189,27 @@ def _pipe(lo: tuple, hi: tuple, tex) -> Brush:
     return _extrude_uz(profile, ax, lo[1 - ax], hi[1 - ax], side)
 
 
+FRAME_W, FRAME_D = 16, 8  # a door frame: jamb/lintel width, how far it stands out of the wall
+
+
+def frame_boxes(lo: tuple, hi: tuple, ceiling: int) -> list[Box]:
+    """Jambs on both sides of an opening and a lintel over it, standing FRAME_D out of the wall
+    on both sides; the lintel is left out where it would reach the lower ceiling."""
+    ax = 0 if (hi[0] - lo[0]) > (hi[1] - lo[1]) else 1  # the opening's width runs along ax
+    t0, t1 = lo[1 - ax] - FRAME_D, hi[1 - ax] + FRAME_D
+    u0, u1, z0, z1 = lo[ax], hi[ax], lo[2], hi[2]
+
+    def box(a0: int, a1: int, b0: int, b1: int) -> Box:
+        if ax == 0:
+            return (a0, t0, b0), (a1, t1, b1)
+        return (t0, a0, b0), (t1, a1, b1)
+
+    out = [box(u0 - FRAME_W, u0, z0, z1), box(u1, u1 + FRAME_W, z0, z1)]
+    if z1 + FRAME_W <= ceiling:
+        out.append(box(u0 - FRAME_W, u1 + FRAME_W, z1, z1 + FRAME_W))
+    return out
+
+
 def door_box(door: Door, areas: dict[str, Area], wall: int) -> Box:
     """The empty box cut through the wall between the two areas of a door.
 
@@ -643,9 +664,14 @@ def generate(layout: Layout) -> Generated:
         ents.append(entity({"classname": "func_detail", "zhlt_detaillevel": "1"}, detail))
     world.brushes += _stair_clips(layout, tex["clip"])
 
-    # Openings: glass panes and door leaves fill the opening's box; arches round its top.
+    # Openings: glass panes and door leaves fill the opening's box; arches round its top;
+    # frames (jambs + lintel) are detail brushes around it.
+    frames: list[Brush] = []
     for d in layout.doors:
         (o_lo, o_hi) = voids[d.name]
+        if d.frame:
+            ceiling = min(areas[n].top for n in d.between)
+            frames += [box_brush(a, b, d.frame) for a, b in frame_boxes(o_lo, o_hi, ceiling)]
         if d.arch:
             try:
                 world.brushes += arch_brushes(o_lo, o_hi, tex_of(areas[d.between[0]])["wall"])
@@ -717,6 +743,9 @@ def generate(layout: Layout) -> Generated:
                             "angles": f"{sp.pitch} {sp.yaw} 0", "pitch": str(sp.pitch),
                             "_light": f"{r} {g} {bl} {sp.brightness}",
                             "_cone": str(sp.cone[0]), "_cone2": str(sp.cone[1])}))  # fmt: skip
+
+    if frames:
+        ents.append(entity({"classname": "func_detail", "zhlt_detaillevel": "1"}, frames))
 
     # Ambient sounds: looping ambient_generic, audible within its radius.
     for am in layout.ambient:

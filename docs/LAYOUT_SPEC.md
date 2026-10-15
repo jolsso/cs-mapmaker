@@ -189,6 +189,13 @@ ambient:
 ```
 - `ambient_generic` (looper); `sound` er en sti under `sound/`, som spillet selv har (`cstrike/sound` eller `valve/sound`, CS 1.6 falder tilbage på valve). Generatoren afviser stier, der ikke findes i `paths.sound_dirs` (tjekket kun når Half-Life-installationen er mountet). Standard: områdets midte, 64 over gulvet, volumen 6, radius medium.
 
+### Dørkarme (2026-10-15)
+```yaml
+doors:
+  - {name: d_long_n2, between: [long_ec_n, a_site], width: 192, frame: TSIBEAM}
+```
+- `frame` (tekstur): to karme og et overligger, 16 brede og 8 ud af væggen på begge sider, som `func_detail` (deler ikke VIS). Overliggeren udelades, hvor den ville nå loftet (en dør i fuld højde får kun karme). Ikke på vinduer, vents eller døre med `arch`.
+
 ### Modeller fra spillet (2026-10-15)
 ```yaml
 models:

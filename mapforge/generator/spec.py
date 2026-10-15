@@ -87,6 +87,7 @@ class Door:
     glass: bool = False  # breakable glass pane in the opening (func_breakable)
     gate: str = "none"  # an openable door leaf in the opening (func_door / func_door_rotating)
     arch: bool = False  # rounded top corners (a plain door; full width stays >= 80 high)
+    frame: str | None = None  # texture of a door frame (jambs + lintel, func_detail)
 
     @property
     def walkable(self) -> bool:
@@ -596,6 +597,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
                 glass=bool(d.get("glass", False)),
                 gate=str(d.get("gate", "none")),
                 arch=bool(d.get("arch", False)),
+                frame=d.get("frame"),
             )
         )
         dr = doors[-1]
@@ -613,6 +615,8 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             raise SpecError(f"door {dr.name}: glass and gate exclude each other")
         if dr.arch and (dr.kind != "door" or dr.glass or dr.gate != "none"):
             raise SpecError(f"door {dr.name}: an arch is only for a plain door (no gate/glass)")
+        if dr.frame and (dr.kind != "door" or dr.arch):
+            raise SpecError(f"door {dr.name}: a frame is for a plain or gated door (no arch)")
     stairs = []
     for s in data.get("stairs", []):
         st = Stairs(

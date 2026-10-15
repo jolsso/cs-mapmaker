@@ -580,3 +580,24 @@ def test_missing_game_models_are_reported():
         {"name": "c", "area": "mid", "model": "models/nope.mdl", "pos": [0, 96]},
     ])  # fmt: skip
     assert missing_models(lay, cfg) == ["models/nope.mdl"]  # conveyor: cstrike, forklift: valve
+
+
+def test_door_frames_are_detail_jambs_and_a_lintel():
+    from mapforge.generator.build import FRAME_D, FRAME_W
+
+    data = copy.deepcopy(FEAT)
+    next(d for d in data["doors"] if d["name"] == "mid_a").update(frame="DEV_METAL", height=128)
+    g = generate(parse_layout(data))
+    lo, hi = g.voids["mid_a"]
+    det = [e for e in g.mapfile.entities if e.classname == "func_detail"]
+    frame = [b for e in det for b in e.brushes if b.faces[0].texture == "DEV_METAL"]
+    assert len(frame) == 3  # two jambs and the lintel (room under the 192 ceiling)
+    v = np.vstack([brush_geometry(b).vertices for b in frame])
+    assert v[:, 2].max() == hi[2] + FRAME_W and v[:, 0].min() == lo[0] - FRAME_W
+    assert v[:, 1].min() == lo[1] - FRAME_D and v[:, 1].max() == hi[1] + FRAME_D
+    data = copy.deepcopy(FEAT)
+    next(d for d in data["doors"] if d["name"] == "mid_a").update(frame="DEV_METAL")  # full height
+    g = generate(parse_layout(data))
+    det = [b for e in g.mapfile.entities if e.classname == "func_detail" for b in e.brushes
+           if b.faces[0].texture == "DEV_METAL"]  # fmt: skip
+    assert len(det) == 2  # no room for a lintel: jambs only
