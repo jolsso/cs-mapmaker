@@ -105,6 +105,7 @@ cover:
   - {name: ct_crate, area: ct_spawn, pos: [512, 1760], size: [64, 64, 64]}
   - {name: a_long_cover, area: a_long, pos: [1512, -400], size: [272, 32, 128]}
   - {name: a_long_cover_2, area: a_long, pos: [1624, -1296], size: [272, 32, 128]}
+  - {name: a_site_cover, area: a_site, pos: [1408, 704], size: [96, 64, 64]}
 
 sites: {A: a_site, B: b_site}
 spawns:

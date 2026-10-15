@@ -2,7 +2,7 @@
 
 Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 🚦 = menneske-gate: stop, opsummér, vent på godkendelse.
 
-**Rækkefølge (omlagt 2026-10-10, fase 8 tilføjet 2026-10-15):** 0 → 1 → 1b → 3 → 3b → 2 → 🚦A → 4 → 5 → 6 → 🚦B → 6b → 8a → 8b → 8c → 🚦M1 → 8d → 8g → 7 → 8e → 8f → 🚦M2 → 🚦C. Stadig én fase ad gangen (arbejdsregel 1). 8a–8d og 8g rører ikke geometrien på låste maps, så de kan bygges, mens et map venter på 🚦B. 7 (art pass) kræver et map gennem 🚦B og leverer tekstur-pipelinen og modellerne, som 8e bygger på. Derfor kommer 7 før 8e. 8g (lært graf-lag) kræver 8d's MAP-Elites-arkiv. Referencemaps i tiers (A = officielle, B = community) bruges fra 8b. De to første punkter i 8b (topologi-udtræk og Graf-siden) blev lavet i en browser-session 2026-10-15, før 6b var afsluttet, og blev integreret samme dag. Det billige loop (validate → render → review → decide) bygges og testes på kendte, officielle maps, før generatoren og den dyre simulering. Fasenumrene er bevaret, så referencer stadig passer.
+**Rækkefølge (omlagt 2026-10-10, fase 8 tilføjet 2026-10-15):** 0 → 1 → 1b → 3 → 3b → 2 → 🚦A → 4 → 5 → 6 → 6b → 🚦B → 7 → 🚦C → 8a → 8b → 8c → 🚦M1 → 8d → 8g → 8e → 8f → 🚦M2. Stadig én fase ad gangen (arbejdsregel 1). Omlagt 2026-10-15 efter Gate B på de_forge01: ét map skal hele vejen til 🚦C, før Mapmakeren bygges. 7 (art pass) leverer også tekstur-pipelinen og modellerne, som 8e bygger på. 8g (lært graf-lag) kræver 8d's MAP-Elites-arkiv. Referencemaps i tiers (A = officielle, B = community) bruges fra 8b. De to første punkter i 8b (topologi-udtræk og Graf-siden) blev lavet i en browser-session 2026-10-15, før 6b var afsluttet, og blev integreret samme dag. Det billige loop (validate → render → review → decide) bygges og testes på kendte, officielle maps, før generatoren og den dyre simulering. Fasenumrene er bevaret, så referencer stadig passer.
 
 ## Fase 0 – Fundament
 **Mål:** Repo, værktøjer og et kendt testmap kan compiles.
@@ -126,7 +126,7 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - ✅ 2026-10-11: de_forge01 kørt til plateau (11 iterationer, bedste 006: score 0,16, T 0,38, A-plants 0,39). Gate B-opsummering givet; mennesket har sat de_forge01 på pause ("fint for nu") for at prioritere motoren.
 
 🚦 **Gate B – Geometri låst:** Mennesket godkender balance. Geometri fryses før art pass.
-- de_forge01: afventer (006 vs. 012, 4-vejskrydset ved mid).
+- ✅ 2026-10-15: de_forge01 godkendt i **v006** (loopets bedste måling: score 0,16, T 0,38, A-plants 0,39; `runs/de_forge01/006/layout.yaml` = `history/de_forge01/008`). Layoutet er rullet tilbage fra 012 til 006. 4-vejskrydset ved mid accepteres (eneste validator-warning). Godkendt visuelt, ikke spilletestet med andre (det sker ved 🚦C). Geometrien er låst (`geometry_frozen: true`).
 
 ## Fase 6b – Motor-udvidelse (2026-10-11, menneskets prioritet: motoren før mappet)
 **Mål:** Generatoren og loopets værktøjskasse kan mere end akse-rettede kasser.
@@ -144,7 +144,7 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [x] Dashboard: "+ Nyt map" – start et map med en beskrivelse og en skitse (brief.json + annotations på et tomt gitter); Claude laver layoutet ud fra dem
 - [x] Afslut/genåbn en bane under Input (2026-10-15): `maps/<map>/project.json` via `/api/project/<map>`; en afsluttet bane er grå og sidst på forsiden, tager ingen nye ønsker, og loopet kører ikke på den
 - [x] Skrå korridorer i vilkårlig vinkel og flere niveauer med overlap i højden (2026-10-14): konvekse polygon-områder (`poly`), `corridors:`-makro (vilkårlig grid-vinkel, rampe, døre), `bridges:` (dæk med rækværk i høje områder), rum stablet over udendørs områder får solid skal i stedet for himmel; værktøjskassen: `add_bridge`, `move_corridor` på skrå områder. Walk-grafen går nu ind i vents i plan med gulvet (CALIBRATION.md)
-- [ ] Testmap til vinkler og niveauer, itereret af loopet (feature-forbedringer undervejs): `de_viaduct01` (2026-10-14) – validering 0/0, review bestået, første måling score 0,016
+- [x] Testmap til vinkler og niveauer, itereret af loopet (feature-forbedringer undervejs): `de_viaduct01` (2026-10-14/15) – validering 0/0, review bestået hver gang; loopet forbedrede scoren fra 0,016 (001) til **0,0088** (005, 104 runder, T 0,60, A-plants 0,66) uden manuelle trin. Undervejs brød et knæk på B long (`bend_corridor`, 003) YaPB's graf, og 006/007 viste graf-støj (A eller B næsten ikke nået i smoke) → parkeret (se "Parkeret"). Loopet er sat på pause efter 007 (venter på decide)
 - [x] Loop-robusthed (2026-10-14): budget tæller kun aktiv køretid, en afbrudt simulering genoptages (færdige batches/servere beholdes, runder reddes fra efterladte containere), Docker tjekkes før start
 - [x] Skitsestreger → skrå korridorer (`./mf sketch`, 2026-10-14)
 - [x] Knæk på skrå korridorer (`via:`, værktøjskassen `bend_corridor`, 2026-10-14): fundet af loopet på de_viaduct01 – en skrå korridor er stadig en lige sigtelinje langs sin egen akse. Fra 2026-10-15 må en skrå irregularity få knæk ind og ud igen; landmarks og chokes er stadig låst
@@ -154,6 +154,8 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [x] Testmap til pakke 3: `de_cistern02` (de_cistern01 + elevator med knapper til kontoret, buer på tre døre, runde søjler, kassestabel, tønder, palletrin): validering 0/0, review bestået (kun minor), smoke OK – YaPB når begge sites (2026-10-15)
 
 **Accept:** et genereret map med de nye features compiler, validerer uden fejl, simuleres (YaPB når begge sites) og forbedres af loopet uden manuelle trin.
+
+✅ Opfyldt 2026-10-15: de_cistern02 (pakke 3) og de_viaduct01 (vinkler/niveauer) compiler og validerer 0/0, bots når begge sites, og loopet forbedrede de_viaduct01 fra 0,016 til 0,0088 uden manuelle trin. Kendt begrænsning: knæk og elevatorer virker ikke for YaPB (parkeret).
 
 ## Fase 7 – Art pass
 **Mål:** Lys og visuel identitet.

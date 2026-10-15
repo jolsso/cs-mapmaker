@@ -138,7 +138,7 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
   <span class="eyebrow">CS 1.6 · GoldSrc · cs-mapmaker</span>
   <h1>MapForge</h1>
   <p class="lede">En pipeline der designer, compiler, tester og forbedrer de_-maps i et lukket loop. Maskinen kører iterationerne; du sidder ved tre gates og godkender layout, balance og release.</p>
-  <div class="progress" aria-label="Fremdrift: fase 0–6 og Gate A færdig, Gate B næste">
+  <div class="progress" aria-label="Fremdrift: fase 0–6b, Gate A og Gate B færdig, art pass næste">
     <div class="done"><i></i>0</div>
     <div class="done"><i></i>1</div>
     <div class="done"><i></i>1b</div>
@@ -149,14 +149,15 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
     <div class="done"><i></i>4</div>
     <div class="done"><i></i>5</div>
     <div class="done"><i></i>6</div>
-    <div class="g next"><i></i>B</div>
-    <div class=""><i></i>7</div>
-    <div class=""><i></i>8</div>
+    <div class="done"><i></i>6b</div>
+    <div class="done g"><i></i>B</div>
+    <div class="next"><i></i>7</div>
     <div class="g"><i></i>C</div>
+    <div class=""><i></i>8</div>
   </div>
   <div class="facts">
-    <span>status <b>fase 0–6 og Gate A færdig · de_forge01 ved Gate B · motor-udvidelse (6b) i gang på de_viaduct01 · fase 8 planlagt (Graf-siden findes)</b></span>
-    <span>opdateret <b>2026-10-11</b></span>
+    <span>status <b>fase 0–6b, Gate A og Gate B færdig · de_forge01 låst i v006 · næste: art pass (fase 7) · fase 8 planlagt (Graf-siden findes)</b></span>
+    <span>opdateret <b>2026-10-15</b></span>
     <span>designguide <b>docs/DESIGN_GUIDE.md</b></span>
     <span>alle outputs: <b>http://localhost:8080</b> (lokalt website)</span>
   </div>
@@ -550,15 +551,10 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
       </div>
     </li>
 
-    <li class="gate">
-      <span class="gate-tag">Gate B</span>
-      <p><b>Geometri låst.</b> Du godkender balancen. Geometrien fryses før art pass. de_forge01 kørte til plateau (bedste version: score 0,16) og venter på din beslutning.</p>
-    </li>
-
     <li class="phase">
       <div class="phase-no"><small>Fase</small>6b</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Motor-udvidelse</h3><span class="chip">i gang</span></div>
+        <div class="phase-head"><h3>Motor-udvidelse</h3><span class="chip done">færdig</span></div>
         <ul>
           <li class="ok">Ramper (≤ 45°), skrå vægge og diagonale korridorer (kiler), hævet cover: platforme, broer, boost-spots</li>
           <li class="ok">Vinduer og vents, knusbart glas, døre der kan åbnes (glidende og drejende)</li>
@@ -572,7 +568,7 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
           <li class="ok">Dashboard: "+ Nyt map" med beskrivelse og skitse på et tomt gitter</li>
           <li class="ok">Afslut/genåbn en bane under Input: grå og sidst på forsiden, ingen nye ønsker, loopet kører ikke</li>
           <li class="ok">Vinkler og niveauer: polygon-rum og skrå korridorer i vilkårlig grid-vinkel (makro med rampe og døre), broer med rækværk i høje rum, overdækkede gangbroer over åbne gader; værktøjskassen: <code>add_bridge</code>; walk-grafen går nu ind i lave vents</li>
-          <li>Testmap til vinkler og niveauer, itereret af loopet (de_viaduct01: kanal med bro, femkantet A-plads, skrå korridorer)</li>
+          <li class="ok">Testmap til vinkler og niveauer, itereret af loopet (de_viaduct01: kanal med bro, femkantet A-plads, skrå korridorer): score 0,016 → 0,0088 uden manuelle trin; knæk på korridorer og elevatorer virker ikke for bots (parkeret)</li>
           <li class="ok">Loop-robusthed: budget tæller kun aktiv køretid, afbrudt simulering genoptages, Docker tjekkes før start</li>
           <li class="ok">Skitsestreger bliver til skrå korridorer med knæ-rum (<code>./mf sketch</code>)</li>
           <li class="ok">Knæk på skrå korridorer (<code>via:</code>, <code>bend_corridor</code>): bryder lange sigtelinjer; må også lægges på (og fjernes fra) en skrå irregularity</li>
@@ -585,10 +581,15 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
       </div>
     </li>
 
+    <li class="gate">
+      <span class="gate-tag">Gate B</span>
+      <p><b>Geometri låst.</b> Godkendt 2026-10-15: de_forge01 i v006 (loopets bedste: score 0,16, T 0,38, A-plants 0,39); 4-vejskrydset ved mid accepteret. Godkendt visuelt; spilletest med andre sker ved Gate C.</p>
+    </li>
+
     <li class="phase">
       <div class="phase-no"><small>Fase</small>7</div>
       <div class="phase-body">
-        <div class="phase-head"><h3>Art pass</h3><span class="chip">senere</span></div>
+        <div class="phase-head"><h3>Art pass</h3><span class="chip">næste</span></div>
         <ul>
           <li>ART_DIRECTION.md udfyldt for mappet</li>
           <li>Regelbaseret lys, <code>lights.rad</code>-texlights, zonefarver</li>
@@ -602,11 +603,16 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
       </div>
     </li>
 
+    <li class="gate">
+      <span class="gate-tag">Gate C</span>
+      <p><b>Release.</b> Playtest med rigtige spillere.</p>
+    </li>
+
     <li class="phase">
       <div class="phase-no"><small>Fase</small>8</div>
       <div class="phase-body">
         <div class="phase-head"><h3>Mapmaker: simpel og avanceret input</h3><span class="chip">planlagt</span></div>
-        <p>Kommer efter 6b, én delfase ad gangen: 8a → 8b → 8c → M1 → 8d → 8g → fase 7 → 8e → 8f → M2. Fase 7 kommer før 8e, fordi 8e bygger på dens tekstur-pipeline og modeller. Fra en beskrivelse og tema-billeder (simpel) eller en tegning i lag (avanceret) til et spilbart map. Begge ender i <code>sketch.json</code> → Parse → Fit → den eksisterende pipeline. Spec: <code>docs/MAPMAKER.md</code>, træning: <code>docs/GRAPH_TRAINING.md</code>.</p>
+        <p>Kommer efter art pass og Gate C (ét map hele vejen først), én delfase ad gangen: 8a → 8b → 8c → M1 → 8d → 8g → 8e → 8f → M2. 8e bygger på fase 7's tekstur-pipeline og modeller. Fra en beskrivelse og tema-billeder (simpel) eller en tegning i lag (avanceret) til et spilbart map. Begge ender i <code>sketch.json</code> → Parse → Fit → den eksisterende pipeline. Spec: <code>docs/MAPMAKER.md</code>, træning: <code>docs/GRAPH_TRAINING.md</code>.</p>
         <ul>
           <li>8a: brief v2, tema-billeder med tag og licens, Interpreter-agent og "sådan har jeg forstået dig"</li>
           <li class="ok">8b: topologi-udtræk fra layout (<code>mapforge/topology.py</code>, samme tal som <code>layout_graph()</code>) og topologi-siden på det lokale website (<a href="graph.html">Graf</a>)</li>
@@ -621,10 +627,6 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
       </div>
     </li>
 
-    <li class="gate">
-      <span class="gate-tag">Gate C</span>
-      <p><b>Release.</b> Playtest med rigtige spillere.</p>
-    </li>
   </ol>
 </section>
 
