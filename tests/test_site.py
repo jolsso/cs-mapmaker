@@ -32,3 +32,29 @@ def test_markdown_subset():
     out = _md("# Titel\n- **fed** punkt\n- `kode`\ntekst <script>")
     assert "<h3>Titel</h3>" in out and "<li><b>fed</b> punkt</li>" in out
     assert "<code>kode</code>" in out and "&lt;script&gt;" in out
+
+
+def test_only_running_loops_pulse_and_cards_sort_by_last_edit(tmp_path):
+    import os
+
+    base = load_config()
+    data = copy.deepcopy(base.data)
+    data["paths"].update(build_dir=str(tmp_path / "build"), maps_dir=str(tmp_path / "maps"),
+                         runs_dir=str(tmp_path / "runs"))  # fmt: skip
+    cfg = Config(root=base.root, data=data)
+    for i, m in enumerate(("de_old", "de_new", "de_mid")):
+        b = tmp_path / "build" / m
+        b.mkdir(parents=True)
+        v = {"ok": True, "source": "map", "summary": {}, "findings": []}
+        (b / "validation.json").write_text(json.dumps(v))
+        os.utime(b / "validation.json", (1_000_000 + 1000 * i,) * 2)
+    os.utime(tmp_path / "build" / "de_new" / "validation.json", (2_000_000,) * 2)
+    (tmp_path / "runs" / "de_mid").mkdir(parents=True)
+    (tmp_path / "runs" / "de_mid" / "loop.json").write_text(
+        json.dumps({"status": "running", "step": "sim", "iteration": "001"})
+    )
+    os.utime(tmp_path / "runs" / "de_mid" / "loop.json", (1_000_000,) * 2)
+    home = (build_site(cfg) / "index.html").read_text(encoding="utf-8")
+    pos = {m: home.index(f"maps/{m}/index.html") for m in ("de_old", "de_new", "de_mid")}
+    assert pos["de_new"] < pos["de_mid"] < pos["de_old"]
+    assert home.count("class='stepper idle'") == 2 and home.count("class='stepper'") == 1

@@ -241,9 +241,10 @@ def render_versions(
         if v.runs:
             chips.append(f"<span class='chip'>loop: {', '.join(r.name for r in v.runs)}</span>")
         cur = current_phase if v.current else None
-        bar = stepper(st, link=False, current=cur, phases=PHASES8)
+        idle = loop.get("status") != "running"
+        bar = stepper(st, link=False, current=cur, phases=PHASES8, idle=idle)
         now = (
-            f"<p class='nowline small'>▸ {e(current_text)}</p>"
+            f"<p class='nowline small{' idle' if idle else ''}'>▸ {e(current_text)}</p>"
             if v.current and current_text
             else ""
         )
