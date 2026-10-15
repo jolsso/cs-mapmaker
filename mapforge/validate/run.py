@@ -60,6 +60,10 @@ def validate_map(cfg: Config, map_name: str, reference_bsp: Path | None = None) 
                 mapfile, int(vcfg["grid"]), float(vcfg["world_bounds"])
             )
             stats["brushes"] = len(mapfile.brushes())
+            from mapforge.wad.repeat import findings as repeat_findings
+
+            findings += [Finding(d["rule"], d["severity"], d["message"], "map")
+                         for d in repeat_findings(mapfile, cfg)]  # fmt: skip
         bsp_path = out_dir / f"{map_name}.bsp"
         bsp = read_bsp(bsp_path) if report and report.get("ok") and bsp_path.is_file() else None
     if bsp is not None:

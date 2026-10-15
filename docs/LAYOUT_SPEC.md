@@ -83,6 +83,7 @@ detail: false                 # lave solider (trapper, ramper, kasser <= 128 hø
 zones:                        # identitet/callouts: tekstur- og lyssæt pr. zone
   a: {floor: DEV_FLOOR_RED, wall: DEV_WALL_RED, ceiling: DEV_CEIL_RED, cover: DEV_METAL,
       light: {color: [255, 200, 180], brightness: 240}}
+  ct: {wall: OUT_WALL7, wall_alt: {texture: OUT_WALL7B, share: 0.2}}   # variant (skudhuller, pletter) på ~1/5 af væggene, ikke alle
 areas:
   - {name: a_site, rect: [...], zone: a}   # hver skalflade får teksturen fra det område, den vender ind mod
 
@@ -124,6 +125,7 @@ cover:
   - {name: pillar, area: hall, pos: [x, y], size: [64, 64, 192], shape: octagon}   # box | octagon (afskårne hjørner)
   - {name: crate, area: b_site, pos: [x, y], size: [64, 64, 64], breakable: wood}  # wood|metal|glass|concrete → func_breakable
   - {name: lamp, area: a_site, pos: [x, y], size: [64, 64, 8], z: 176, texture: DEV_LIGHT}  # teksturlys
+  - {name: shed_wall, area: mid, pos: [x, y], size: [272, 32, 128], texture: CSTRIKE_WR4CCWD, tex_size: [128, 128]}  # tex_size: et helt antal fliser pr. side (ingen halve vinduer)
 areas:
   - {name: loft, rect: [...], floor: 176, height: 160}   # oven på `hall` (gulv >= hallens loft + 8)
   - {name: hall, rect: [...], light: {brightness: 300, spacing: 256}, sound: 17}  # lys pr. område (off: true slukker); env_sound-rumtype
@@ -198,6 +200,7 @@ skyline:                      # eller bare `skyline: true`
   facade_plain: BRICK05       # samme mur uden vinduer, hvor under facade_min af facaden ses
   facade_size: [256, 256]     # facade-teksturens størrelse: et helt antal fliser pr. blokside
   facade_min: 192             # så meget facade skal ses over gårdens mur, før der vises vinduer
+  facade_windows: 0.35        # andel af bygningssiderne med vinduer (resten facade_plain) – mest mursten
   roof: TSROOF                # tagflader (standard: textures.ceiling)
 ```
 - Uden `skyline` er skallen klassisk: massiv op til toppen, himmel kun lodret over udendørs områder.
@@ -227,7 +230,7 @@ roofs:      # tag over en del af et område, åbne sider (halvtag i en gård, sk
 areas:
   - {name: b_hall, rect: [...], height: 224, pitch: {shape: gable, axis: x, rise: 64}}   # skråt loft i en hal
 ```
-- `roofs`: `z` = tagfodens højde over gulvet (mindst 96: over hovedhøjde), `rise` = hvor meget det stiger (0 for flad), `thickness` 8, `texture` (standard: zonens loft). `gable`: kip langs `axis`; `shed`: stiger langs `axis` (lavest i den lave ende). `posts: true` sætter en 16×16-stolpe under hvert hjørne – kun stolperne står i spilrummet. Taget skal ligge inden for området og under dets loft.
+- `roofs`: `z` = tagfodens højde over gulvet (mindst 96: over hovedhøjde), `rise` = hvor meget det stiger (0 for flad), `thickness` 8, `texture` (standard: zonens loft). `gable`: kip langs `axis`; `shed`: stiger langs `axis` (lavest i den lave ende). `posts: true` sætter en 16×16-stolpe under hvert hjørne – kun stolperne står i spilrummet. `light: true` hænger lys under taget (et skur, der er lukket på de fleste sider, bliver ellers mørkt indeni). Et skur kan bygges af to cover-vægge og et hjørne af området med et tag over (de_forge01's værksteder). Taget skal ligge inden for området og under dets loft.
 - `pitch` (kun rektangulære indendørs områder): rummet beholder sin højde op til tagfoden (`height`), og taget rejser sig `rise` derover; rummet bliver højere, og prismer fylder ud over skråningerne (samme princip som buer). Generatoren afviser et skråt loft, der ville løbe op i et område ovenover. Gangbart rum er uændret.
 
 ### Dørkarme og dørlys (2026-10-15)

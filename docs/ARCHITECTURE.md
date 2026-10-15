@@ -24,7 +24,7 @@ Simulering koster timer; alt hvad der kan ses eller beregnes uden bots skal fang
 
 | Trin | Input | Output | Værktøj | Tid |
 |---|---|---|---|---|
-| 1 Generate | layout-spec (YAML) / forrige .map + ændringsplan | `.map` (Valve 220) | Python-generator | sek. |
+| 1 Generate | layout-spec (YAML) / forrige .map + ændringsplan, `config/texture_risk.json` | `.map` (Valve 220) | Python-generator; højrisiko-teksturer på store flader → rolig søskende (`mapforge.wad.repeat`) | sek. |
 | 2 Compile | `.map`, WADs | `.bsp`, `compile.json` | SDHLT: hlcsg → hlbsp → hlvis → hlrad | sek. (fast) |
 | 3 Validate | `.map`, `.bsp`, `compile.json` | `validation.json` | Python (`mapforge.validate`) | sek. |
 | 4 Render | `.bsp`, WADs | `renders/*.png` + `renders/index.json` | Egen renderer: BSP-parser + moderngl (Mesa/EGL headless) med teksturer og kompilerede lightmaps | < 5 min |

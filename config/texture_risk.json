@@ -1,0 +1,317 @@
+{
+ "-0C2A4_COR2": {
+  "risk": "medium",
+  "feature": "rust streaks and weathering marks",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_ME1PL": {
+  "risk": "high",
+  "feature": "edge rust patch and dark holes",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_MH5TL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_WE1MT": {
+  "risk": "high",
+  "feature": "large rust blob and dark stain",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_ME1PL": {
+  "risk": "high",
+  "feature": "rust patch with drips",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_WE1MT": {
+  "risk": "high",
+  "feature": "edge rust patches per plate",
+  "by": "qwen3.8-27b"
+ },
+ "-2CSTRIKE_ME1PL": {
+  "risk": "high",
+  "feature": "central rust blotch and specks",
+  "by": "qwen3.8-27b"
+ },
+ "-2CSTRIKE_WE1MT": {
+  "risk": "high",
+  "feature": "corner rust clumps and mid band",
+  "by": "qwen3.8-27b"
+ },
+ "-3CSTRIKE_ME1PL": {
+  "risk": "high",
+  "feature": "rust holes and stains",
+  "by": "qwen3.8-27b"
+ },
+ "-4CSTRIKE_ME1PL": {
+  "risk": "high",
+  "feature": "vertical rust streaks",
+  "by": "qwen3.8-27b"
+ },
+ "-5CSTRIKE_ME1PL": {
+  "risk": "high",
+  "feature": "rust stains on riveted metal plate",
+  "by": "qwen3.8-27b"
+ },
+ "-6CSTRIKE_ME1PL": {
+  "risk": "high",
+  "feature": "heavy rust patches on corroded plate",
+  "by": "qwen3.8-27b"
+ },
+ "ASPHALT01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BCONTAINER3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05": {
+  "risk": "medium",
+  "feature": "white paint weathering streaks",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05-10": {
+  "risk": "medium",
+  "feature": "gray painted horizontal band",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05-11": {
+  "risk": "medium",
+  "feature": "green painted horizontal band",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05-12": {
+  "risk": "medium",
+  "feature": "white painted horizontal band on brick",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05-2": {
+  "risk": "high",
+  "feature": "windows",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05-3": {
+  "risk": "high",
+  "feature": "windows (boarded and curtained)",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05-4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05-5": {
+  "risk": "medium",
+  "feature": "horizontal grime bands",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05-6": {
+  "risk": "high",
+  "feature": "red rust stain",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05-7": {
+  "risk": "high",
+  "feature": "bullet holes",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05-8": {
+  "risk": "high",
+  "feature": "bullet holes and grime bands",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05-9": {
+  "risk": "high",
+  "feature": "red rust stain and grime bands",
+  "by": "qwen3.8-27b"
+ },
+ "CINDERBLOCK01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CONC33": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CONCRETE01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CONCRETE02": {
+  "risk": "medium",
+  "feature": "vertical water-stain streaks",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_CE2XCNG": {
+  "risk": "low",
+  "feature": "",
+  "by": "human: play test #34 liked the truss ceiling (model said high: X-braced panel)"
+ },
+ "CSTRIKE_DJ2OLD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_ME1CLNG": {
+  "risk": "high",
+  "feature": "rusted riveted metal plate",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_ME1GRAT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_ME2RSTW": {
+  "risk": "medium",
+  "feature": "rusty mottled shading",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_ME4GREB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_ME4METL": {
+  "risk": "medium",
+  "feature": "mottled rust stains",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_OE4PNL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WR4CCDR": {
+  "risk": "high",
+  "feature": "red door",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WR4CCGG": {
+  "risk": "high",
+  "feature": "paneled window",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WR4CCPN": {
+  "risk": "medium",
+  "feature": "shadow band / ledge line",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WR4CCVT": {
+  "risk": "high",
+  "feature": "louvered vent and lamp",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WR4CCWD": {
+  "risk": "high",
+  "feature": "shuttered windows",
+  "by": "qwen3.8-27b"
+ },
+ "IKCONCC": {
+  "risk": "medium",
+  "feature": "vertical drip streaks",
+  "by": "qwen3.8-27b"
+ },
+ "OUT_ROOF2B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "OUT_WALL7": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "OUT_WALL7A": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "OUT_WALL7B": {
+  "risk": "high",
+  "feature": "horizontal cable lines and dark specks",
+  "by": "qwen3.8-27b"
+ },
+ "OUT_WALL7C": {
+  "risk": "high",
+  "feature": "pipe valve",
+  "by": "qwen3.8-27b"
+ },
+ "OUT_WALL7D": {
+  "risk": "high",
+  "feature": "wall vents",
+  "by": "qwen3.8-27b"
+ },
+ "OUT_WALL7E": {
+  "risk": "high",
+  "feature": "red valve wheels",
+  "by": "qwen3.8-27b"
+ },
+ "TSCAUTION": {
+  "risk": "high",
+  "feature": "rust smears / stains",
+  "by": "qwen3.8-27b"
+ },
+ "TSDOOR4": {
+  "risk": "high",
+  "feature": "round vent with rust streaks",
+  "by": "qwen3.8-27b"
+ },
+ "TSHULL1": {
+  "risk": "medium",
+  "feature": "vertical rust streaks",
+  "by": "qwen3.8-27b"
+ },
+ "TSHULL5": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSHULL7": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSIBEAM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSPLAINRED": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSROOF": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOW03A": {
+  "risk": "high",
+  "feature": "glass window",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOW03B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOW03C": {
+  "risk": "high",
+  "feature": "windows with curtains",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOW04A": {
+  "risk": "high",
+  "feature": "barred window on brick",
+  "by": "qwen3.8-27b"
+ }
+}

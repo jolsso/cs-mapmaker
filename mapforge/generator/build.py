@@ -296,6 +296,23 @@ def _side_box(ax: int, t0: int, t1: int, a0: int, a1: int, b0: int, b1: int) -> 
     return (tuple(lo), tuple(hi))
 
 
+def fit_tiles(brush: Brush, lo: tuple, hi: tuple, tsize: tuple[int, int]) -> Brush:
+    """Scale each face's texture (size `tsize`) a little, so a whole number of tiles fits the
+    face both ways, starting at its corner: no window or door cut at an edge."""
+    corners = [(x, y, z) for x in (lo[0], hi[0]) for y in (lo[1], hi[1]) for z in (lo[2], hi[2])]
+    faces = []
+    for f in brush.faces:
+        u, v = f.u_axis, f.v_axis
+        pu = [sum(c[k] * u[k] for k in range(3)) for c in corners]
+        pv = [sum(c[k] * v[k] for k in range(3)) for c in corners]
+        eu, ev = max(pu) - min(pu), max(pv) - min(pv)
+        su = eu / (max(1, round(eu / tsize[0])) * tsize[0]) or 1
+        sv = ev / (max(1, round(ev / tsize[1])) * tsize[1]) or 1
+        faces.append(replace(f, u_axis=(u[0], u[1], u[2], -min(pu) / su),
+                             v_axis=(v[0], v[1], v[2], -min(pv) / sv), scale=(su, sv)))  # fmt: skip
+    return replace(brush, faces=faces)
+
+
 def fit_each(brush: Brush, lo: tuple, hi: tuple, tsize: tuple[int, int]) -> Brush:
     """Stretch each face's texture (size `tsize`) to the face: one whole tile per face."""
     corners = [(x, y, z) for x in (lo[0], hi[0]) for y in (lo[1], hi[1]) for z in (lo[2], hi[2])]
@@ -917,11 +934,20 @@ def _face_textures(
                         p = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2]
                         p[axis] = coord + sign * 8  # just outside the face
                         seen = b[4] - (roof_at(*p) if roof_at else lo[2])
-                        if seen < outside.get("min", 0) and outside.get("plain"):
-                            out[key] = outside["plain"]  # too little in view for a window
+                        few = int(hashlib.sha1(f"{b[:4]}{key}".encode()).hexdigest(), 16) % 100
+                        if outside.get("plain") and (
+                            seen < outside.get("min", 0)  # too little in view for a window
+                            or few >= 100 * outside.get("windows", 1.0)  # mostly plain brick
+                        ):
+                            out[key] = outside["plain"]
                 continue
             t = tex_of(best_a)
             out[key] = t["floor"] if key == "+z" else t["ceiling"] if key == "-z" else t["wall"]
+            alt = t.get("wall_alt")
+            if alt and axis < 2:  # a few walls in the variant (bullet holes, stains), not all
+                h = int(hashlib.sha1(f"{lo}{hi}{key}".encode()).hexdigest(), 16) % 100
+                if h < 100 * float(alt.get("share", 0.2)):
+                    out[key] = alt["texture"]
             # room faces stay on the world grid: floors and walls line up across areas
     return out
 
@@ -933,7 +959,7 @@ def generate(layout: Layout) -> Generated:
 
     def tex_of(a: Area | None) -> dict[str, str]:
         z = layout.zones.get(a.zone) if a is not None and a.zone else None
-        return {**tex, **{k: v for k, v in (z or {}).items() if k in tex}}
+        return {**tex, **{k: v for k, v in (z or {}).items() if k in tex or k == "wall_alt"}}
 
     def surf(a: Area | None) -> dict[str, str]:
         t = tex_of(a)
@@ -1001,6 +1027,7 @@ def generate(layout: Layout) -> Generated:
             "plain": sk.get("facade_plain"),
             "size": sk.get("facade_size", (256, 256)),
             "min": sk.get("facade_min", 0),
+            "windows": sk.get("facade_windows", 1.0),
         }
         if roofline
         else None
@@ -1090,6 +1117,8 @@ def generate(layout: Layout) -> Generated:
                 brush = box_brush(c_lo, c_hi, stex)
                 if sol.fit and not c.texture:
                     brush = fit_each(brush, c_lo, c_hi, sol.fit)
+                elif c.tex_size:
+                    brush = fit_tiles(brush, c_lo, c_hi, c.tex_size)
             if c.breakable:
                 mat = MATERIALS[c.breakable]
                 tname = f"break_{c.name}" + (f"_{i + 1}" if c.preset else "")
@@ -1288,6 +1317,20 @@ def generate(layout: Layout) -> Generated:
         for px, py in pts:
             ents.append(entity({"classname": "light", "origin": f"{px} {py} {a.top - 24}",
                                 "_light": light}))  # fmt: skip
+    for ro in layout.roofs:  # under a roof with `light`: like an indoor room, under the eaves
+        if not ro.light:
+            continue
+        a = areas[ro.area]
+        _, light = light_cfg(a)
+        x0, y0, x1, y1 = ro.rect
+        nx, ny = max(1, round((x1 - x0) / 256)), max(1, round((y1 - y0) / 256))
+        for i in range(nx):
+            for j in range(ny):
+                px = (x0 + (x1 - x0) * (2 * i + 1) // (2 * nx)) // 8 * 8
+                py = (y0 + (y1 - y0) * (2 * j + 1) // (2 * ny)) // 8 * 8
+                z = a.floor + ro.z - 16
+                ents.append(entity({"classname": "light", "origin": f"{px} {py} {z}",
+                                    "_light": light}))  # fmt: skip
     for br in layout.bridges:
         # the deck shades the floor under it (also from the sun): lights under it along its length
         a = areas[br.area]

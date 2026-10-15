@@ -1404,5 +1404,375 @@
         "reason": "The door still sits flush against the flat wall surface with no recessed pocket and no added panels framing it."
       }
     }
+  },
+  {
+    "kind": "point",
+    "text": "the same texture is used with gunshots. look for the base texture and only have gunshots in a couple of places (in game)",
+    "points": [
+      [
+        64,
+        2047
+      ]
+    ],
+    "id": 41,
+    "status": "done",
+    "created": "2026-10-15 17:50",
+    "resolution": "art pass: CT walls in the plain block (OUT_WALL7); the bullet-hole variant only on ~1 in 5 wall faces (zone wall_alt)",
+    "ingame": {
+      "key": "2026-10-15 17:45:21|the same texture is used with gunshots. look for the base texture and only have gunshots in a couple of places",
+      "eye": [
+        251,
+        1576,
+        53
+      ],
+      "aim": [
+        64,
+        2047,
+        205
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 17:45:21",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 17:59",
+        "resolved": true,
+        "reason": "In the RIGHT half the grey stone walls appear as a clean base texture without the scattered bullet‑hole pockmarks that covered them in the LEFT half, matching the wish to keep gunshots only in a couple of places."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "the gunshots look ridiculous (in game)",
+    "points": [
+      [
+        1040,
+        1600
+      ]
+    ],
+    "id": 42,
+    "status": "done",
+    "created": "2026-10-15 17:50",
+    "resolution": "art pass: same as #41 - bullet holes only on a few CT walls",
+    "ingame": {
+      "key": "2026-10-15 17:45:37|the gunshots look ridiculous",
+      "eye": [
+        1256,
+        1783,
+        85
+      ],
+      "aim": [
+        1040,
+        1600,
+        59
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 17:45:37",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 17:59",
+        "resolved": true,
+        "reason": "The RIGHT half shows a clean stone wall where the rows of bullet‑hole decals seen on the left are gone."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "can you better whatever this is. I have no idea. (in game)",
+    "points": [
+      [
+        1633,
+        2047
+      ]
+    ],
+    "id": 43,
+    "status": "done",
+    "created": "2026-10-15 17:50",
+    "resolution": "art pass: the lean-to over the conveyor stands on posts and has a corrugated roof (it read as a strip floating on the wall)",
+    "ingame": {
+      "key": "2026-10-15 17:45:54|can you better whatever this is. I have no idea.",
+      "eye": [
+        1843,
+        1569,
+        85
+      ],
+      "aim": [
+        1633,
+        2047,
+        89
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 17:45:54",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 17:59",
+        "resolved": true,
+        "reason": "The confusing broken protrusion on the wall is gone and replaced by a clean rectangular doorway frame."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "just give me plain concrete flooring please. Or ashpalt or something (in game)",
+    "points": [
+      [
+        1539,
+        267
+      ]
+    ],
+    "id": 44,
+    "status": "done",
+    "created": "2026-10-15 17:50",
+    "resolution": "art pass: A floors plain concrete (CONC33)",
+    "ingame": {
+      "key": "2026-10-15 17:46:25|just give me plain concrete flooring please. Or ashpalt or something",
+      "eye": [
+        1542,
+        169,
+        53
+      ],
+      "aim": [
+        1539,
+        267,
+        0
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 17:46:25",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 17:59",
+        "resolved": true,
+        "reason": "The RIGHT half shows a clean, uniform gray concrete/asphalt floor without the dirty mottled stains seen before."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "please make that box into a workshop, shed or similar. Give it a roof and some windows and a proper texture (in game)",
+    "points": [
+      [
+        1647,
+        -1749
+      ]
+    ],
+    "id": 45,
+    "status": "done",
+    "created": "2026-10-15 17:50",
+    "resolution": "art pass: the two cover walls and the corner became a workshop: windowed walls (whole tiles) and a corrugated shed roof",
+    "ingame": {
+      "key": "2026-10-15 17:47:00|please make that box into a workshop, shed or similar. Give it a roof and some windows and a proper texture",
+      "eye": [
+        1334,
+        -1518,
+        53
+      ],
+      "aim": [
+        1647,
+        -1749,
+        66
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 17:47:00",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 17:59",
+        "resolved": true,
+        "reason": "The plain box on the RIGHT now has a flat overhanging roof and a row of shuttered windows along its walls, matching the requested workshop/shed."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "what the fuck happened to the upper houses? (in game)",
+    "points": [
+      [
+        -399,
+        -2230
+      ]
+    ],
+    "id": 46,
+    "status": "done",
+    "created": "2026-10-15 17:50",
+    "resolution": "art pass: facades mostly plain brick, windows only on some building sides and only where enough shows above the yard wall - confirm in the next play test what looked wrong",
+    "ingame": {
+      "key": "2026-10-15 17:47:22|what the fuck happened to the upper houses?",
+      "eye": [
+        243,
+        -1756,
+        53
+      ],
+      "aim": [
+        -399,
+        -2230,
+        311
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 17:47:22",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "fucking yes (in game)",
+    "points": [
+      [
+        -1701,
+        1710
+      ]
+    ],
+    "id": 47,
+    "status": "done",
+    "created": "2026-10-15 17:50",
+    "resolution": "thanks - kept as is",
+    "ingame": {
+      "key": "2026-10-15 17:48:01|fucking yes",
+      "eye": [
+        -1592,
+        1871,
+        53
+      ],
+      "aim": [
+        -1701,
+        1710,
+        52
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 17:48:01",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "the pipe just ends whereever (in game)",
+    "points": [
+      [
+        -1951,
+        1690
+      ]
+    ],
+    "id": 48,
+    "status": "done",
+    "created": "2026-10-15 17:50",
+    "resolution": "art pass: the pipe now runs into B's west wall",
+    "ingame": {
+      "key": "2026-10-15 17:48:11|the pipe just ends whereever",
+      "eye": [
+        -2031,
+        1929,
+        53
+      ],
+      "aim": [
+        -1951,
+        1690,
+        194
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 17:48:11",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 17:59",
+        "resolved": false,
+        "reason": "In the RIGHT half the horizontal pipe/beam still terminates abruptly against the white wall with no visible connection or continuation."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "these look so nice. Where the fuck did they come from? They almost look out of place bc the map is so ugly (in game)",
+    "points": [
+      [
+        -959,
+        841
+      ]
+    ],
+    "id": 49,
+    "status": "done",
+    "created": "2026-10-15 17:50",
+    "resolution": "thanks - noted (the rest of the map gets the same care)",
+    "ingame": {
+      "key": "2026-10-15 17:48:49|these look so nice. Where the fuck did they come from? They almost look out of place bc the map is so ugly",
+      "eye": [
+        -722,
+        827,
+        53
+      ],
+      "aim": [
+        -959,
+        841,
+        9
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 17:48:49",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "again. Also make this into a shed or something. (in game)",
+    "points": [
+      [
+        -565,
+        720
+      ]
+    ],
+    "id": 50,
+    "status": "done",
+    "created": "2026-10-15 17:50",
+    "resolution": "art pass: mid_top's cover walls became a shed too (windowed walls, corrugated roof)",
+    "ingame": {
+      "key": "2026-10-15 17:49:11|again. Also make this into a shed or something.",
+      "eye": [
+        -314,
+        895,
+        53
+      ],
+      "aim": [
+        -565,
+        720,
+        90
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 17:49:11",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 17:59",
+        "resolved": true,
+        "reason": "The RIGHT half now shows a small building with a flat overhanging roof, support columns and a windowed wall built at the spot, i.e. the requested shed."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "on the roof housing. Maybe make most of it bricks and only a few inbetween textures with windows. (in game)",
+    "points": [
+      [
+        1856,
+        -399
+      ]
+    ],
+    "id": 51,
+    "status": "done",
+    "created": "2026-10-15 17:50",
+    "resolution": "art pass: facade_windows 0.35 - mostly brick, windows only on some building sides",
+    "ingame": {
+      "key": "2026-10-15 17:49:45|on the roof housing. Maybe make most of it bricks and only a few inbetween textures with windows.",
+      "eye": [
+        1469,
+        129,
+        53
+      ],
+      "aim": [
+        1856,
+        -399,
+        345
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 17:49:45",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 17:59",
+        "resolved": true,
+        "reason": "In the RIGHT half the long roof-housing wall is now almost entirely plain brick with only a couple of small window textures left on the smaller block to the right."
+      }
+    }
   }
 ]

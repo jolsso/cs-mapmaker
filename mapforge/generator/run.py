@@ -62,6 +62,13 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, SpecError, KeyError) as exc:
         print(f"generate failed: {exc}", file=sys.stderr)
         return 1
+    from mapforge.wad.repeat import tame
+
+    rep = tame(g.mapfile, cfg)  # high-risk textures on big faces -> their calm sibling
+    for t, (calm, n) in sorted(rep["swapped"].items()):
+        print(f"repeats: {t} -> {calm} on {n} big face(s)")
+    for t, (level, n, tiles) in sorted(rep["kept"].items()):
+        print(f"repeats: {t} ({level}) still {tiles} tiles across on {n} face(s)")
     missing = assign_wads(g.mapfile, cfg)
     if missing:
         print(f"generate failed: textures in no WAD of paths.wad_dirs: {missing}", file=sys.stderr)

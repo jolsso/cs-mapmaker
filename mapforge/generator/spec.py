@@ -164,6 +164,7 @@ class Cover:
     shape: str = "box"  # box | octagon (chamfered) | cylinder (faceted: barrels, round pillars)
     breakable: str | None = None  # wood | metal | glass | concrete: a func_breakable
     preset: str | None = None  # a preset or themed prop (mapforge.generator.props.PROPS)
+    tex_size: tuple[int, int] | None = None  # the texture's size: whole tiles on every face
 
 
 SHAPES = ("box", "octagon", "cylinder")
@@ -215,6 +216,7 @@ class Roof:
     thickness: int = 8
     texture: str | None = None  # default: the zone's ceiling texture
     posts: bool = False  # a 16x16 post under each corner (these stand in the play space)
+    light: bool = False  # lights under the roof (a shed closed on most sides is dark inside)
 
 
 @dataclass(frozen=True)
@@ -589,7 +591,7 @@ def _skyline(sk: Any) -> dict[str, Any] | None:
         raise SpecError("skyline.facade_size: [w, h] > 0, facade_min >= 0")
     return {"heights": heights, "air": air, "facade": sk.get("facade"), "roof": sk.get("roof"),
             "facade_plain": sk.get("facade_plain"), "facade_size": (fw, fh),
-            "facade_min": fmin}  # fmt: skip
+            "facade_min": fmin, "facade_windows": float(sk.get("facade_windows", 1.0))}  # fmt: skip
 
 
 def _wall_details(wd: Any, areas: dict[str, Area]) -> dict[str, Any] | None:
@@ -757,6 +759,9 @@ def parse_layout(data: dict[str, Any]) -> Layout:
                 shape=str(c.get("shape", "box")),
                 breakable=c.get("breakable"),
                 preset=preset,
+                tex_size=_ints(c["tex_size"], 2, f"cover {c['name']}.tex_size")
+                if "tex_size" in c
+                else None,
             )
         )
     for c in cover:
@@ -925,6 +930,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             shape=str(rf.get("shape", "flat")), axis=str(rf.get("axis", "x")),
             rise=int(rf.get("rise", 0)), thickness=int(rf.get("thickness", 8)),
             texture=rf.get("texture"), posts=bool(rf.get("posts", False)),
+            light=bool(rf.get("light", False)),
         )  # fmt: skip
         a = areas[ro.area]
         rx0, ry0, rx1, ry1 = ro.rect

@@ -50,10 +50,10 @@ chokes:
 zones:
   t: {floor: ASPHALT01, wall: CINDERBLOCK01, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_OE4PNL,
       light: {color: [255, 226, 170], brightness: 280}}   # style review: T->B tunnels were dim and brown
-  ct: {floor: CONCRETE01, wall: OUT_WALL7B, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_OE4PNL,
+  ct: {floor: CONCRETE01, wall: OUT_WALL7, wall_alt: {texture: OUT_WALL7B, share: 0.2}, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_OE4PNL,
        light: {color: [225, 235, 255]}}
   mid: {floor: CONCRETE01, wall: IKCONCC, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME2RSTW}
-  a: {floor: CONCRETE02, wall: TSHULL1, ceiling: CSTRIKE_CE2XCNG, cover: TSHULL5,
+  a: {floor: CONC33, wall: TSHULL1, ceiling: CSTRIKE_CE2XCNG, cover: TSHULL5,
       light: {color: [255, 190, 140], brightness: 240}}
   b: {floor: CONCRETE02, wall: CSTRIKE_OE4PNL, ceiling: CSTRIKE_ME1CLNG, cover: CSTRIKE_ME4METL,
       light: {color: [190, 225, 230], brightness: 220}}
@@ -65,6 +65,8 @@ texlights: {-0CSTRIKE_MH5TL: [255, 160, 90, 700]}   # the furnace wall at A (Ovn
 # 2nd round: CT and mid floors were orange-brown like T clothing -> grey concrete / light gravel;
 # 3rd round (full review after the play test): mid and CT shared one brick-patch wall that tiled
 # like wallpaper -> plain concrete in mid, blue-grey block in CT; T floor sandy dirt -> asphalt.
+# 3rd play test: bullet holes on every CT tile -> plain block, the holed variant on a few walls;
+# A's mottled floor -> plain concrete (cs_office CONC33).
 # B tunnels grey on grey -> lighter metal panel walls.
 # 3rd round: T corridors' dark red brick hid T players -> grey breeze block (cs_bdog.wad).
 # 4th round: mid's light gravel was still tan -> grey concrete; door lights on the four chokes.
@@ -84,9 +86,12 @@ models:   # models the game ships (env_sprite), with clip boxes from their real 
 skyline:   # buildings of different heights around the yards (an industrial skyline)
   facade: BRICK05-2           # cs_bdog.wad: brick with windows
   facade_plain: BRICK05       # the same brick without windows, where too little is in view
+  facade_windows: 0.35        # play test: mostly brick, windows only on some building sides
   roof: TSROOF                # tswad.wad
 roofs:     # canopies over parts of the yards (above head height)
-  - {name: a_lean_to, area: a_site, rect: [1536, 1920, 1792, 2048], z: 176, shape: shed, axis: y, rise: 32}   # over the conveyor
+  - {name: a_lean_to, area: a_site, rect: [1536, 1920, 1792, 2048], z: 176, shape: shed, axis: y, rise: 32, posts: true, texture: OUT_ROOF2B}   # over the conveyor; posts (play test: read as a strip floating on the wall)
+  - {name: a_shed, area: a_long_start, rect: [1648, -2048, 2048, -1696], z: 128, shape: shed, axis: x, rise: 32, texture: OUT_ROOF2B, light: true}   # the two cover walls + the corner = a workshop (play test)
+  - {name: mid_shed, area: mid_top, rect: [-960, 400, -560, 720], z: 128, shape: shed, axis: x, rise: 32, texture: OUT_ROOF2B, light: true}   # same in mid_top
   - {name: t_canopy, area: t_spawn, rect: [-384, -2432, -128, -2176], z: 176, shape: flat, posts: true}   # posts: it read as a floating platform
 wall_details:   # locked doors and windows: recessed, at a person's scale, mostly windows (play tests)
   areas: [t_spawn, mid_s, mid, mid_top, a_long_start, a_long, long_ec_s, long_ec_n, ct_spawn, t_to_long, t_to_b]
@@ -185,7 +190,7 @@ cover:
   - {name: b_pump, area: b_site, pos: [-1712, 1680], size: [64, 64, 64], z: 32, shape: cylinder, texture: TSHULL7}   # the pump on the platform
   - {name: b_motor, area: b_site, pos: [-1600, 1680], size: [48, 48, 40], z: 32, texture: TSCAUTION}
   - {name: b_pipe_up, area: b_site, pos: [-1712, 1680], size: [32, 32, 128], z: 96, shape: cylinder, texture: TSHULL7}   # the pump's riser
-  - {name: b_pipe_run, area: b_site, pos: [-1840, 1680], size: [224, 32, 32], z: 192, preset: pipe_run}   # to the west wall
+  - {name: b_pipe_run, area: b_site, pos: [-1888, 1680], size: [320, 32, 32], z: 192, preset: pipe_run}   # into the west wall (play test: it ended in the air)
   - {name: b_box_se, area: b_site, pos: [-1440, 1424], size: [64, 64, 64]}
   - {name: ct_b_box, area: ct_to_b, pos: [-704, 1792], size: [64, 64, 64]}
   # iteration 6: screen wall inside B's CT door (review: CT spawn still saw onto B) and a crate
@@ -205,10 +210,10 @@ cover:
   - {name: b_tank_link, area: b_tunnels, pos: [-1664, 0], size: [96, 96, 160], texture: -0CSTRIKE_WE1MT}   # one installation, no notch
   - {name: b_tun_box, area: b_tunnels, pos: [-1472, 224], size: [64, 64, 64]}
   - {name: b_cut_chicane, area: t_b_cut, pos: [-1184, -800], size: [160, 96, 128], preset: container}   # a big container (in-game feedback)
-  - {name: mid_top_cover, area: mid_top, pos: [-824, 704], size: [272, 32, 128]}
-  - {name: mid_top_cover_2, area: mid_top, pos: [-576, 560], size: [32, 320, 128]}
-  - {name: a_long_start_cover, area: a_long_start, pos: [1912, -1712], size: [272, 32, 128]}
-  - {name: a_long_start_cover_2, area: a_long_start, pos: [1664, -1872], size: [32, 352, 128]}
+  - {name: mid_top_cover, area: mid_top, pos: [-824, 704], size: [272, 32, 128], texture: CSTRIKE_WR4CCWD, tex_size: [128, 128]}   # the shed's walls (windows)
+  - {name: mid_top_cover_2, area: mid_top, pos: [-576, 560], size: [32, 320, 128], texture: CSTRIKE_WR4CCWD, tex_size: [128, 128]}
+  - {name: a_long_start_cover, area: a_long_start, pos: [1912, -1712], size: [272, 32, 128], texture: CSTRIKE_WR4CCWD, tex_size: [128, 128]}
+  - {name: a_long_start_cover_2, area: a_long_start, pos: [1664, -1872], size: [32, 352, 128], texture: CSTRIKE_WR4CCWD, tex_size: [128, 128]}
   - {name: a_long_cover, area: a_long, pos: [1640, -264], size: [208, 32, 96]}
 
 sites: {A: a_site, B: b_site}
