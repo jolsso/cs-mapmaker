@@ -189,6 +189,16 @@ ambient:
 ```
 - `ambient_generic` (looper); `sound` er en sti under `sound/`, som spillet selv har (`cstrike/sound` eller `valve/sound`, CS 1.6 falder tilbage på valve). Generatoren afviser stier, der ikke findes i `paths.sound_dirs` (tjekket kun når Half-Life-installationen er mountet). Standard: områdets midte, 64 over gulvet, volumen 6, radius medium.
 
+### Modeller fra spillet (2026-10-15)
+```yaml
+models:
+  - {name: a_belt, area: a_site, model: models/conveyor1.mdl, pos: [x, y], yaw: 90, clip: [64, 192, 48]}
+  - {name: b_lamp, area: b_site, model: models/light.mdl, pos: [x, y], z: 200}
+```
+- `env_sprite` med en `.mdl`, som spillet selv har (`cstrike/models`, `valve/models`); stien skal starte med `models/`. Generatoren afviser modeller, der ikke findes i `paths.model_dirs` (når Half-Life-installationen er mountet).
+- Modellen er ikke solid. `clip: [w, d, h]` lægger en CLIP-boks (spiller-clip, ses ikke) centreret om `pos` fra `z`, så den blokerer; uden `clip` er den ren pynt (sæt den op ad en væg eller over hovedhøjde).
+- Vores renderer tegner ikke modeller, så stilreviewet ser dem ikke. ⚠️ VERIFICÉR visningen i CS 1.6-klienten.
+
 ### Vinkler og niveauer (2026-10-14): skrå rum i vilkårlig vinkel, broer, overgange
 ```yaml
 areas:

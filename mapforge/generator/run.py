@@ -38,6 +38,16 @@ def missing_sounds(layout, cfg: Config) -> list[str]:
                    if not any((d / a.sound).is_file() for d in dirs)})  # fmt: skip
 
 
+def missing_models(layout, cfg: Config) -> list[str]:
+    """Model paths found in none of paths.model_dirs (no check without the Half-Life install)."""
+    dirs = [cfg.root / d for d in cfg.data["paths"].get("model_dirs", [])]
+    dirs = [d for d in dirs if d.is_dir()]
+    if not dirs:
+        return []
+    return sorted({m.model for m in layout.models
+                   if not any((d / m.model).is_file() for d in dirs)})  # fmt: skip
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--map", required=True)
@@ -59,6 +69,10 @@ def main(argv: list[str] | None = None) -> int:
     unheard = missing_sounds(layout, cfg)
     if unheard:
         print(f"generate failed: sounds in no dir of paths.sound_dirs: {unheard}", file=sys.stderr)
+        return 1
+    unseen = missing_models(layout, cfg)
+    if unseen:
+        print(f"generate failed: models in no dir of paths.model_dirs: {unseen}", file=sys.stderr)
         return 1
     out = map_dir / "src" / f"{args.map}.map"
     write_map(

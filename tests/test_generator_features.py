@@ -548,3 +548,35 @@ def test_missing_ambient_sounds_are_reported():
     lay = feat(ambient=[{"name": "a", "area": "mid", "sound": "ambience/industrial1.wav"},
                         {"name": "b", "area": "mid", "sound": "ambience/nope.wav"}])  # fmt: skip
     assert missing_sounds(lay, cfg) == ["ambience/nope.wav"]
+
+
+def test_game_models_become_env_sprites_with_an_optional_clip_box():
+    lay = feat(models=[
+        {"name": "belt", "area": "a_site", "model": "models/conveyor1.mdl", "pos": [0, 400],
+         "yaw": 90, "clip": [64, 128, 48]},
+        {"name": "lamp", "area": "mid", "model": "models/light.mdl", "pos": [0, 0], "z": 160},
+    ])  # fmt: skip
+    g = generate(lay)
+    spr = [e for e in g.mapfile.entities if e.classname == "env_sprite"]
+    assert [e.properties["model"] for e in spr] == ["models/conveyor1.mdl", "models/light.mdl"]
+    assert spr[0].properties["angles"] == "0 90 0" and spr[1].properties["origin"] == "0 0 160"
+    clips = [b for b in g.mapfile.worldspawn.brushes if b.faces[0].texture == "CLIP"]
+    assert any(brush_geometry(b).vertices[:, 2].max() == 48 for b in clips)
+    with pytest.raises(SpecError, match="models/conveyor1.mdl"):
+        feat(models=[{"name": "x", "area": "mid", "model": "conveyor1.mdl", "pos": [0, 0]}])
+
+
+def test_missing_game_models_are_reported():
+    from pathlib import Path
+
+    from mapforge.generator.run import missing_models
+
+    cfg = load_config()
+    if not any(Path(d).is_dir() for d in cfg.data["paths"]["model_dirs"]):
+        pytest.skip("needs the Half-Life install mounted at /refmaps/hl")
+    lay = feat(models=[
+        {"name": "a", "area": "mid", "model": "models/conveyor1.mdl", "pos": [0, 0]},
+        {"name": "b", "area": "mid", "model": "models/forklift.mdl", "pos": [0, 64]},
+        {"name": "c", "area": "mid", "model": "models/nope.mdl", "pos": [0, 96]},
+    ])  # fmt: skip
+    assert missing_models(lay, cfg) == ["models/nope.mdl"]  # conveyor: cstrike, forklift: valve

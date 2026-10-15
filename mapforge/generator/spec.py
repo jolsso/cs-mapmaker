@@ -208,6 +208,20 @@ AMBIENT_RADIUS = {"everywhere": 1, "small": 2, "medium": 4, "large": 8}  # spawn
 
 
 @dataclass(frozen=True)
+class Model:
+    """A model the game ships (models/*.mdl in cstrike or valve), shown with env_sprite: not
+    solid on its own; `clip` [w, d, h] adds a player-clip box around it so it blocks."""
+
+    name: str
+    area: str
+    model: str  # e.g. models/conveyor1.mdl
+    pos: tuple[int, int]
+    z: int = 0  # above the area floor
+    yaw: int = 0
+    clip: tuple[int, int, int] | None = None
+
+
+@dataclass(frozen=True)
 class Spot:
     """A spot light (light_spot) in an area."""
 
@@ -269,6 +283,7 @@ class Layout:
     sounds: bool = False  # env_sound per area: reverb from its size (unless area.sound is set)
     bridges: list[Bridge] = field(default_factory=list)
     ambient: list[Ambient] = field(default_factory=list)
+    models: list[Model] = field(default_factory=list)
 
 
 DEFAULT_TEXTURES = {
@@ -796,6 +811,21 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         if amb.pos is not None and not areas[amb.area].inside(*amb.pos):
             raise SpecError(f"ambient {amb.name}: pos is outside {amb.area}")
         ambient.append(amb)
+    models = []
+    for md in data.get("models", []) or []:
+        mo = Model(
+            name=md["name"], area=need(md["area"], md["name"]), model=str(md["model"]),
+            pos=_ints(md["pos"], 2, f"model {md['name']}.pos"), z=int(md.get("z", 0)),
+            yaw=int(md.get("yaw", 0)),
+            clip=_ints(md["clip"], 3, f"model {md['name']}.clip") if md.get("clip") else None,
+        )  # fmt: skip
+        if not (mo.model.startswith("models/") and mo.model.lower().endswith(".mdl")):
+            raise SpecError(f"model {mo.name}: model is a path like models/conveyor1.mdl")
+        if not areas[mo.area].inside(*mo.pos):
+            raise SpecError(f"model {mo.name}: pos is outside {mo.area}")
+        if mo.clip and any(v % 8 or v <= 0 for v in mo.clip):
+            raise SpecError(f"model {mo.name}: clip [w, d, h] must be positive and on the 8 grid")
+        models.append(mo)
     bridges = []
     for b in data.get("bridges", []) or []:
         br = Bridge(
@@ -846,7 +876,8 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             # grid outwards from area centre + offset
             "offset": _ints(sp.get("offset", [0, 0]), 2, f"spawns.{team}.offset"),
         }
-    groups = (doors, stairs, cover, ramps, wedges, ladders, hatches, water, spots, bridges, ambient)
+    groups = (doors, stairs, cover, ramps, wedges, ladders, hatches, water, spots, bridges, ambient,
+              models)  # fmt: skip
     names = [x.name for group in groups for x in group]
     dup = {n for n in names if names.count(n) > 1 or n in areas}
     if dup:
@@ -879,6 +910,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         sounds=bool(data.get("sounds", False)),
         bridges=bridges,
         ambient=ambient,
+        models=models,
     )
 
 

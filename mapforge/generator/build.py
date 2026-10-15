@@ -733,6 +733,20 @@ def generate(layout: Layout) -> Generated:
                             "health": str(am.volume), "pitch": "100", "pitchstart": "100",
                             "spawnflags": str(AMBIENT_RADIUS[am.radius])}))  # fmt: skip
 
+    # Models the game ships: env_sprite shows a .mdl (cycler_sprite is buggy and meant for
+    # testing); neither is solid, so `clip` puts a player-clip box around it.
+    for mo in layout.models:
+        a = areas[mo.area]
+        z = a.floor + mo.z
+        ents.append(entity({"classname": "env_sprite", "targetname": f"mdl_{mo.name}",
+                            "model": mo.model, "origin": f"{mo.pos[0]} {mo.pos[1]} {z}",
+                            "angles": f"0 {mo.yaw} 0", "spawnflags": "1", "framerate": "1",
+                            "scale": "1", "rendermode": "0", "renderamt": "255"}))  # fmt: skip
+        if mo.clip:
+            w, d, h = mo.clip
+            lo_c = (mo.pos[0] - w // 2, mo.pos[1] - d // 2, z)
+            world.brushes.append(box_brush(lo_c, (lo_c[0] + w, lo_c[1] + d, z + h), tex["clip"]))
+
     # Room acoustics: an env_sound per area (explicit room type, or by size with `sounds`).
     wet = {w.area for w in layout.water}
     for a in areas.values():

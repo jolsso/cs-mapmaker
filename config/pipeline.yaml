@@ -20,6 +20,10 @@ paths:
   sound_dirs:
     - /refmaps/hl/cstrike/sound
     - /refmaps/hl/valve/sound
+  # The game's own models (models: in a layout -> env_sprite); referenced, never copied.
+  model_dirs:
+    - /refmaps/hl/cstrike
+    - /refmaps/hl/valve
 
 compiler:
   # SDHLT is the maintained fork of Vluzacn's ZHLT v34 (VHLT). Flags verified
