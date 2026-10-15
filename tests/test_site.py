@@ -57,4 +57,23 @@ def test_only_running_loops_pulse_and_cards_sort_by_last_edit(tmp_path):
     home = (build_site(cfg) / "index.html").read_text(encoding="utf-8")
     pos = {m: home.index(f"maps/{m}/index.html") for m in ("de_old", "de_new", "de_mid")}
     assert pos["de_new"] < pos["de_mid"] < pos["de_old"]
-    assert home.count("class='stepper idle'") == 2 and home.count("class='stepper'") == 1
+    assert home.count("class='stepper idle'") == 2 and home.count("class='stepper running'") == 1
+
+
+def test_input_is_not_a_gate_but_marks_a_loop_waiting_for_a_person(tmp_path):
+    base = load_config()
+    data = copy.deepcopy(base.data)
+    data["paths"].update(build_dir=str(tmp_path / "build"), maps_dir=str(tmp_path / "maps"),
+                         runs_dir=str(tmp_path / "runs"))  # fmt: skip
+    cfg = Config(root=base.root, data=data)
+    b = tmp_path / "build" / "de_x"
+    b.mkdir(parents=True)
+    v = {"ok": True, "source": "map", "summary": {}, "findings": []}
+    (b / "validation.json").write_text(json.dumps(v))
+    (tmp_path / "runs" / "de_x").mkdir(parents=True)
+    (tmp_path / "runs" / "de_x" / "loop.json").write_text(
+        json.dumps({"status": "stopped", "stop_reason": "alle mål ramt → Gate B"})
+    )
+    home = (build_site(cfg) / "index.html").read_text(encoding="utf-8")
+    assert "af 7 faser bestået" in home and "class='stepper human'" in home
+    assert "class='step todo now'" in home and "Venter på dig" in home

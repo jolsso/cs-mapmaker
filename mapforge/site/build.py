@@ -152,11 +152,18 @@ NEXT_PHASE = {"validate": "validate", "review": "review", "simulate": "simulate"
               "improve or stop": "decide"}  # fmt: skip
 
 
-def loop_running(cfg: Config, name: str) -> bool:
-    """Is a loop working on this map now? Only then does its phase arrow pulse."""
+# Phases that count towards a map's progress ring. Input is not a gate: it is where the
+# person comes in (wishes along the way, or a stopped loop waiting for a decision).
+GATED = [k for k, _, built in PHASES if built and k != "input"]
+
+
+def loop_mode(cfg: Config, name: str) -> str:
+    """'running' (a loop works on the map: the arrow pulses), 'human' (the loop stopped and
+    waits for a person: Input is marked, still) or 'idle' (nothing happens: grey)."""
     from mapforge.runs import runs_root
 
-    return (_load(runs_root(cfg, name) / "loop.json") or {}).get("status") == "running"
+    status = (_load(runs_root(cfg, name) / "loop.json") or {}).get("status")
+    return {"running": "running", "stopped": "human"}.get(status or "", "idle")
 
 
 EDIT_FILES = ("maps/{m}/layout.yaml", "maps/{m}/brief.json", "maps/{m}/annotations.json",
@@ -196,7 +203,7 @@ def current_phase(cfg: Config, name: str, st: dict[str, Any]) -> tuple[str | Non
             f"venter på svar til {wait['step']}" if wait else f"i gang: {what}")  # fmt: skip
         return LOOP_STEP_PHASE.get(step), text
     if loop.get("status") == "stopped":
-        return None, f"Loopet stoppede: {loop.get('stop_reason')}"
+        return "input", f"Venter på dig – loopet stoppede: {loop.get('stop_reason')}"
     nxt = st.get("next")
     return NEXT_PHASE.get(nxt or ""), (f"Næste trin: {nxt}" if nxt else "")
 
@@ -206,10 +213,11 @@ def stepper(
     link: bool = True,
     current: str | None = None,
     phases: list | None = None,
-    idle: bool = False,
+    mode: str = "running",
 ) -> str:
     """Pipeline phases as a segmented bar (green passed, red failed, dashed not run); the
-    phase the work is at now gets a pulsing arrow, a grey still one when nothing runs (`idle`)."""
+    phase the work is at now gets an arrow: pulsing while a loop runs, still when it waits for
+    a person (`mode` 'human'), grey when nothing happens ('idle')."""
     tag = "a" if link else "span"
     steps = "".join(
         f"<{tag} class='step {_state_cls(built, st.get(k))}{' now' if k == current else ''}'"
@@ -217,7 +225,7 @@ def stepper(
         + f" title='{e(label)}{' – her er vi nu' if k == current else ''}'><i></i>{e(label.split()[1])}</{tag}>"
         for k, label, built in (phases and [(k, lbl, True) for k, lbl in phases] or PHASES)
     )
-    return f"<div class='stepper{' idle' if idle else ''}'>{steps}</div>"
+    return f"<div class='stepper {mode}'>{steps}</div>"
 
 
 def _pct(v: float | None) -> str:
@@ -645,13 +653,13 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
     if st["thumb"]:
         _copy(b / "renders" / "topdown.png", out / "img" / "topdown.png")
         img = "<a href='img/topdown.png' target='_blank'><img src='img/topdown.png' alt='top-down'></a>"
-    idle = not loop_running(cfg, name)
-    bar = stepper(st, current=cur, idle=idle).replace(
+    mode = loop_mode(cfg, name)
+    bar = stepper(st, current=cur, mode=mode).replace(
         "href='#", "href='#vcur-"
     )  # into the current version box
     parts = [f"<section class='hero'><div>{img}</div><div class='side'><div><span class='eyebrow'>Projekt · "
              f"{e(src)}</span><h1>{e(name)}</h1><p class='muted'>{nxt}</p></div>"
-             f"{bar}<p class='nowline{' idle' if idle else ''}'>▸ {e(cur_text)}</p>"
+             f"{bar}<p class='nowline {mode}'>▸ {e(cur_text)}</p>"
              f"{kpis(b)}</div></section>"]  # fmt: skip
 
     brief = brief_of(cfg, name)
@@ -923,12 +931,12 @@ def build_site(cfg: Config) -> Path:
 
     def progress(m: str) -> int:
         st = map_status(cfg, m)
-        return sum(1 for k, _, built in PHASES if built and st.get(k))
+        return sum(1 for k in GATED if st.get(k))
 
     def card(m: str) -> str:
         st = map_status(cfg, m)
         cur, cur_text = current_phase(cfg, m, st)
-        idle = not loop_running(cfg, m)
+        mode = loop_mode(cfg, m)
         b = cfg.path("build_dir") / m
         bg = ""
         if st["thumb"]:
@@ -950,9 +958,9 @@ def build_site(cfg: Config) -> Path:
             f"<a class='pcard' href='maps/{m}/index.html'><div class='img'{bg}>{badge}</div><div class='body'>"
             f"<div style='display:flex;justify-content:space-between;align-items:center;gap:10px'>"
             f"<div><div class='name'>{e(m)}</div><div class='muted small'>næste: {e(st['next'] or '-')}</div></div>"
-            f"{charts.ring(done / sum(1 for *_, bl in PHASES if bl), f'{done} faser bestået')}</div>"
-            f"{stepper(st, link=False, current=cur, idle=idle)}"
-            f"<p class='nowline small{' idle' if idle else ''}'>▸ {e(cur_text)}</p>"
+            f"{charts.ring(done / len(GATED), f'{done} af {len(GATED)} faser bestået')}</div>"
+            f"{stepper(st, link=False, current=cur, mode=mode)}"
+            f"<p class='nowline small {mode}'>▸ {e(cur_text)}</p>"
             f"<div class='mini'>{''.join(mini)}</div></div></a>"
         )
 

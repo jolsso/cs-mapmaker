@@ -221,6 +221,7 @@ button.on, button.primary { background: var(--accent-soft); border-color: var(--
 .step.now i { background: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-soft), 0 0 12px var(--accent); animation: nowpulse 1.4s ease-in-out infinite; }
 .step.now::before { content: "▼"; position: absolute; top: -17px; left: 50%; transform: translateX(-50%); color: var(--accent); font-size: 12px; animation: nowbob 1.4s ease-in-out infinite; }
 .nowline { margin: 4px 0 0; color: var(--accent); font: 600 13px var(--mono); }
+.stepper.human .step.now i, .stepper.human .step.now::before { animation: none; }
 .stepper.idle .step.now { color: var(--muted) !important; }
 .stepper.idle .step.now i { background: var(--muted) !important; box-shadow: none; animation: none; }
 .stepper.idle .step.now::before { color: var(--muted); animation: none; }
