@@ -28,3 +28,12 @@ Kør `make loop MAP=<navn>` inden for budgettet i config/fitness.yaml. Respekté
 låste beslutninger og tilladte ændringer i FITNESS.md. Log hver iteration i runs/.
 Stop ved stopkriterie eller gate og skriv en opsummering.
 ```
+
+## Mapmaker (Fase 8)
+```
+Læs docs/MAPMAKER.md og Fase 8 i ROADMAP.md. Start på 8a. Genbrug mønstret fra
+Review/Decide (prompt-fil + skema → frisk subagent → --answer validerer i koden) for
+Interpreter, og hold brief.json bagudkompatibel med dashboardets nuværende v1.
+Verificér ⚠️-punkter, før du bygger på dem. Stop ved acceptkriterierne for 8a og
+rapportér; fortsæt til 8b først efter min godkendelse.
+```

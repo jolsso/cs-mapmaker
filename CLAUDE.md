@@ -13,6 +13,8 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 - `docs/ART_DIRECTION.md` – world bible + stilguide (udfyldes pr. map)
 - `docs/DESIGN_GUIDE.md` – designprincipper for gode de_-maps (veje, chokepoints, timings, spawns, mål), kalibreret på officielle maps
 - `docs/LAYOUT_SPEC.md` – YAML-formatet generatoren bygger maps ud fra
+- `docs/MAPMAKER.md` – Fase 8: simpel (brief + tema-billeder) og avanceret (tegning i lag) input → sketch.json → Parse/Fit → kandidater
+- `docs/GRAPH_TRAINING.md` – Fase 8g: datasæt, træning, evaluering og promotion af graf-modellerne (surrogat og generator)
 
 ## Arbejdsregler
 1. **Én fase ad gangen.** Start ikke på næste fase før den aktuelle opfylder sine acceptkriterier i ROADMAP.md.
@@ -59,6 +61,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf decide MAP=<navn> -- --emit     # ny runs/<map>/<NNN>/ med input-kontrakt + decide-prompt
 ./mf decide MAP=<navn> -- --answer   # tjek plan.json mod config/fitness.yaml → decision.json
 ./mf history MAP=<navn> NOTE="…"   # gem/opdatér version i history/<map>/ (sker automatisk efter render og review)
+./mf topology MAP=<navn>    # topologi (rum og forbindelser) → build/<map>/topology.yaml; vises også på websitets Graf-side
 ./mf sketch MAP=<navn> [ID=<n>]  # skitsestreger (path-annotationer) → skrå korridorer + knæ-rum som layout-YAML
 ./mf site                     # genbyg lokalt website build/site/ (sker også automatisk efter validate/render/review/decide)
 docker compose up -d site     # PÅ VÆRTEN: serverer websitet på http://localhost:8080 (kun 127.0.0.1)

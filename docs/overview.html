@@ -45,7 +45,7 @@ code { background: var(--panel2); border: 1px solid var(--line); border-radius: 
 .facts b { color: var(--ink); font-weight: 600; }
 
 /* progress strip: one segment per phase / gate */
-.progress { display: grid; grid-template-columns: repeat(13, 1fr); gap: 4px; }
+.progress { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; }
 .progress div { display: grid; gap: 6px; text-align: center; font: 600 11px var(--font-mono); color: var(--muted); }
 .progress i { height: 7px; border-radius: 4px; background: var(--track); display: block; }
 .progress .done i { background: var(--ok); } .progress .done { color: var(--ink); }
@@ -151,10 +151,11 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
     <div class="done"><i></i>6</div>
     <div class="g next"><i></i>B</div>
     <div class=""><i></i>7</div>
+    <div class=""><i></i>8</div>
     <div class="g"><i></i>C</div>
   </div>
   <div class="facts">
-    <span>status <b>fase 0–6 og Gate A færdig · de_forge01 ved Gate B · motor-udvidelse (6b) i gang på de_vault01</b></span>
+    <span>status <b>fase 0–6 og Gate A færdig · de_forge01 ved Gate B · motor-udvidelse (6b) i gang på de_viaduct01 · fase 8 planlagt (Graf-siden findes)</b></span>
     <span>opdateret <b>2026-10-11</b></span>
     <span>designguide <b>docs/DESIGN_GUIDE.md</b></span>
     <span>alle outputs: <b>http://localhost:8080</b> (lokalt website)</span>
@@ -593,11 +594,30 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
           <li>Regelbaseret lys, <code>lights.rad</code>-texlights, zonefarver</li>
           <li>Tekstur-pipeline: billede → kvantisering → WAD3 (kun fri licens)</li>
           <li>Claude reviewer screenshots mod stilguiden</li>
-          <li>Props/modeller (kun egne eller fri licens) som pynt uden gameplay-betydning</li>
+          <li>Modeller, der følger med spillet, som pynt (intet distribueres, ingen egne <code>.mdl</code>; skal verificeres)</li>
           <li>Arkitekturdetaljer: dørkarme, lister, sokler, skrå tage (<code>func_detail</code>, ændrer ikke gangbarhed)</li>
           <li>Lyd: <code>ambient_generic</code> pr. zone ud over rumklang</li>
         </ul>
         <p class="accept"><b>Accept:</b> final compile, ingen mørke zoner, stilreview uden kritiske fund.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="phase-no"><small>Fase</small>8</div>
+      <div class="phase-body">
+        <div class="phase-head"><h3>Mapmaker: simpel og avanceret input</h3><span class="chip">planlagt</span></div>
+        <p>Kommer efter 6b, én delfase ad gangen: 8a → 8b → 8c → M1 → 8d → 8g → fase 7 → 8e → 8f → M2. Fase 7 kommer før 8e, fordi 8e bygger på dens tekstur-pipeline og modeller. Fra en beskrivelse og tema-billeder (simpel) eller en tegning i lag (avanceret) til et spilbart map. Begge ender i <code>sketch.json</code> → Parse → Fit → den eksisterende pipeline. Spec: <code>docs/MAPMAKER.md</code>, træning: <code>docs/GRAPH_TRAINING.md</code>.</p>
+        <ul>
+          <li>8a: brief v2, tema-billeder med tag og licens, Interpreter-agent og "sådan har jeg forstået dig"</li>
+          <li class="ok">8b: topologi-udtræk fra layout (<code>mapforge/topology.py</code>, samme tal som <code>layout_graph()</code>) og topologi-siden på det lokale website (<a href="graph.html">Graf</a>)</li>
+          <li>8b: invarianter, operatorer, graf-niveau-evaluator kalibreret mod BSP-walk; referencemaps som topologier (tier A = officielle, tier B = community)</li>
+          <li>8c: avanceret mode: lag-tegning, Parse, Fit med troskab mod skitsen, live graf-lint</li>
+          <li>8d: simpel mode: data-drevne arketyper, MAP-Elites over topologier, Sketcher- og Curator-agenter, kandidatgalleri</li>
+          <li>8e: tema og prefabs (brush-makroer, bygger videre på 6b's cover-presets og buer), palet og egne billeder → WAD3</li>
+          <li>8f: brief-troskab og ende-til-ende i begge modes</li>
+          <li>8g: lært graf-lag: surrogat-GNN og graf-generator (datasæt, træning, promotion)</li>
+        </ul>
+        <p class="accept"><b>Gates:</b> M1 efter 8c (du tegner et map og går rundt i det), M2 efter 8f (ét map i hver mode).</p>
       </div>
     </li>
 

@@ -43,3 +43,6 @@ __pycache__/
 
 # Playwright MCP scratch (screenshots/snapshots)
 /.playwright-mcp/
+
+# Packages handed in from other sessions (read, then integrated into the repo)
+/temp/

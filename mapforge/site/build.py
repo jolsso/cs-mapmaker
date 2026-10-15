@@ -82,8 +82,9 @@ def _page(title: str, body: str, depth: int, active: str, maps: list[str]) -> st
     links = [f"<a href='{up}index.html' class='{'on' if active == 'home' else ''}'>Projekter</a>",
              f"<a href='{up}live.html' class='{'on' if active == 'live' else ''}'>● Live</a>",
              f"<a href='{up}architecture.html' class='{'on' if active == 'arch' else ''}'>"
-             "Arkitektur &amp; roadmap</a>"]  # fmt: skip
-    if active not in ("home", "arch", "live"):
+             "Arkitektur &amp; roadmap</a>",
+             f"<a href='{up}graph.html' class='{'on' if active == 'graph' else ''}'>Graf</a>"]  # fmt: skip
+    if active not in ("home", "arch", "live", "graph"):
         links.append(f"<span class='crumb'>›</span><a class='on'>{e(active)}</a>")
     return (
         f"<!doctype html><html lang='da'><head><meta charset='utf-8'>"
@@ -957,7 +958,7 @@ def build_site(cfg: Config) -> Path:
     overview = (cfg.root / "docs" / "overview.html").read_text(encoding="utf-8")
     topbar = ("<header class='topbar'><div class='in'><a class='brand' href='index.html'><span class='mark'>MF</span>"
               "MapForge</a><nav><a href='index.html'>Projekter</a><a href='live.html'>● Live</a><a class='on' href='architecture.html'>"
-              "Arkitektur &amp; roadmap</a></nav></div></header>")  # fmt: skip
+              "Arkitektur &amp; roadmap</a><a href='graph.html'>Graf</a></nav></div></header>")  # fmt: skip
     marker = '<div class="wrap">'
     page = overview.replace(marker, topbar + marker, 1) if marker in overview else topbar + overview
     (out / "architecture.html").write_text(
@@ -1037,6 +1038,14 @@ def build_site(cfg: Config) -> Path:
     shutil.copy2(Path(__file__).with_name("newmap.js"), out / "newmap.js")
     shutil.copy2(Path(__file__).with_name("project.js"), out / "project.js")
     brief_grid(out)
+    from mapforge.site import graph as graph_page
+
+    shutil.copy2(Path(__file__).with_name("graph.js"), out / "graph.js")
+    shutil.copy2(Path(__file__).with_name("graph.css"), out / "graph.css")
+    topos = graph_page.topologies(cfg, maps)
+    (out / "graph.html").write_text(
+        _page("MapForge – graf", graph_page.graph_body(topos), 0, "graph", maps), encoding="utf-8"
+    )
     (out / "new.html").write_text(_page("MapForge – nyt map", new_page(), 0, "nyt map", maps),
                                   encoding="utf-8")  # fmt: skip
     (out / "index.html").write_text(_page("MapForge – projekter", home, 0, "home", maps),
@@ -1051,6 +1060,9 @@ def build_site(cfg: Config) -> Path:
             if brief_of(cfg, m):
                 cut = body.index("</section>", cut) + len("</section>")
             body = body[:cut] + hist + body[cut:]
+        if m in topos:
+            body += (f"<section class='panel'><h2>Topologi</h2><p class='muted'>{e(m)} som rum og forbindelser, "
+                     f"med reglerne beregnet på grafen: <a href='../../graph.html#{e(m)}'>se grafen</a>.</p></section>")  # fmt: skip
         body += f"<script src='../../live.js?v={JS_VERSION}'></script>"
         (mdir / "index.html").write_text(
             _page(f"MapForge – {m}", body, 2, m, maps), encoding="utf-8"

@@ -25,6 +25,7 @@ dev = [
 package = false
 
 [tool.ruff]
+extend-exclude = ["temp"]   # packages handed in from other sessions (gitignored)
 line-length = 100
 target-version = "py311"
 
@@ -35,6 +36,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 # HTML templates: long string literals read better unbroken
 "mapforge/site/build.py" = ["E501"]
 "mapforge/site/charts.py" = ["E501"]
+"mapforge/site/graph.py" = ["E501"]
 "mapforge/analyze/run.py" = ["E501"]
 "mapforge/loop/run.py" = ["E501"]
 "mapforge/live/collector.py" = ["E501"]

@@ -2,7 +2,7 @@
 
 Byg lag for lag. Hvert lag skal fungere selvstændigt, før det næste startes. 🚦 = menneske-gate: stop, opsummér, vent på godkendelse.
 
-**Rækkefølge (omlagt 2026-10-10):** 0 → 1 → 1b → 3 → 3b → 2 → 🚦A → 4 → 5 → 6 → 🚦B → 7 → 🚦C. Det billige loop (validate → render → review → decide) bygges og testes på kendte, officielle maps, før generatoren og den dyre simulering. Fasenumrene er bevaret, så referencer stadig passer.
+**Rækkefølge (omlagt 2026-10-10, fase 8 tilføjet 2026-10-15):** 0 → 1 → 1b → 3 → 3b → 2 → 🚦A → 4 → 5 → 6 → 🚦B → 6b → 8a → 8b → 8c → 🚦M1 → 8d → 8g → 7 → 8e → 8f → 🚦M2 → 🚦C. Stadig én fase ad gangen (arbejdsregel 1). 8a–8d og 8g rører ikke geometrien på låste maps, så de kan bygges, mens et map venter på 🚦B. 7 (art pass) kræver et map gennem 🚦B og leverer tekstur-pipelinen og modellerne, som 8e bygger på. Derfor kommer 7 før 8e. 8g (lært graf-lag) kræver 8d's MAP-Elites-arkiv. Referencemaps i tiers (A = officielle, B = community) bruges fra 8b. De to første punkter i 8b (topologi-udtræk og Graf-siden) blev lavet i en browser-session 2026-10-15, før 6b var afsluttet, og blev integreret samme dag. Det billige loop (validate → render → review → decide) bygges og testes på kendte, officielle maps, før generatoren og den dyre simulering. Fasenumrene er bevaret, så referencer stadig passer.
 
 ## Fase 0 – Fundament
 **Mål:** Repo, værktøjer og et kendt testmap kan compiles.
@@ -163,10 +163,88 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [ ] Tekstur-pipeline: billede → kvantisering → WAD3 (kun fri licens)
 - [ ] Claude-review af klient-screenshots mod stilguide
 - [ ] Lysstyrkekort uden mørke spilzoner
-- [ ] Props/modeller (`.mdl` via `cycler`/`env_model`, kun egne eller fri licens) som pynt uden gameplay-betydning (lagt i roadmappen 2026-10-15)
+- [ ] Modeller, der følger med spillet, som pynt uden gameplay-betydning (`cycler_sprite`/`env_sprite`; intet distribueres, og egne `.mdl` er uden for scope, se MAPMAKER.md → Tema og assets) ⚠️ VERIFICÉR hvilke entities og stier CS 1.6 accepterer uden download (lagt i roadmappen 2026-10-15)
 - [ ] Arkitekturdetaljer i `func_detail`: dørkarme, lister, sokler, skrå tage – må ikke ændre gangbarhed eller sigtelinjer
 - [ ] Lyd: `ambient_generic` (vand, maskiner, vind) pr. zone, ud over den automatiske rumklang
 
 **Accept:** Final compile, ingen mørke zoner, stilreview uden kritiske fund.
 
 🚦 **Gate C – Release:** Menneskelig playtest med rigtige spillere.
+
+## Fase 8 – Mapmaker: simpel og avanceret input (2026-10-15)
+**Mål:** Fra en beskrivelse og tema-billeder (simpel) eller en tegning i lag (avanceret) til et spilbart, tema-klædt map – uden at mennesket skriver `layout.yaml`. Spec: `docs/MAPMAKER.md`. Avanceret bygges før simpel, fordi skitsen leverer indlejringen; simpel mode er derefter "agenter tegner skitsen".
+
+### 8a – Brief v2, billeder og Interpreter
+- [ ] `brief.json` v2 (skema i koden, bagudkompatibel med v1 fra dashboardet)
+- [ ] `maps/<map>/brief/images.json` + upload-API med tag (`mood|landmark|material|layout`) og licens (`own|cc0|inspiration`); `inspiration` gitignored, EXIF strippes
+- [ ] Interpreter-agent (prompt + skema → `intent.json`, `--answer` validerer; `must_have` dækket eller begrundet afvist)
+- [ ] Dashboard: guide-trin 1–3 + "Sådan har jeg forstået dig" (intent kan rettes)
+
+**Accept:** Tre forskellige briefs (én kun tekst, én med billeder, én med et `layout`-billede) giver skema-gyldige `intent.json`, og mennesket godkender mindst to af tre uden rettelser.
+
+### 8b – Topologi og graf-niveau-evaluator
+- [x] Topologi-udtræk fra ethvert layout: `mapforge/topology.py` (`./mf topology MAP=…` → `build/<map>/topology.yaml`), samme tal som `layout_graph()` på alle egne maps (`tests/test_topology.py`) (2026-10-15)
+- [x] Topologi-siden på det lokale website (`graph.html`, "Graf" i topbaren): rum ↔ graf, inspektion som `topology.yaml`, `remove_edge` med reglerne genberegnet, korteste veje, niveau-fokus; link fra hver map-side (2026-10-15)
+- [ ] Invariant-tjek (inkl. planaritet pr. niveau) og operatorerne (`split_edge`, `merge_nodes`, `add_edge`/`remove_edge`, `reroute`, `set_kind`, `set_level`, `stretch`, `graft`) med tests
+- [ ] WL-hash (dubletter) og rolle-bevidst graf-edit-distance
+- [ ] Round-trip-test på alle egne maps: layout → topologi → samme nøgletal som i dag
+- [ ] Graf-niveau-evaluator: timings, rotation, indgange, kryds, kompleksitet C, groft sigtelinje-estimat – uden compile
+- [ ] Referencemap-tiers: **A** = de 15 officielle de_-maps (navneliste i `config/pipeline.yaml` → `refmaps.tiers`, ikke ud fra mappe, da custom maps ofte ligger i `cstrike/maps`), **B** = community-maps; override pr. map
+- [ ] BSP → topologi for alle referencemaps (walk-graf-segmentering; rykket frem fra 8g): `./mf refgraphs` → `build/topologies/refmap/`
+- [ ] Facit: topologier annoteret i hånden på alle 15 tier A + 5–10 tier B, valgt så de spænder bredt (stablede, asymmetriske, store udendørs)
+- [ ] Kalibrering af graf-evaluatoren mod BSP-walk (`design_stats`) på egne maps, loop-historikken og alle referencemaps; afvigelser i `docs/CALIBRATION.md`
+- [ ] Genkalibrering af DESIGN_GUIDE-tærskler: bånd sættes på tier A, tier B bruges som kontrol (rapportér begge fordelinger)
+- [ ] Bot-baseline: 50 runder på alle referencemaps; skelner bot-metrikkerne tier A fra tier B, og hvor bør sanity-båndet ligge? (diagnostik, ikke fitness)
+
+**Accept:** Topologi-udtrækket rammer facit (site-indgange, niveauer, envejsfald) på ≥ 90 % af de annoterede maps. Median-afvigelse på spawn → site-timings ≤ 2 s mod BSP-walk på både egne maps og tier A, < 10 ms pr. evaluering, round-trip grøn på alle egne maps.
+
+### 8c – Avanceret mode: lag-tegning, Parse og Fit
+- [ ] `sketch.json` (niveauer, lagene struktur/forbindelser/detaljer/intention, lås `fixed|flexible|hint`)
+- [ ] Dashboard-editor: lag-faner, niveau-vælger, værktøjer pr. lag, lås pr. element, fortryd
+- [ ] Live graf-lint: topologi, timings pr. site og regelbrud vises og opdateres, mens man tegner
+- [ ] Parse: sketch → `topology.yaml` + rå `layout.yaml`; tvetydige kryds i `parse_report.json`, vist før Fit
+- [ ] Fit: global skala → lokal tilpasning (SA/CMA-ES på 8b-evaluatoren) → snap; faste elementer er hårde constraints; topologiændringer kun som forslag
+- [ ] `fit_report.json` (hver ændring med årsag) + overlay-render (skitse oven på resultat); varianter ved fidelity 0,9 / 0,6 / 0,3
+
+**Accept:** En håndtegnet testskitse med tre niveauer (kælder, gade, 1. sal), en lem og en rampe → tre fit-varianter, der compiler med 0 errors og består Review. Ingen `fixed`-elementer flyttet i nogen variant; ændringslisten forklarer alle afvigelser > 64 units.
+
+🚦 **Gate M1 – Avanceret mode:** Mennesket tegner selv et map, vælger en variant og går rundt i det. Ligner det tegningen? Gav ændringerne mening?
+
+### 8d – Simpel mode: Sketcher og kandidatgalleri
+- [ ] Data-drevne arketyper: klyng referencemaps' topologier (WL-kernel/graf-edit-distance); klyngerne er arketyperne, medoiden (helst tier A) er skabelonen; `three_lane`/`asymmetric`/`stacked` er kun startnavne
+- [ ] Adfærdsdimensionernes intervaller og en blød realisme-straf (afstand til tier-vægtet referencefordeling) fra referencemaps
+- [ ] MAP-Elites over topologier (arketype × kompleksitet C × andel lange sigtelinjer × CT-territorium); Fit-straf tæller i fitness
+- [ ] Sketcher-agent som mutationsoperator (svarer med operatorer + parametre, ikke en ny graf) og til at skrive kandidater som `sketch.json`
+- [ ] Arkiv i `build/topologies/archive/` med alle labels (træningsdata til 8g)
+- [ ] `./mf candidates`: alle kandidater gennem build → validate → render → review; Curator-agent skriver "hvorfor denne" + callouts; galleri på sitet
+- [ ] `./mf pick` + remix ("kandidat 2 med B fra kandidat 4")
+
+**Accept:** Fra en brief uden tegning: ≥ 5 kandidater, der består validering og Review, er indbyrdes forskellige (forskellig arketype eller topologi-afstand over tærskel), ubemandet på < 30 min.
+
+### 8g – Lært graf-lag
+- [ ] Datasæt: egne maps + loop-versioner, MAP-Elites-arkiv, referencemaps med tier, menneskelige valg (præferencepar fra Gate A/C)
+- [ ] Nyhedskrav: genererede topologier har graf-edit-distance ≥ τ til alle referencemaps
+- [ ] Datasæt-poster (JSONL), manifest med hash og splits efter familie; de officielle maps altid i test (`docs/GRAPH_TRAINING.md` §1)
+- [ ] `train`-image (PyTorch + PyG, CPU; GPU valgfri), `config/train.yaml`, model-register med promotion og model cards (§6)
+- [ ] Surrogat-GNN (GINE-ensemble): topologi → BSP-niveau-metrikker + indlejrbarhed; slår graf-evaluatoren alene; active learning via ensemble-usikkerhed; forfilter i MAP-Elites (§2–3)
+- [ ] Graf-generator: kanonisk serialisering, decoder-only transformer betinget på intent, begrænset dekodning; prætræning på arkivet → finetuning på rigtige maps → expert iteration (§4)
+- [ ] Retræningspolitik og "Modeller"-side på websitet (§6–7)
+- [ ] Generatoren som ekstra kilde i Sketcher
+
+**Accept:** (1) Tier A er hele vejen igennem kun test, aldrig træning. (2) Surrogaten har R² ≥ 0,8 på timings og rotation på holdout. (3) Generatoren giver ≥ 80 % gyldige topologier uden reparation, overholder nyhedskravet og leverer flere Review-godkendte kandidater pr. compute-time end MAP-Elites alene – ellers bliver den ikke slået til.
+
+### 8e – Tema og prefabs
+- [ ] Prefab-bibliotek som brush-makroer med tema-tags og wpoly-estimat. Det bygger videre på 6b's cover-presets (`crate_stack`, `barrels`, `pallets`, `shape: cylinder`) og `arch` på døre; nye er container, railing/fence, pipe_run, crane, market_stall og car_wreck
+- [ ] Dresser-agent: tema → zoner, materialer, lys, prefabs, udfyldt `ART_DIRECTION.md`; samme politik-tjek som Decide, ingen geometri efter Gate B
+- [ ] Palet fra billeder (k-means) → procedurelle CC0-teksturer; `own`/`cc0`-billeder → WAD3 via fase 7's pipeline, licens noteret automatisk
+- [ ] Radar-overview med callouts ⚠️ VERIFICÉR format (MAPMAKER.md → Tema og assets); Dresser bruger modellerne fra fase 7
+
+**Accept:** Et map med 6 tema-billeder får zoner, prefabs og lys; final compile uden mørke zoner, < ~800 wpoly pr. kameraview, stilreview uden kritiske fund.
+
+### 8f – Brief-troskab og ende-til-ende
+- [ ] Brief-troskab-agent: endelige renders mod brief/intent, score 1–5 pr. punkt (diagnostik, ikke i fitness-vægten)
+- [ ] Ende-til-ende i begge modes uden manuelle trin mellem gates
+
+**Accept:** Ét map pr. mode fra brief til Gate B uden manuelle trin mellem gates; brief-troskab ≥ 4 på `concept`, sites og `must_have`.
+
+🚦 **Gate M2 – Mapmaker:** Mennesket laver ét map i hver mode og vurderer: fik jeg det map, jeg beskrev/tegnede? Ville jeg spille det?
