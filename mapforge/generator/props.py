@@ -114,10 +114,10 @@ RUST = {"side": "TSPLAINRED", "top": "TSOILY"}
 
 def _container(b: Box2, z0: int, h: int) -> list[Solid]:
     """A shipping container: one block, green container sides and a ribbed roof."""
-    # the side texture is one crate stack with a dark pallet gap at its foot: tiled, the gap
-    # shows halfway up as a black seam, so every face is stretched to one whole tile
-    s = _box(b, 0, b.length, z0, z0 + h, {"side": "TSCRTESD", "top": "TSCRTETP"})
-    return [Solid(s.shape, s.lo, s.hi, s.tex, fit=(64, 64))]
+    # a blue shipping container (cs_assault.wad), one whole panel per face: tiled, its ends
+    # cut mid-panel (the olive crate texture before matched the T models and seamed halfway up)
+    s = _box(b, 0, b.length, z0, z0 + h, "BCONTAINER3")
+    return [Solid(s.shape, s.lo, s.hi, s.tex, fit=(256, 128))]
 
 
 def _rail_wagon(b: Box2, z0: int, h: int) -> list[Solid]:

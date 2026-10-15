@@ -571,7 +571,9 @@ SKYLINE_HEIGHTS = (0, 32, 64, 96, 160, 224)  # a building's roof above its ceili
 
 
 def _skyline(sk: Any) -> dict[str, Any] | None:
-    """skyline: true or {heights: [...], air: 128, facade: TEX, roof: TEX}."""
+    """skyline: true or {heights: [...], air: 128, facade: TEX, roof: TEX, facade_plain: TEX,
+    facade_size: [256, 256], facade_min: 192} - a facade with windows needs `facade_min` units
+    of wall in view under its roof line; a lower strip gets the plain texture instead."""
     if not sk:
         return None
     sk = {} if sk is True else dict(sk)
@@ -581,8 +583,13 @@ def _skyline(sk: Any) -> dict[str, Any] | None:
     air = int(sk.get("air", 128))
     if air < 64 or air % 8:
         raise SpecError("skyline.air: >= 64 on the 8 grid (open air over the highest roof)")
-    return {"heights": heights, "air": air,
-            "facade": sk.get("facade"), "roof": sk.get("roof")}  # fmt: skip
+    fw, fh = (int(v) for v in sk.get("facade_size", (256, 256)))
+    fmin = int(sk.get("facade_min", 192))
+    if fw <= 0 or fh <= 0 or fmin < 0:
+        raise SpecError("skyline.facade_size: [w, h] > 0, facade_min >= 0")
+    return {"heights": heights, "air": air, "facade": sk.get("facade"), "roof": sk.get("roof"),
+            "facade_plain": sk.get("facade_plain"), "facade_size": (fw, fh),
+            "facade_min": fmin}  # fmt: skip
 
 
 def _wall_details(wd: Any, areas: dict[str, Area]) -> dict[str, Any] | None:

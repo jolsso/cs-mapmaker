@@ -195,6 +195,9 @@ skyline:                      # eller bare `skyline: true`
   heights: [0, 32, 64, 96, 160, 224]   # en bygningsbloks variation (vælges stabilt ud fra dens placering)
   air: 128                    # fri luft over det højeste tag, før himlen
   facade: BRICK05-2           # facader ud mod luften (standard: textures.wall)
+  facade_plain: BRICK05       # samme mur uden vinduer, hvor under facade_min af facaden ses
+  facade_size: [256, 256]     # facade-teksturens størrelse: et helt antal fliser pr. blokside
+  facade_min: 192             # så meget facade skal ses over gårdens mur, før der vises vinduer
   roof: TSROOF                # tagflader (standard: textures.ceiling)
 ```
 - Uden `skyline` er skallen klassisk: massiv op til toppen, himmel kun lodret over udendørs områder.

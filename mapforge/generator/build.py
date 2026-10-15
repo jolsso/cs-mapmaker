@@ -859,8 +859,10 @@ def anchor_texture(brush: Brush, anchors: dict[int, tuple]) -> Brush:
     anchor: texture coordinate 0 there, along both axes (a wall's top row at the ceiling line,
     a floor's slabs from the room's corner, a facade's windows under the roof line)."""
     faces = list(brush.faces)
-    for i, (ax, ay, az) in anchors.items():
+    for i, (ax, ay, az, *su_) in anchors.items():
         f = faces[i]
+        if su_:  # a facade: the texture's width fits the block a whole number of times
+            f = replace(f, scale=(su_[0], f.scale[1]))
         u, v = f.u_axis, f.v_axis
         su = -(ax * u[0] + ay * u[1] + az * u[2]) / (f.scale[0] or 1)
         sv = -(ax * v[0] + ay * v[1] + az * v[2]) / (f.scale[1] or 1)
@@ -879,6 +881,7 @@ def _face_textures(
     outside: dict | None = None,
     anchors: dict[str, tuple] | None = None,
     block_at=None,
+    roof_at=None,
 ) -> dict[str, str]:
     """Per side of a shell box: the texture of the area it faces (largest touching overlap);
     with a skyline, a side that faces no area looks out into the open air: roof on top,
@@ -907,6 +910,15 @@ def _face_textures(
                 if anchors is not None and block_at is not None:
                     b = block_at((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2)
                     anchors[key] = (b[0], b[1], b[4]) if b else (lo[0], lo[1], hi[2])
+                    if b and axis < 2:  # a facade: whole windows across the block, none cut
+                        fw = outside.get("size", (256, 256))[0]
+                        span = (b[3] - b[1]) if axis == 0 else (b[2] - b[0])
+                        anchors[key] += (span / (max(1, round(span / fw)) * fw),)
+                        p = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2]
+                        p[axis] = coord + sign * 8  # just outside the face
+                        seen = b[4] - (roof_at(*p) if roof_at else lo[2])
+                        if seen < outside.get("min", 0) and outside.get("plain"):
+                            out[key] = outside["plain"]  # too little in view for a window
                 continue
             t = tex_of(best_a)
             out[key] = t["floor"] if key == "+z" else t["ceiling"] if key == "-z" else t["wall"]
@@ -983,7 +995,13 @@ def generate(layout: Layout) -> Generated:
     void_areas = [(b, areas.get(n) or door_area[n]) for n, b in voids.items()]
     sk = layout.skyline or {}
     outside = (
-        {"facade": sk.get("facade") or tex["wall"], "roof": sk.get("roof") or tex["ceiling"]}
+        {
+            "facade": sk.get("facade") or tex["wall"],
+            "roof": sk.get("roof") or tex["ceiling"],
+            "plain": sk.get("facade_plain"),
+            "size": sk.get("facade_size", (256, 256)),
+            "min": sk.get("facade_min", 0),
+        }
         if roofline
         else None
     )  # building faces that look out into the open air above the roofs
@@ -1000,6 +1018,12 @@ def generate(layout: Layout) -> Generated:
     )
     blocks = sky.blocks if sky is not None else []
 
+    def roof_at(x: float, y: float) -> float:
+        """The roof (or a yard's open top) over a point on the plan."""
+        i = min(max(int(np.searchsorted(xs, x)) - 1, 0), len(xs) - 2)
+        j = min(max(int(np.searchsorted(ys, y)) - 1, 0), len(ys) - 2)
+        return float(sky.roof[i, j]) if sky is not None else 0.0
+
     def block_at(x: float, y: float):
         """(x0, y0, x1, y1, roof z) of the building block over a point, or None."""
         for b in blocks:
@@ -1015,7 +1039,7 @@ def generate(layout: Layout) -> Generated:
         if lab == SKY:
             t: str | dict[str, str] = tex["sky"]
         elif layout.zones or roofline:
-            t = _face_textures(b_lo, b_hi, void_areas, tex_of, outside, anchors, block_at)
+            t = _face_textures(b_lo, b_hi, void_areas, tex_of, outside, anchors, block_at, roof_at)
         else:
             t = surf(None)
         brush = box_brush(b_lo, b_hi, t)

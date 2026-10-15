@@ -84,7 +84,9 @@ def test_a_map_with_game_textures_compiles_and_references_the_wad(tmp_path):
     ]
     g = generate(parse_layout(lay))
     assert assign_wads(g.mapfile, cfg) == []
-    assert g.mapfile.worldspawn.properties["wad"] == "mapforge_dev.wad;cs_bdog.wad;tswad.wad"
+    assert g.mapfile.worldspawn.properties["wad"] == (
+        "mapforge_dev.wad;cs_assault.wad;cs_bdog.wad;tswad.wad"  # container: cs_assault.wad
+    )
     write_map(g.mapfile, tmp_path / "maps" / "de_gen_feat" / "src" / "de_gen_feat.map")
     make_dev_wad()
     bsp = read_bsp(compile_map(cfg, "de_gen_feat"))
