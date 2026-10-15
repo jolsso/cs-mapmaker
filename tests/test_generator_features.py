@@ -699,3 +699,46 @@ def test_roofed_and_pitched_map_compiles_without_a_leak(tmp_path):
     write_map(g.mapfile, tmp_path / "maps" / "de_gen_feat" / "src" / "de_gen_feat.map")
     make_dev_wad()
     compile_map(cfg, "de_gen_feat")  # raises CompileError on a leak
+
+
+def test_skyline_gives_buildings_different_heights_under_one_sky():
+    from mapforge.generator.build import skyline_heights
+
+    data = copy.deepcopy(FEAT)
+    data["skyline"] = {"facade": "DEV_BRICK", "roof": "DEV_CONCRETE", "overrides": {"mid": 96}}
+    lay = parse_layout(data)
+    g = generate(lay)
+    heights = skyline_heights(lay, g.voids)
+    assert heights["mid"] == lay.areas["mid"].top + lay.wall + 96  # an override
+    assert len(set(heights.values())) > 1  # not all the same
+    world = g.mapfile.worldspawn.brushes
+    tops = {round(brush_geometry(b).vertices[:, 2].max()) for b in world
+            if any(f.texture == "DEV_CONCRETE" for f in b.faces)}  # fmt: skip
+    assert len(tops) > 1  # roofs at several heights
+    sky = [b for b in world if all(f.texture == "SKY" for f in b.faces)]
+    z_sky = max(brush_geometry(b).vertices[:, 2].max() for b in sky)
+    assert z_sky >= max(heights.values()) + 128  # open air over the highest roof
+    clips = [b for b in world if b.faces[0].texture == "CLIP"]
+    ct = lay.areas["ct_spawn"]  # the outdoor yard gets a player clip at its open top
+    assert any(brush_geometry(b).vertices[:, 2].min() == ct.top for b in clips)
+    for b in g.mapfile.brushes():
+        geo = brush_geometry(b)
+        assert not geo.unbounded
+
+
+@pytest.mark.slow
+@needs_compilers
+def test_skyline_map_compiles_sealed(tmp_path):
+    from mapforge.compile.run import compile_map
+    from mapforge.wad.dev_textures import main as make_dev_wad
+
+    base = load_config()
+    data_cfg = copy.deepcopy(base.data)
+    data_cfg["paths"].update(maps_dir=str(tmp_path / "maps"), build_dir=str(tmp_path / "build"))
+    cfg = Config(root=base.root, data=data_cfg)
+    data = copy.deepcopy(FEAT)
+    data["skyline"] = True
+    g = generate(parse_layout(data))
+    write_map(g.mapfile, tmp_path / "maps" / "de_gen_feat" / "src" / "de_gen_feat.map")
+    make_dev_wad()
+    compile_map(cfg, "de_gen_feat")  # raises CompileError on a leak

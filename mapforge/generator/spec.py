@@ -295,6 +295,9 @@ class Layout:
     spawns: dict[str, dict[str, Any]]  # T/CT -> {area, count}
     buyzones: bool = True
     sky: dict[str, Any] = field(default_factory=dict)
+    # buildings of different heights with open air above the roofs (None = the classic shell:
+    # solid up to the top, sky only straight above outdoor areas)
+    skyline: dict[str, Any] | None = None
     lights: dict[str, Any] = field(default_factory=dict)
     ramps: list[Ramp] = field(default_factory=list)
     wedges: list[Wedge] = field(default_factory=list)
@@ -560,6 +563,27 @@ def _ints(v: Any, n: int, what: str) -> tuple[int, ...]:
     if not isinstance(v, (list, tuple)) or len(v) != n or not all(isinstance(x, int) for x in v):
         raise SpecError(f"{what}: expected {n} integers, got {v!r}")
     return tuple(v)
+
+
+SKYLINE_HEIGHTS = (0, 32, 64, 96, 160, 224)  # a building's roof above its ceiling (+ wall)
+
+
+def _skyline(sk: Any) -> dict[str, Any] | None:
+    """skyline: true or {heights: [...], air: 128, facade: TEX, roof: TEX, overrides: {area: h}}."""
+    if not sk:
+        return None
+    sk = {} if sk is True else dict(sk)
+    heights = [int(h) for h in sk.get("heights", SKYLINE_HEIGHTS)]
+    if not heights or any(h < 0 or h % 8 for h in heights):
+        raise SpecError("skyline.heights: non-negative values on the 8 grid")
+    over = {str(k): int(v) for k, v in (sk.get("overrides") or {}).items()}
+    if any(v < 0 or v % 8 for v in over.values()):
+        raise SpecError("skyline.overrides: non-negative heights on the 8 grid")
+    air = int(sk.get("air", 128))
+    if air < 64 or air % 8:
+        raise SpecError("skyline.air: >= 64 on the 8 grid (open air over the highest roof)")
+    return {"heights": heights, "overrides": over, "air": air,
+            "facade": sk.get("facade"), "roof": sk.get("roof")}  # fmt: skip
 
 
 def parse_layout(data: dict[str, Any]) -> Layout:
@@ -968,6 +992,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         spawns=spawns,
         buyzones=bool(data.get("buyzones", True)),
         sky=data.get("sky", {}) or {},
+        skyline=_skyline(data.get("skyline")),
         lights=data.get("lights", {}) or {},
         ramps=ramps,
         wedges=wedges,

@@ -189,6 +189,19 @@ ambient:
 ```
 - `ambient_generic` (looper); `sound` er en sti under `sound/`, som spillet selv har (`cstrike/sound` eller `valve/sound`, CS 1.6 falder tilbage på valve). Generatoren afviser stier, der ikke findes i `paths.sound_dirs` (tjekket kun når Half-Life-installationen er mountet). Standard: områdets midte, 64 over gulvet, volumen 6, radius medium.
 
+### Skyline: bygninger i forskellige højder (2026-10-15)
+```yaml
+skyline:                      # eller bare `skyline: true`
+  heights: [0, 32, 64, 96, 160, 224]   # variation over loftet (vælges stabilt ud fra områdets navn)
+  overrides: {b_site: 192, ct_spawn: 0}   # fast variation for bestemte områder
+  air: 128                    # fri luft over det højeste tag, før himlen
+  facade: BRICK05-2           # facader ud mod luften (standard: textures.wall)
+  roof: TSROOF                # tagflader (standard: textures.ceiling)
+```
+- Uden `skyline` er skallen klassisk: massiv op til toppen, himmel kun lodret over udendørs områder. Med `skyline` er hver søjle en bygning op til taghøjden for det nærmeste område (i plan; ved lighed vinder det højeste tag): et indendørs rums bygning slutter `wall` over loftet (et skråt loft: over kippen) + variationen; væggene om en gård slutter ved gårdens top + variationen. Over tagene er der åben luft op til himlen, og himlen dækker skallens yderside.
+- Hver gård får et spiller-clip-loft i sin oprindelige top, så ingen kan booste op på tagene (granater og skud går igennem clip).
+- Mere kan ses hen over tagene: hold øje med r_speeds/wpoly i valideringen.
+
 ### Tage og skrå lofter (2026-10-15)
 ```yaml
 roofs:      # tag over en del af et område, åbne sider (halvtag i en gård, skur på stolper)

@@ -13,6 +13,7 @@ Inside the empty space the spec adds solids: stairs, ramps, wedges (angled walls
 
 from __future__ import annotations
 
+import hashlib
 import math
 from dataclasses import dataclass
 from typing import Any
@@ -331,17 +332,43 @@ def _overpasses(voids: list[tuple[Box, bool]], sky_over: list[Area], wall: int) 
     return out
 
 
+def skyline_heights(layout: Layout, voids: dict[str, Box]) -> dict[str, int]:
+    """Roof height per area with a skyline: an indoor room's building ends `wall` above its
+    ceiling (a pitched hall: its ridge) plus a variation picked from the area's name (stable,
+    no randomness); a yard's surrounding walls end at its open top plus a variation. Overrides
+    in skyline.overrides replace the variation."""
+    sk = layout.skyline or {}
+    hs = sk["heights"]
+    out = {}
+    for a in layout.areas.values():
+        top = voids[a.name][1][2]
+        base = top if a.outdoor else top + layout.wall
+        pick = int(hashlib.sha1(a.name.encode()).hexdigest(), 16) % len(hs)
+        out[a.name] = base + sk["overrides"].get(a.name, hs[pick])
+    return out
+
+
 def _solid_cells(
     voids: list[Box],
     sky_over: list[Area],
     shell: Box,
     owners: list[tuple[Area, int]],
     overpasses: list[Box] = (),
+    roofline: dict[str, int] | None = None,
+    wall: int = 16,
 ) -> tuple[list, np.ndarray]:
+    """Label grid cells of the shell. Classic: solid everywhere, sky straight above outdoor areas.
+    With a roofline (area -> roof height): each column is a building up to the roof height of
+    its nearest area (2D; ties: the highest), open air above it, and sky on the shell's skin
+    above the roofs - buildings of different heights under one sky."""
     (sx0, sy0, sz0), (sx1, sy1, sz1) = shell
     axes = []
     for i, (lo, hi) in enumerate(((sx0, sx1), (sy0, sy1), (sz0, sz1))):
         cuts = {lo, hi}
+        if roofline:
+            cuts |= {lo + wall, hi - wall}
+            if i == 2:
+                cuts |= set(roofline.values())
         for b in [*voids, *overpasses]:
             cuts |= {b[0][i], b[1][i]}
         for a in sky_over:  # split at outdoor area edges so sky cells line up with them
@@ -367,12 +394,36 @@ def _solid_cells(
             closer = d < best
             best[closer] = d[closer]
             label[closer] = SOLID if k == 0 else ZONE_LABEL + k
-    for a in sky_over:
-        x0, y0, x1, y1 = a.rect
-        label[(gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > a.top)] = SKY
-    for (x0, y0, z0), (x1, y1, z1) in overpasses:
-        inside = (gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > z0) & (gz < z1)
-        label[inside & (label == SKY)] = SOLID
+    if roofline:
+        by_name = {a.name: a for a, _ in owners}
+        names = list(roofline)
+        roof = np.zeros(gx.shape)
+        best = np.full(gx.shape, np.inf)
+        for n in names:  # nearest area in plan; on a tie the higher roof wins
+            x0, y0, x1, y1 = by_name[n].rect
+            dx = np.maximum(np.maximum(x0 - gx, gx - x1), 0)
+            d = dx + np.maximum(np.maximum(y0 - gy, gy - y1), 0)
+            better = (d < best) | ((d == best) & (roofline[n] > roof))
+            best[better] = d[better]
+            roof[better] = roofline[n]
+        skin = (gx < sx0 + wall) | (gx > sx1 - wall) | (gy < sy0 + wall) | (gy > sy1 - wall)
+        skin |= gz > sz1 - wall
+        above = gz > roof
+        for a in sky_over:  # straight above a yard the air starts at the yard's own top
+            x0, y0, x1, y1 = a.rect
+            above |= (gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > a.top)
+        label[above & skin] = SKY
+        label[above & ~skin] = EMPTY  # open air over the roofs and the yards
+        for (x0, y0, z0), (x1, y1, z1) in overpasses:
+            inside = (gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > z0) & (gz < z1)
+            label[inside & ((label == SKY) | (label == EMPTY))] = SOLID
+    else:
+        for a in sky_over:
+            x0, y0, x1, y1 = a.rect
+            label[(gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > a.top)] = SKY
+        for (x0, y0, z0), (x1, y1, z1) in overpasses:
+            inside = (gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > z0) & (gz < z1)
+            label[inside & (label == SKY)] = SOLID
     for (x0, y0, z0), (x1, y1, z1) in voids:
         label[(gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > z0) & (gz < z1)] = EMPTY
     return axes, label
@@ -590,8 +641,12 @@ def _ladder_box(layout: Layout, ld) -> Box:
     return ((c - ld.width // 2, ya, z0), (c + ld.width // 2, yb, z1))
 
 
-def _face_textures(lo: tuple, hi: tuple, voids: list[tuple[Box, Area]], tex_of) -> dict[str, str]:
-    """Per side of a shell box: the texture of the area it faces (largest touching overlap)."""
+def _face_textures(
+    lo: tuple, hi: tuple, voids: list[tuple[Box, Area]], tex_of, outside: dict | None = None
+) -> dict[str, str]:
+    """Per side of a shell box: the texture of the area it faces (largest touching overlap);
+    with a skyline, a side that faces no area looks out into the open air: roof on top,
+    facade on the sides (hidden inner faces get them too, which costs nothing)."""
     out = {}
     for axis in range(3):
         for sign, coord in ((-1, lo[axis]), (1, hi[axis])):
@@ -608,6 +663,9 @@ def _face_textures(lo: tuple, hi: tuple, voids: list[tuple[Box, Area]], tex_of) 
                     best, best_a = ov, area
             side = "xyz"[axis]
             key = ("+" if sign > 0 else "-") + side
+            if best_a is None and outside:
+                out[key] = outside["roof"] if key == "+z" else outside["facade"]
+                continue
             t = tex_of(best_a)
             out[key] = t["floor"] if key == "+z" else t["ceiling"] if key == "-z" else t["wall"]
     return out
@@ -649,6 +707,9 @@ def generate(layout: Layout) -> Generated:
         voids[h.name] = ((hx0, hy0, areas[h.lower].top), (hx1, hy1, areas[h.upper].floor))
     lo = np.min([b[0] for b in voids.values()], axis=0) - layout.wall
     hi = np.max([b[1] for b in voids.values()], axis=0) + layout.wall
+    roofline = skyline_heights(layout, voids) if layout.skyline else None
+    if roofline:  # room for open air over the highest roof, then the sky
+        hi[2] = max(hi[2], max(roofline.values()) + layout.skyline["air"] + layout.wall)
     if np.any(np.abs(lo) > WORLD_LIMIT) or np.any(np.abs(hi) > WORLD_LIMIT):
         raise SpecError(f"map exceeds ±{WORLD_LIMIT} units: {lo.tolist()} .. {hi.tolist()}")
     shell: Box = (tuple(int(v) for v in lo), tuple(int(v) for v in hi))
@@ -657,10 +718,18 @@ def generate(layout: Layout) -> Generated:
     over = _overpasses(
         [(b, n in areas and areas[n].outdoor) for n, b in voids.items()], outdoor, layout.wall
     )
-    (xs, ys, zs), label = _solid_cells(list(voids.values()), outdoor, shell, owners, over)
+    (xs, ys, zs), label = _solid_cells(
+        list(voids.values()), outdoor, shell, owners, over, roofline, layout.wall
+    )
     door_area = {d.name: areas[d.between[0]] for d in layout.doors}
     door_area.update({h.name: areas[h.lower] for h in layout.hatches})
     void_areas = [(b, areas.get(n) or door_area[n]) for n, b in voids.items()]
+    sk = layout.skyline or {}
+    outside = (
+        {"facade": sk.get("facade") or tex["wall"], "roof": sk.get("roof") or tex["ceiling"]}
+        if roofline
+        else None
+    )  # building faces that look out into the open air above the roofs
 
     world = entity(
         {
@@ -677,11 +746,15 @@ def generate(layout: Layout) -> Generated:
         b_hi = (xs[si.stop], ys[sj.stop], zs[sk.stop])
         if lab == SKY:
             t: str | dict[str, str] = tex["sky"]
-        elif layout.zones:
-            t = _face_textures(b_lo, b_hi, void_areas, tex_of)
+        elif layout.zones or roofline:
+            t = _face_textures(b_lo, b_hi, void_areas, tex_of, outside)
         else:
             t = surf(None)
         world.brushes.append(box_brush(b_lo, b_hi, t))
+    if roofline:  # players stay below each yard's open top: no boosting onto the roofs
+        for a in outdoor:
+            x0, y0, x1, y1 = a.rect
+            world.brushes.append(box_brush((x0, y0, a.top), (x1, y1, a.top + 8), tex["clip"]))
     n_shell = len(world.brushes)
 
     # Solids inside the empty space. With `detail`, the low ones (stairs, ramps, crates: top at
