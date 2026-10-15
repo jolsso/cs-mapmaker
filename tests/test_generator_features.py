@@ -701,29 +701,32 @@ def test_roofed_and_pitched_map_compiles_without_a_leak(tmp_path):
     compile_map(cfg, "de_gen_feat")  # raises CompileError on a leak
 
 
-def test_skyline_gives_buildings_different_heights_under_one_sky():
-    from mapforge.generator.build import skyline_heights
+def test_skyline_yard_walls_even_rooms_flat_blocks_varied_with_gables():
+    from mapforge.generator.build import PARAPET, skyline_plan
 
     data = copy.deepcopy(FEAT)
-    data["skyline"] = {"facade": "DEV_BRICK", "roof": "DEV_CONCRETE", "overrides": {"mid": 96}}
+    data["skyline"] = {"facade": "DEV_BRICK", "roof": "DEV_CONCRETE"}
     lay = parse_layout(data)
     g = generate(lay)
-    heights = skyline_heights(lay, g.voids)
-    assert heights["mid"] == lay.areas["mid"].top + lay.wall + 96  # an override
-    assert len(set(heights.values())) > 1  # not all the same
     world = g.mapfile.worldspawn.brushes
-    tops = {round(brush_geometry(b).vertices[:, 2].max()) for b in world
-            if any(f.texture == "DEV_CONCRETE" for f in b.faces)}  # fmt: skip
-    assert len(tops) > 1  # roofs at several heights
-    sky = [b for b in world if all(f.texture == "SKY" for f in b.faces)]
-    z_sky = max(brush_geometry(b).vertices[:, 2].max() for b in sky)
-    assert z_sky >= max(heights.values()) + 128  # open air over the highest roof
+    # rebuild the plan on a fine grid to read it back
+    xs = list(range(-1200, 1201, 16))
+    ys = list(range(-848, 849, 16))
+    sky = skyline_plan(lay, g.voids, xs, ys)
+    ct = lay.areas["ct_spawn"]  # an outdoor yard: its walls end PARAPET above its top
+    i_wall = xs.index(ct.rect[2])  # the column just east of the yard (its wall)
+    j_mid = ys.index(0)
+    assert sky.roof[i_wall, j_mid] == ct.top + PARAPET
+    mid = lay.areas["mid"]  # an indoor corridor: flat roof `wall` over its ceiling
+    assert sky.roof[xs.index(0), j_mid] == mid.top + lay.wall
+    assert sky.blocks and all(b["z"] >= mid.top for b in sky.blocks)
+    gables = [b for b in world if any(f.texture == "DEV_CONCRETE" for f in b.faces)
+              and len(b.faces) == 5]  # fmt: skip
+    assert gables  # prisms on the rectangular blocks
     clips = [b for b in world if b.faces[0].texture == "CLIP"]
-    ct = lay.areas["ct_spawn"]  # the outdoor yard gets a player clip at its open top
     assert any(brush_geometry(b).vertices[:, 2].min() == ct.top for b in clips)
     for b in g.mapfile.brushes():
-        geo = brush_geometry(b)
-        assert not geo.unbounded
+        assert not brush_geometry(b).unbounded
 
 
 @pytest.mark.slow

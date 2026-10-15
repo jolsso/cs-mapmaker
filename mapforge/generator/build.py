@@ -332,19 +332,102 @@ def _overpasses(voids: list[tuple[Box, bool]], sky_over: list[Area], wall: int) 
     return out
 
 
-def skyline_heights(layout: Layout, voids: dict[str, Box]) -> dict[str, int]:
-    """Roof height per area with a skyline: an indoor room's building ends `wall` above its
-    ceiling (a pitched hall: its ridge) plus a variation picked from the area's name (stable,
-    no randomness); a yard's surrounding walls end at its open top plus a variation. Overrides
-    in skyline.overrides replace the variation."""
+PARAPET = 16  # a yard's walls end this far above its open top
+GABLE_MAX = 96  # highest ridge over a building block (stays below the sky: skyline.air >= 128)
+
+
+@dataclass
+class Skyline:
+    """Buildings on the plan grid (cells = the shell's x/y cuts)."""
+
+    roof: np.ndarray  # (nx, ny) roof height per column; yards: their open top
+    blocks: list[dict]  # building blocks: {cells, z, box: (x0, y0, x1, y1), rect: bool}
+
+
+def skyline_plan(layout: Layout, voids: dict[str, Box], xs, ys) -> Skyline:
+    """The buildings around the play space, on the plan grid:
+    - a yard's own column is open above its top; the walls around it end PARAPET above that
+      (the same height all the way round);
+    - an indoor room or corridor has a flat roof `wall` above its ceiling (a pitched hall: over
+      its ridge) - no variation, so corridors make no steps;
+    - the solid blocks between the routes are the buildings: each connected block gets one
+      height (at least the walls around it) plus a variation picked from the block's position
+      (stable), and a gable roof when it is a rectangle."""
     sk = layout.skyline or {}
-    hs = sk["heights"]
-    out = {}
+    hs, wall = sk["heights"], layout.wall
+    cx = (np.array(xs[:-1]) + np.array(xs[1:])) / 2
+    cy = (np.array(ys[:-1]) + np.array(ys[1:])) / 2
+    gx, gy = np.meshgrid(cx, cy, indexing="ij")
+    roof = np.full(gx.shape, -np.inf)
+    taken = np.zeros(gx.shape, dtype=bool)
+    near = np.full(gx.shape, np.inf)  # distance to the nearest area (plan)
+    edge = np.full(gx.shape, -np.inf)  # the wall height an adjacent area asks for
     for a in layout.areas.values():
+        x0, y0, x1, y1 = a.rect
         top = voids[a.name][1][2]
-        base = top if a.outdoor else top + layout.wall
-        pick = int(hashlib.sha1(a.name.encode()).hexdigest(), 16) % len(hs)
-        out[a.name] = base + sk["overrides"].get(a.name, hs[pick])
+        inside = (gx > x0) & (gx < x1) & (gy > y0) & (gy < y1)
+        roof[inside] = np.maximum(roof[inside], top if a.outdoor else top + wall)
+        taken |= inside
+        dx = np.maximum(np.maximum(x0 - gx, gx - x1), 0)
+        d = dx + np.maximum(np.maximum(y0 - gy, gy - y1), 0)
+        near = np.minimum(near, d)
+        ask = top + (PARAPET if a.outdoor else wall)
+        close = d <= wall
+        edge[close] = np.maximum(edge[close], ask)
+    walls = ~taken & (near <= wall)
+    roof[walls] = edge[walls]
+    block = ~taken & ~walls
+    blocks = []
+    seen = np.zeros(gx.shape, dtype=bool)
+    nx, ny = gx.shape
+    for i0 in range(nx):
+        for j0 in range(ny):
+            if not block[i0, j0] or seen[i0, j0]:
+                continue
+            stack, cells = [(i0, j0)], []
+            seen[i0, j0] = True
+            while stack:  # a connected block (4-neighbours on the plan grid)
+                i, j = stack.pop()
+                cells.append((i, j))
+                for a, b in ((i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)):
+                    if 0 <= a < nx and 0 <= b < ny and block[a, b] and not seen[a, b]:
+                        seen[a, b] = True
+                        stack.append((a, b))
+            ii = np.array([c[0] for c in cells])
+            jj = np.array([c[1] for c in cells])
+            bx0, bx1 = xs[ii.min()], xs[ii.max() + 1]
+            by0, by1 = ys[jj.min()], ys[jj.max() + 1]
+            # the walls next to the block: the block stands at least as high as they are
+            m = 2 * wall
+            pad = (gx >= bx0 - m) & (gx <= bx1 + m) & (gy >= by0 - m) & (gy <= by1 + m)
+            around = roof[pad & walls]
+            base = float(around.max()) if around.size else float(np.max(roof[np.isfinite(roof)]))
+            pick = int(hashlib.sha1(f"{bx0},{by0},{bx1},{by1}".encode()).hexdigest(), 16) % len(hs)
+            z = int(base) + hs[pick]
+            roof[ii, jj] = z
+            rect = len(cells) == (ii.max() - ii.min() + 1) * (jj.max() - jj.min() + 1)
+            blocks.append({"z": z, "box": (int(bx0), int(by0), int(bx1), int(by1)), "rect": rect})
+    roof[~np.isfinite(roof)] = 0
+    return Skyline(roof, blocks)
+
+
+def gable_roofs(sky: Skyline, tex: dict[str, str], grid: int = 8) -> list[Brush]:
+    """A gable roof on every rectangular building block: ridge along the long side, rise half
+    the short side (at most GABLE_MAX); slopes in the roof texture, gable ends in the facade's."""
+    out = []
+    for b in sky.blocks:
+        x0, y0, x1, y1 = b["box"]
+        if not b["rect"] or min(x1 - x0, y1 - y0) < 128:
+            continue
+        ax = 1 if (x1 - x0) >= (y1 - y0) else 0  # the profile runs across the ridge
+        u0, u1 = (x0, x1) if ax == 0 else (y0, y1)
+        t0, t1 = (y0, y1) if ax == 0 else (x0, x1)
+        m = (u0 + u1) // 2 // grid * grid
+        rise = min((u1 - u0) // 2 // grid * grid, GABLE_MAX)
+        z = b["z"]
+        tri = [(u0, z), (m, z + rise), (u1, z)]
+        brush = _extrude_uz(tri, ax, t0, t1, tex["roof"])
+        out.append(brush)
     return out
 
 
@@ -354,21 +437,18 @@ def _solid_cells(
     shell: Box,
     owners: list[tuple[Area, int]],
     overpasses: list[Box] = (),
-    roofline: dict[str, int] | None = None,
+    skyline=None,
     wall: int = 16,
-) -> tuple[list, np.ndarray]:
+) -> tuple[list, np.ndarray, Skyline | None]:
     """Label grid cells of the shell. Classic: solid everywhere, sky straight above outdoor areas.
-    With a roofline (area -> roof height): each column is a building up to the roof height of
-    its nearest area (2D; ties: the highest), open air above it, and sky on the shell's skin
-    above the roofs - buildings of different heights under one sky."""
+    With a skyline (a function from the plan grid to a Skyline): each column is a building up to
+    its roof height, open air above it, and sky on the shell's skin above the roofs."""
     (sx0, sy0, sz0), (sx1, sy1, sz1) = shell
     axes = []
     for i, (lo, hi) in enumerate(((sx0, sx1), (sy0, sy1), (sz0, sz1))):
         cuts = {lo, hi}
-        if roofline:
+        if skyline is not None:
             cuts |= {lo + wall, hi - wall}
-            if i == 2:
-                cuts |= set(roofline.values())
         for b in [*voids, *overpasses]:
             cuts |= {b[0][i], b[1][i]}
         for a in sky_over:  # split at outdoor area edges so sky cells line up with them
@@ -378,6 +458,10 @@ def _solid_cells(
                 cuts.add(a.top)
         axes.append(sorted(c for c in cuts if lo <= c <= hi))
     xs, ys, zs = axes
+    sky = skyline(xs, ys) if skyline is not None else None
+    if sky is not None:  # the roofs' heights become z cuts too
+        zs = sorted(set(zs) | {int(v) for v in np.unique(sky.roof) if sz0 < v < sz1})
+        axes[2] = zs
     cx = (np.array(xs[:-1]) + np.array(xs[1:])) / 2
     cy = (np.array(ys[:-1]) + np.array(ys[1:])) / 2
     cz = (np.array(zs[:-1]) + np.array(zs[1:])) / 2
@@ -394,21 +478,10 @@ def _solid_cells(
             closer = d < best
             best[closer] = d[closer]
             label[closer] = SOLID if k == 0 else ZONE_LABEL + k
-    if roofline:
-        by_name = {a.name: a for a, _ in owners}
-        names = list(roofline)
-        roof = np.zeros(gx.shape)
-        best = np.full(gx.shape, np.inf)
-        for n in names:  # nearest area in plan; on a tie the higher roof wins
-            x0, y0, x1, y1 = by_name[n].rect
-            dx = np.maximum(np.maximum(x0 - gx, gx - x1), 0)
-            d = dx + np.maximum(np.maximum(y0 - gy, gy - y1), 0)
-            better = (d < best) | ((d == best) & (roofline[n] > roof))
-            best[better] = d[better]
-            roof[better] = roofline[n]
+    if sky is not None:
         skin = (gx < sx0 + wall) | (gx > sx1 - wall) | (gy < sy0 + wall) | (gy > sy1 - wall)
         skin |= gz > sz1 - wall
-        above = gz > roof
+        above = gz > sky.roof[:, :, None]
         for a in sky_over:  # straight above a yard the air starts at the yard's own top
             x0, y0, x1, y1 = a.rect
             above |= (gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > a.top)
@@ -426,7 +499,7 @@ def _solid_cells(
             label[inside & (label == SKY)] = SOLID
     for (x0, y0, z0), (x1, y1, z1) in voids:
         label[(gx > x0) & (gx < x1) & (gy > y0) & (gy < y1) & (gz > z0) & (gz < z1)] = EMPTY
-    return axes, label
+    return axes, label, sky
 
 
 def _greedy_boxes(label: np.ndarray) -> list[tuple[int, slice, slice, slice]]:
@@ -707,9 +780,11 @@ def generate(layout: Layout) -> Generated:
         voids[h.name] = ((hx0, hy0, areas[h.lower].top), (hx1, hy1, areas[h.upper].floor))
     lo = np.min([b[0] for b in voids.values()], axis=0) - layout.wall
     hi = np.max([b[1] for b in voids.values()], axis=0) + layout.wall
-    roofline = skyline_heights(layout, voids) if layout.skyline else None
-    if roofline:  # room for open air over the highest roof, then the sky
-        hi[2] = max(hi[2], max(roofline.values()) + layout.skyline["air"] + layout.wall)
+    roofline = bool(layout.skyline)
+    if roofline:  # room for the highest building + its gable + open air, then the sky
+        tallest = max(v[1][2] for v in voids.values()) + layout.wall + PARAPET
+        hi[2] = max(hi[2], tallest + max(layout.skyline["heights"]) + GABLE_MAX
+                    + layout.skyline["air"] + layout.wall)  # fmt: skip
     if np.any(np.abs(lo) > WORLD_LIMIT) or np.any(np.abs(hi) > WORLD_LIMIT):
         raise SpecError(f"map exceeds ±{WORLD_LIMIT} units: {lo.tolist()} .. {hi.tolist()}")
     shell: Box = (tuple(int(v) for v in lo), tuple(int(v) for v in hi))
@@ -718,8 +793,9 @@ def generate(layout: Layout) -> Generated:
     over = _overpasses(
         [(b, n in areas and areas[n].outdoor) for n, b in voids.items()], outdoor, layout.wall
     )
-    (xs, ys, zs), label = _solid_cells(
-        list(voids.values()), outdoor, shell, owners, over, roofline, layout.wall
+    plan = (lambda xs_, ys_: skyline_plan(layout, voids, xs_, ys_)) if roofline else None
+    (xs, ys, zs), label, sky = _solid_cells(
+        list(voids.values()), outdoor, shell, owners, over, plan, layout.wall
     )
     door_area = {d.name: areas[d.between[0]] for d in layout.doors}
     door_area.update({h.name: areas[h.lower] for h in layout.hatches})
@@ -751,6 +827,8 @@ def generate(layout: Layout) -> Generated:
         else:
             t = surf(None)
         world.brushes.append(box_brush(b_lo, b_hi, t))
+    if sky is not None:
+        world.brushes += gable_roofs(sky, outside)
     if roofline:  # players stay below each yard's open top: no boosting onto the roofs
         for a in outdoor:
             x0, y0, x1, y1 = a.rect

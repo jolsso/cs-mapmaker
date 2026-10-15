@@ -569,20 +569,17 @@ SKYLINE_HEIGHTS = (0, 32, 64, 96, 160, 224)  # a building's roof above its ceili
 
 
 def _skyline(sk: Any) -> dict[str, Any] | None:
-    """skyline: true or {heights: [...], air: 128, facade: TEX, roof: TEX, overrides: {area: h}}."""
+    """skyline: true or {heights: [...], air: 128, facade: TEX, roof: TEX}."""
     if not sk:
         return None
     sk = {} if sk is True else dict(sk)
     heights = [int(h) for h in sk.get("heights", SKYLINE_HEIGHTS)]
     if not heights or any(h < 0 or h % 8 for h in heights):
         raise SpecError("skyline.heights: non-negative values on the 8 grid")
-    over = {str(k): int(v) for k, v in (sk.get("overrides") or {}).items()}
-    if any(v < 0 or v % 8 for v in over.values()):
-        raise SpecError("skyline.overrides: non-negative heights on the 8 grid")
     air = int(sk.get("air", 128))
     if air < 64 or air % 8:
         raise SpecError("skyline.air: >= 64 on the 8 grid (open air over the highest roof)")
-    return {"heights": heights, "overrides": over, "air": air,
+    return {"heights": heights, "air": air,
             "facade": sk.get("facade"), "roof": sk.get("roof")}  # fmt: skip
 
 
