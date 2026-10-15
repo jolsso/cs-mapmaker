@@ -33,11 +33,12 @@ def test_new_map_brief(tmp_path, monkeypatch):
     from mapforge.live import collector
 
     monkeypatch.setattr(collector, "MAPS_DIR", tmp_path)
-    b = collector.create_map("de_harbour01", "En havn ved nat med et lagerhus på A.")
+    b = collector.create_map({"name": "de_harbour01",
+                              "description": "En havn ved nat med et lagerhus på A."})  # fmt: skip
     assert (tmp_path / "de_harbour01" / "brief.json").is_file() and b["status"] == "brief"
     assert [x["name"] for x in collector.list_briefs()] == ["de_harbour01"]
     for name, desc, msg in (("de_harbour01", "a valid description", "exists"),
                             ("../evil", "a valid description", "name"),
                             ("de_ok01", "short", "description")):  # fmt: skip
         with pytest.raises(ValueError, match=msg):
-            collector.create_map(name, desc)
+            collector.create_map({"name": name, "description": desc})

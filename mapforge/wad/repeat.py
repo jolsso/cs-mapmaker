@@ -196,14 +196,17 @@ def rate(
         }  # fmt: skip
         got = None
         for _ in range(3):
-            resp = _post(
-                lc["url"].rstrip("/") + "/chat/completions", body, lc.get("timeout_s", 600)
-            )
             try:
+                resp = _post(
+                    lc["url"].rstrip("/") + "/chat/completions", body, lc.get("timeout_s", 600)
+                )
                 got = json.loads((resp["choices"][0]["message"].get("content") or "").strip())
                 break
             except ValueError:
                 body["max_tokens"] = int(body["max_tokens"] * 1.5)
+            except OSError as exc:  # LM Studio busy or gone: skip the batch, rate it next run
+                log(f"  batch {batch[0]}..: {exc}")
+                break
         for g in (got or {}).get("textures", []):
             n = g.get("n", 0) - 1
             if 0 <= n < len(batch) and g.get("risk") in RISKS:
@@ -308,13 +311,17 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--names", nargs="*", default=[])
     ap.add_argument("--rate", action="store_true", help="rate unrated textures (local model)")
     ap.add_argument("--force", action="store_true", help="with --rate: rate the named again")
+    ap.add_argument("--wads", nargs="*", default=[], help="every texture in these WAD files")
     args = ap.parse_args(argv)
     cfg = load_config()
     names = {n.upper() for n in args.names}
     if args.map:
         mf = read_map(cfg.path("maps_dir") / args.map / "src" / f"{args.map}.map")
         names |= {f.texture.upper() for b in mf.brushes() for f in b.faces}
-    names = {n for n in names if not NO_TILE.match(n)}
+    for wad in wad_files(cfg.wad_dirs):
+        if wad.name in args.wads:
+            names |= {n for n, _, _ in _entries(wad)}
+    names = {n for n in names if not NO_TILE.match(n) and not n.startswith("+")}
     if args.rate:
         risk = rate(cfg, names, force=args.force)
         sizes = texture_sizes(cfg.wad_dirs)

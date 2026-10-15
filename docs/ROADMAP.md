@@ -197,9 +197,9 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 **Mål:** Fra en beskrivelse og tema-billeder (simpel) eller en tegning i lag (avanceret) til et spilbart, tema-klædt map – uden at mennesket skriver `layout.yaml`. Spec: `docs/MAPMAKER.md`. Avanceret bygges før simpel, fordi skitsen leverer indlejringen; simpel mode er derefter "agenter tegner skitsen".
 
 ### 8a – Brief v2, billeder og Interpreter
-- [ ] `brief.json` v2 (skema i koden, bagudkompatibel med v1 fra dashboardet)
-- [ ] `maps/<map>/brief/images.json` + upload-API med tag (`mood|landmark|material|layout`) og licens (`own|cc0|inspiration`); `inspiration` gitignored, EXIF strippes
-- [ ] Interpreter-agent (prompt + skema → `intent.json`, `--answer` validerer; `must_have` dækket eller begrundet afvist)
+- [x] `brief.json` v2 (skema i koden, bagudkompatibel med v1 fra dashboardet) – `mapforge/brief.py` (2026-10-15)
+- [x] `maps/<map>/brief/images.json` + upload-API med tag (`mood|landmark|material|layout`) og licens (`own|cc0|inspiration`); `inspiration` gitignored, EXIF strippes (genkodes med Pillow) – `POST /api/maps/<map>/images` (2026-10-15)
+- [x] Interpreter-agent (prompt + skema → `intent.json`, `--answer` validerer; `must_have` dækket eller begrundet afvist) – `./mf brief MAP=…`, `mapforge/interpret.py`; koden tjekker også, at briefens værdier holdes (eller ændringen begrundes), at alle åbne spørgsmål besvares som antagelser, og at mål ligger i DESIGN_GUIDE's bånd (2026-10-15)
 - [ ] Brief v2 spørger konceptuelt om det, der påvirker resten af pipelinen markant (2026-10-15): **rum og højde** (flad eller flere niveauer, mest inde eller ude, trangt eller åbent, stablede sites), **spillestil** (lange sigtelinjer eller nærkamp, åbne eller fyldte sites) og **identitet** (tema og landmarks med pladsbehov, fx "en kran i gården"). Lys-stemning, lyd og props spørges ikke her – de afgøres sent i art pass og påvirker intet før den
 - [ ] Dashboard: guide-trin 1–3 + "Sådan har jeg forstået dig" (intent kan rettes)
 

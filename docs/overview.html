@@ -660,7 +660,7 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
         <div class="phase-head"><h3>Mapmaker: simpel og avanceret input</h3><span class="chip">planlagt</span></div>
         <p>Kommer efter art pass og Gate C (ét map hele vejen først), én delfase ad gangen: 8a → 8b → 8c → M1 → 8d → 8g → 8e → 8f → M2. 8e bygger på fase 7's tekstur-pipeline og modeller. Fra en beskrivelse og tema-billeder (simpel) eller en tegning i lag (avanceret) til et spilbart map. Begge ender i <code>sketch.json</code> → Parse → Fit → den eksisterende pipeline. Spec: <code>docs/MAPMAKER.md</code>, træning: <code>docs/GRAPH_TRAINING.md</code>.</p>
         <ul>
-          <li>8a: brief v2, tema-billeder med tag og licens, Interpreter-agent og "sådan har jeg forstået dig"</li>
+          <li>8a: brief v2 ✓, tema-billeder med tag og licens ✓ (upload-API, EXIF strippes, inspiration kun lokalt), Interpreter-agent ✓ (<code>./mf brief</code> → intent.json, regler i koden); mangler: dashboard-guiden og "sådan har jeg forstået dig"</li>
           <li class="ok">8b: topologi-udtræk fra layout (<code>mapforge/topology.py</code>, samme tal som <code>layout_graph()</code>) og topologi-siden på det lokale website (<a href="graph.html">Graf</a>)</li>
           <li>8b: graf-attributter i lag: rum og højde, spil-geometri som opsummering, identitet (kun det, der kan spørges om tidligt og styrer Fit)</li>
           <li>8b: invarianter, operatorer, graf-niveau-evaluator kalibreret mod BSP-walk; referencemaps som topologier (tier A = officielle, tier B = community)</li>

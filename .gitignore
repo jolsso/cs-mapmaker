@@ -46,3 +46,6 @@ __pycache__/
 
 # Packages handed in from other sessions (read, then integrated into the repo)
 /temp/
+
+# brief images with licence `inspiration` (from the web etc.): local only, never a texture
+maps/*/brief/inspiration/

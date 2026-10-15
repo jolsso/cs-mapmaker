@@ -7,7 +7,7 @@ state per run and streams it to browsers. Standard library only; nothing is writ
   UDP  :27500  in   (docker network mapforge-sim; containers reach it as "mapforge-live")
   HTTP :8090   out  GET /events (text/event-stream, ~4 updates/s), GET /state (JSON)
                    GET/POST/DELETE /api/annotations/<map>: the human's wishes drawn on the map
-                   GET/POST /api/maps: new map projects (brief.json: name + description)
+                   /api/maps: new map projects (brief v2), images, intent (mapforge.brief)
                    GET /api/project[/<map>] · POST /api/project/<map> {state: open|closed}
                    page (maps/<map>/annotations.json, mapforge.annotations); writes only from
                    the dashboard's origin (MAPFORGE_SITE_ORIGINS)
@@ -175,37 +175,39 @@ async def annotations_api(
         _respond(writer, 400, {"error": str(exc)}, allow)
 
 
-NEW_MAP_NAME = re.compile(r"^de_[a-z0-9_]{2,28}$")
+def create_map(req: dict[str, Any]) -> dict[str, Any]:
+    """A new map project from the dashboard: maps/<name>/brief.json (brief v2, mapforge.brief),
+    no layout yet (the Interpreter reads the brief, then a layout is drafted from it)."""
+    from mapforge import brief
 
-
-def create_map(name: str, description: str) -> dict[str, Any]:
-    """A new map project from the dashboard: maps/<name>/brief.json (description), no layout yet
-    (Claude drafts layout.yaml from the brief and the drawn annotations)."""
-    if not NEW_MAP_NAME.match(name):
-        raise ValueError("name: de_ + 2-28 lower-case letters, digits or _ (e.g. de_harbour01)")
-    description = description.strip()
-    if not 10 <= len(description) <= 4000:
-        raise ValueError("description: 10-4000 characters")
-    d = MAPS_DIR / name
-    if d.exists():
-        raise ValueError(f"{name} exists already")
-    d.mkdir(parents=True)
-    brief = {"name": name, "description": description, "created": time.strftime("%Y-%m-%d %H:%M"),
-             "status": "brief", "canvas": BRIEF_CANVAS}  # fmt: skip
-    (d / "brief.json").write_text(json.dumps(brief, indent=2, ensure_ascii=False), encoding="utf-8")
-    return brief
+    return brief.create(MAPS_DIR, req, BRIEF_CANVAS)
 
 
 def list_briefs() -> list[dict[str, Any]]:
+    from mapforge import brief
+
     out = []
     for f in sorted(MAPS_DIR.glob("*/brief.json")):
         try:
-            b = json.loads(f.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+            b = brief.normalize(json.loads(f.read_text(encoding="utf-8")))
+        except (OSError, ValueError):
             continue
         b["has_layout"] = (f.parent / "layout.yaml").is_file()
+        b["has_intent"] = (f.parent / "intent.json").is_file()
         out.append(b)
     return out
+
+
+def map_brief(name: str) -> dict[str, Any]:
+    """GET /api/maps/<map>: the brief, its images and the intent (if the Interpreter ran)."""
+    from mapforge import brief
+
+    b = brief.load(MAPS_DIR, name)
+    if b is None:
+        raise ValueError("unknown map")
+    intent = MAPS_DIR / name / "intent.json"
+    return {"brief": b, "images": brief.images(MAPS_DIR, name),
+            "intent": json.loads(intent.read_text(encoding="utf-8")) if intent.is_file() else None}  # fmt: skip
 
 
 # The drawing area of a brief before any geometry exists: world units (x0, y0, x1, y1).
@@ -215,34 +217,44 @@ BRIEF_CANVAS = [-3072, -3072, 3072, 3072]
 async def maps_api(
     method: str, path: str, headers: dict[str, str], body: bytes, writer: asyncio.StreamWriter
 ) -> None:
-    """GET /api/maps (briefs) · POST /api/maps {name, description} (dashboard origin only)."""
+    """GET /api/maps (briefs) · POST /api/maps {brief v2} · GET /api/maps/<map> (brief, images,
+    intent) · POST /api/maps/<map>/images {file, data (base64), tag, license, note} ·
+    PUT /api/maps/<map>/intent {intent} (writes: dashboard origin only)."""
+    from mapforge import brief
+
     origin = headers.get("origin", "")
     allow = origin if origin in SITE_ORIGINS else "null"
+    parts = [p for p in path.split("?")[0].split("/") if p][2:]  # after /api/maps
     if method == "OPTIONS":
         writer.write(
             f"HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: {allow}\r\nVary: Origin\r\n"
-            "Access-Control-Allow-Methods: GET, POST\r\nAccess-Control-Allow-Headers: Content-Type\r\n"
+            "Access-Control-Allow-Methods: GET, POST, PUT\r\nAccess-Control-Allow-Headers: Content-Type\r\n"
             "Content-Length: 0\r\n\r\n".encode()
         )
         return
-    if method == "GET":
-        _respond(writer, 200, list_briefs(), allow)
-        return
-    if origin not in SITE_ORIGINS:
-        _respond(writer, 403, {"error": "writes only from the local dashboard"}, allow)
+    if parts and not brief.NAME.match(parts[0]):
+        _respond(writer, 404, {"error": "unknown map"}, allow)
         return
     try:
-        if method != "POST":
-            raise ValueError("unsupported")
+        if method == "GET":
+            _respond(writer, 200, map_brief(parts[0]) if parts else list_briefs(), allow)
+            return
+        if origin not in SITE_ORIGINS:
+            _respond(writer, 403, {"error": "writes only from the local dashboard"}, allow)
+            return
         if headers.get("content-type", "").split(";")[0].strip() != "application/json":
             raise ValueError("Content-Type must be application/json")
         req = json.loads(body.decode("utf-8"))
-        _respond(
-            writer,
-            201,
-            create_map(str(req.get("name", "")), str(req.get("description", ""))),
-            allow,
-        )
+        if method == "POST" and not parts:
+            _respond(writer, 201, create_map(req), allow)
+        elif method == "POST" and parts[1:] == ["images"]:
+            _respond(writer, 201, brief.add_image(MAPS_DIR, parts[0], req), allow)
+        elif method == "PUT" and parts[1:] == ["intent"]:
+            from mapforge import interpret
+
+            _respond(writer, 200, interpret.save_edit(MAPS_DIR, parts[0], req), allow)
+        else:
+            raise ValueError("unsupported")
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         _respond(writer, 400, {"error": str(exc)}, allow)
 
@@ -299,8 +311,9 @@ async def http(state: State, reader: asyncio.StreamReader, writer: asyncio.Strea
             headers[k.strip().lower()] = v.strip()
         method, path = ([*line.split(" "), "", ""])[:2]
         bare = path.split("?")[0].rstrip("/")
-        if path.startswith(("/api/annotations", "/api/project")) or bare == "/api/maps":
-            length = min(int(headers.get("content-length", "0") or 0), 200_000)
+        if path.startswith(("/api/annotations", "/api/project", "/api/maps")):
+            cap = 12_000_000 if bare.endswith("/images") else 200_000  # an image: up to 8 MB
+            length = min(int(headers.get("content-length", "0") or 0), cap)
             body = await reader.readexactly(length) if length else b""
             api = (annotations_api if path.startswith("/api/annotations")
                    else project_api if path.startswith("/api/project") else maps_api)  # fmt: skip

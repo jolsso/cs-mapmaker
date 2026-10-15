@@ -97,6 +97,13 @@ tasks:
     cmds:
       - uv run python -m mapforge.wad.catalog {{.CLI_ARGS}}
 
+  brief:
+    desc: Interpreter (phase 8a) - brief + images -> build/<map>/intent_prompt.md + schema (MAP=<name>; -- --answer checks build/<map>/intent_answer.json -> maps/<map>/intent.json)
+    requires:
+      vars: [MAP]
+    cmds:
+      - uv run python -m mapforge.interpret --map {{.MAP}} {{.CLI_ARGS}}
+
   repeats:
     desc: Repeat risk of the textures a map uses (config/texture_risk.json; MAP=<name>; -- --rate asks the local vision model for the unrated ones and the calm siblings of high-risk ones)
     requires:

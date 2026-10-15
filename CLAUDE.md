@@ -67,6 +67,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf feedback MAP=<navn> [-- --collect|--stop]   # feedback-server (connect localhost:27015; say !fb <tekst>) → noter bliver ønsker med billede
 ./mf feedback MAP=<navn> -- --verify [ID…]   # nu-billede fra notens vinkel → vision-model: løst? (ellers genåbnes ønsket; exit 3 hvis ikke alle er løst)
 ./mf textures [-- --sheets]   # tekstur-katalog over egne + spillets WADs → build/textures/catalog.json (+ kontaktark pr. WAD)
+./mf brief MAP=<navn> [-- --answer]   # Interpreter (fase 8a): brief.json v2 + billeder → intent_prompt.md → subagent → maps/<navn>/intent.json ("Sådan har jeg forstået dig")
 ./mf repeats MAP=<navn> [-- --rate]   # gentagelsesrisiko pr. tekstur (3x3-fliser → lokal vision-model) → config/texture_risk.json; generate bytter selv højrisiko-teksturer på store flader til en rolig søskende
 ./mf topology MAP=<navn>    # topologi (rum og forbindelser) → build/<map>/topology.yaml; vises også på websitets Graf-side
 ./mf sketch MAP=<navn> [ID=<n>]  # skitsestreger (path-annotationer) → skrå korridorer + knæ-rum som layout-YAML
