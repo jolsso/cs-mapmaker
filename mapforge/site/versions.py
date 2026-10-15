@@ -33,6 +33,7 @@ class Version:
     current: bool
     runs: list[Path] = field(default_factory=list)  # iterations that measured this version
     input_runs: list[Path] = field(default_factory=list)  # iterations whose plan created it
+    parent: int | None = None  # index (oldest first) of the version it was built from
 
     def path(self, rel: str) -> Path | None:
         for s in self.srcs:
@@ -73,9 +74,90 @@ def collect_versions(cfg: Config, name: str) -> list[Version]:
         out.append(Version("build", [build], {}, True))
     # iterations nobody links (e.g. a dry-run Decide): with the newest version
     out[-1].runs += [r for k, r in sorted(runs.items()) if k not in linked]
-    for prev, ver in zip(out, out[1:], strict=False):
-        ver.input_runs = [r for r in prev.runs if (r / "applied.json").is_file()]
+    # Parent: the loop's iteration N applies its plan to a base layout (applied.json: the
+    # iteration's own, or the best one's after a rollback) and iteration N+1 measures the result,
+    # so a version first measured in N+1 was built from the version that holds the base.
+    holder = {r.name: i for i, v in enumerate(out) for r in v.runs}
+    for i, ver in enumerate(out[1:], start=1):
+        ver.parent = i - 1
+        ver.input_runs = [r for r in out[i - 1].runs if (r / "applied.json").is_file()]
+        first = min((r.name for r in ver.runs), default=None)
+        made_by = runs.get(f"{int(first) - 1:03d}") if first else None
+        if made_by is None or not (made_by / "applied.json").is_file():
+            continue
+        base = json.loads((made_by / "applied.json").read_text(encoding="utf-8")).get("base", "")
+        base_it = Path(base).parent.name
+        if holder.get(base_it, i) < i:
+            ver.parent = holder[base_it]
+            ver.input_runs = [made_by]
     return out
+
+
+LANE, DOT_Y = 16, 34  # px per lane, dot height in a version row (level with its title)
+
+
+def version_graph(vers: list[Version]) -> tuple[list[str], int]:
+    """A git-like graph beside the version list: one HTML cell per version (oldest first) and
+    the graph's width. A version built on its parent's newest child continues the parent's
+    lane; any other child starts a new lane (a branch). A version without children that is not
+    the current one is a dead end (hollow dot)."""
+    n = len(vers)
+    children: dict[int, list[int]] = {i: [] for i in range(n)}
+    for i, v in enumerate(vers):
+        if v.parent is not None:
+            children[v.parent].append(i)
+    lane = [0] * n
+    busy: list[list[tuple[int, int]]] = [[]]  # per lane: (from, to) version spans in use
+    for i, v in enumerate(vers):
+        p = v.parent
+        if p is None:
+            continue
+        if children[p][-1] == i and not any(a <= i <= b for a, b in busy[lane[p]] if a != p):
+            lane[i] = lane[p]  # the parent's newest child continues its lane
+        else:
+            free = [
+                k for k, spans in enumerate(busy) if not any(a <= i and p <= b for a, b in spans)
+            ]
+            lane[i] = next((k for k in free if k > 0), len(busy))
+            if lane[i] == len(busy):
+                busy.append([])
+        busy[lane[i]].append((p, i))
+    width = LANE * max(lane, default=0) + LANE + 8
+
+    def x(k: int) -> int:
+        return k * LANE + LANE // 2 + 4
+
+    cells = []
+    for i, v in enumerate(vers):
+        parts = []
+        for c in range(n):  # edges into children of earlier versions that pass this row
+            p = vers[c].parent
+            if p is None:
+                continue
+            lc, lp = lane[c], lane[p]
+            if c == i:
+                parts.append(f"<i class='gl' style='left:{x(lc)}px;top:{DOT_Y}px;bottom:0'></i>")
+            elif p < i < c:
+                parts.append(f"<i class='gl' style='left:{x(lc)}px;top:0;bottom:0'></i>")
+            elif p == i:
+                parts.append(f"<i class='gl' style='left:{x(lc)}px;top:0;height:{DOT_Y}px'></i>")
+                if lc != lp:
+                    lo, hi = sorted((x(lc), x(lp)))
+                    parts.append(
+                        f"<i class='gh' style='left:{lo}px;width:{hi - lo}px;top:{DOT_Y}px'></i>"
+                    )
+        dead = not children[i] and not v.current
+        kind = "cur" if v.current else "dead" if dead else "fork" if len(children[i]) > 1 else ""
+        tip = ("nuværende" if v.current else "blindgyde: intet er bygget videre herfra" if dead
+               else f"forgrening: {len(children[i])} versioner bygget herfra" if len(children[i]) > 1
+               else "")  # fmt: skip
+        parts.append(
+            f"<b class='gd {kind}' style='left:{x(lane[i])}px;top:{DOT_Y}px' title='{tip}'></b>"
+        )
+        cells.append(
+            f"<div class='vgraph' style='width:{width}px' aria-hidden='true'>{''.join(parts)}</div>"
+        )
+    return cells, width
 
 
 def wish_version(w: dict[str, Any], vers: list[Version]) -> str | None:
@@ -219,7 +301,8 @@ def render_versions(
     for w in wishes:
         w["_version"] = wish_version(w, vers)
     boxes = []
-    for v in reversed(vers):
+    cells, _ = version_graph(vers)
+    for idx, v in reversed(list(enumerate(vers))):
         st = status(v)
         tag = f"v{v.key}"
         img_dir, img_rel = out / "img" / tag, f"img/{tag}"
@@ -240,6 +323,13 @@ def render_versions(
             chips.append(f"<span class='chip'>{e(v.meta['created'])}</span>")
         if v.runs:
             chips.append(f"<span class='chip'>loop: {', '.join(r.name for r in v.runs)}</span>")
+        kids = sum(1 for w in vers if w.parent == idx)
+        if not kids and not v.current:
+            chips.append("<span class='chip'>blindgyde</span>")
+        elif kids > 1:
+            chips.append(f"<span class='chip'>forgrening ({kids})</span>")
+        if v.parent is not None and v.parent != idx - 1:
+            chips.append(f"<span class='chip'>bygget på {e(vers[v.parent].key)}</span>")
         cur = current_phase if v.current else None
         mode = {"running": "running", "stopped": "human"}.get(loop.get("status") or "", "idle")
         bar = stepper(st, link=False, current=cur, phases=PHASES8, mode=mode)
@@ -254,7 +344,7 @@ def render_versions(
         anchor = "vcur" if v.current else tag  # the hero's phase bar links to #vcur-<phase>
         body = phase_panels(cfg, name, v, out, img_dir, img_rel, anchor, st, wishes, loop)
         boxes.append(
-            f"<details class='ver{' current' if v.current else ''}' id='{anchor}'>{summary}<div class='vbody'>{body}</div></details>"
+            f"<div class='vrow'>{cells[idx]}<details class='ver{' current' if v.current else ''}' id='{anchor}'>{summary}<div class='vbody'>{body}</div></details></div>"
         )
     return ("<section id='versions'><h2>Versioner <span class='muted small'>– nyeste først · klik på en kasse for alle 8 faser</span></h2>"
             f"<div class='vlist'>{''.join(boxes)}</div></section>"

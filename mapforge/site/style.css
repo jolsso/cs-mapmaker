@@ -244,6 +244,18 @@ button.on, button.primary { background: var(--accent-soft); border-color: var(--
 /* version boxes on the map page */
 #versions > h2 { margin-bottom: 4px; }
 .vlist { display: grid; gap: 14px; }
+.vrow { display: flex; gap: 10px; align-items: stretch; }
+.vrow > .ver { flex: 1; min-width: 0; }
+/* the git-like version graph: lanes (gl), branch elbows (gh), dots (gd); rows are 14px apart */
+.vgraph { position: relative; flex: none; margin-bottom: -14px; }
+.vrow:last-child .vgraph { margin-bottom: 0; }
+.vgraph .gl { position: absolute; width: 2px; margin-left: -1px; background: var(--muted); opacity: .55; }
+.vgraph .gh { position: absolute; height: 2px; margin-top: -1px; background: var(--muted); opacity: .55; }
+.vgraph .gd { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
+  background: var(--muted); border: 2px solid var(--bg); box-sizing: border-box; }
+.vgraph .gd.cur { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.vgraph .gd.fork { background: var(--ink); }
+.vgraph .gd.dead { background: var(--bg); border: 2px solid var(--muted); }
 .ver { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
 .ver.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-soft), var(--shadow); }
 .ver > summary { list-style: none; cursor: pointer; }
