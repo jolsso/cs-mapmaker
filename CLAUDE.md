@@ -44,6 +44,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 - Python-pakken hedder `mapforge/` (undermoduler pr. pipeline-trin); moduler køres med `uv run python -m mapforge.<…>`.
 - Docker til alt deterministisk (forge), HLDS og render-miljø. Ingen hardcodede stier – brug `config/*.yaml`. Filer skal have LF-linjeskift (`.gitattributes`), da de bruges i Linux-containere.
 - Ingen ophavsretsbeskyttede assets fra andre spil i repoet. Kun egne/fri-licens teksturer, med licens noteret i `assets/LICENSES.md`.
+- **Spillets egne WADs** (CS 1.6 `cstrike/*.wad`, Half-Life `valve/*.wad`, fra `HL_DIR`) må bruges (besluttet 2026-10-15): de *refereres* i mappets `wad`-nøgle (alle klienter har dem), embeddes aldrig (`wad.include` = kun egne WADs fra `assets/wads`) og kopieres aldrig ind i repoet. Generatoren vælger selv de WADs, layoutets teksturer ligger i (`mapforge/wad/catalog.py`).
 
 ## Kommandoer (opdatér når de findes)
 **Docker er den officielle vej.** Værten skal kun have Docker. `mf` (sh) / `mf.ps1` (Windows) kører en task i `forge`-containeren (`docker/forge/Dockerfile`, `compose.yaml`) med repoet mountet på `/work`; imaget genbygges automatisk (cached) når `uv.lock` eller `config/pipeline.yaml` ændres. Task runner er [go-task](https://taskfile.dev) (`Taskfile.yml`).
@@ -61,6 +62,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf decide MAP=<navn> -- --emit     # ny runs/<map>/<NNN>/ med input-kontrakt + decide-prompt
 ./mf decide MAP=<navn> -- --answer   # tjek plan.json mod config/fitness.yaml → decision.json
 ./mf history MAP=<navn> NOTE="…"   # gem/opdatér version i history/<map>/ (sker automatisk efter render og review)
+./mf textures [-- --sheets]   # tekstur-katalog over egne + spillets WADs → build/textures/catalog.json (+ kontaktark pr. WAD)
 ./mf topology MAP=<navn>    # topologi (rum og forbindelser) → build/<map>/topology.yaml; vises også på websitets Graf-side
 ./mf sketch MAP=<navn> [ID=<n>]  # skitsestreger (path-annotationer) → skrå korridorer + knæ-rum som layout-YAML
 ./mf site                     # genbyg lokalt website build/site/ (sker også automatisk efter validate/render/review/decide)

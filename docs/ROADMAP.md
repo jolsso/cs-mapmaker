@@ -165,7 +165,8 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [ ] Prop-bibliotek til temaet industri, store og små (container, slaggevogn på skinner, støbeske, gaffeltruck, rørføring, ingot-stak …) som cover-presets med tema-tag; værktøjskassen `add_cover preset=…`
 - [ ] Dressing på de_forge01 efter Gate B: props og lys efter ART_DIRECTION.md gennem loopet (simulering måler effekten), layoutet uændret
 - [ ] Regelbaseret lysplacering + `lights.rad` texlights + zonefarver
-- [ ] Tekstur-pipeline: billede → kvantisering → WAD3 (kun fri licens)
+- [x] Spillets standard-WADs som tekstur-kilde (2026-10-15, menneskets ønske): 5243 teksturer i 28 WADs fra `cstrike/` og `valve/` (HL_DIR, read-only). `./mf textures [-- --sheets]` → katalog + kontaktark; generatoren skriver selv de WADs, layoutets teksturer ligger i, i `wad`-nøglen (egne først); spillets WADs refereres, embeddes aldrig (test). ⚠️ VERIFICÉR i klienten, at `wad`-nøglens container-stier (`/refmaps/hl/...`) slås op på filnavnet (Hammer-praksis tyder på det)
+- [ ] Tekstur-pipeline for det, spillets WADs ikke har: billede → kvantisering → WAD3 (kun egne/fri licens)
 - [ ] Claude-review af klient-screenshots mod stilguide
 - [ ] Lysstyrkekort uden mørke spilzoner
 - [ ] Modeller, der følger med spillet, som pynt uden gameplay-betydning (`cycler_sprite`/`env_sprite`; intet distribueres, og egne `.mdl` er uden for scope, se MAPMAKER.md → Tema og assets) ⚠️ VERIFICÉR hvilke entities og stier CS 1.6 accepterer uden download (lagt i roadmappen 2026-10-15)

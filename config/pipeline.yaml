@@ -7,8 +7,14 @@ paths:
   maps_dir: maps
   runs_dir: runs
   history_dir: history     # one version per changed .bsp (renders, data, review)
+  # WAD search order: our own first (they shadow same-named textures), then the game's standard
+  # WADs from the read-only Half-Life install (compose.yaml: HL_DIR -> /refmaps/hl). The game's
+  # WADs are referenced by the map's `wad` key (every client has them), never embedded via
+  # wad.include and never copied into the repo. Missing dirs (no HL install) are skipped.
   wad_dirs:
     - assets/wads
+    - /refmaps/hl/cstrike
+    - /refmaps/hl/valve
 
 compiler:
   # SDHLT is the maintained fork of Vluzacn's ZHLT v34 (VHLT). Flags verified
@@ -49,7 +55,7 @@ profiles:
 
 wad:
   # WADs whose textures are embedded into the .bsp (hlcsg -wadinclude), so the
-  # client needs no external WAD.
+  # client needs no external WAD. Only our own WADs (assets/wads) - never the game's.
   include:
     - mapforge_dev.wad
 

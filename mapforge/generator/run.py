@@ -8,10 +8,23 @@ from __future__ import annotations
 import argparse
 import sys
 
-from mapforge.config import load_config
+from mapforge.config import Config, load_config
 from mapforge.generator.build import generate
 from mapforge.generator.spec import SpecError, load_layout
+from mapforge.mapfile.parser import MapFile
 from mapforge.mapfile.writer import write_map
+from mapforge.wad.catalog import wads_for
+
+
+def assign_wads(mapfile: MapFile, cfg: Config) -> list[str]:
+    """Set the worldspawn `wad` key: our embedded WADs first, then the WADs (ours or the game's
+    standard ones) holding the textures the map uses. The game's WADs are only referenced, never
+    embedded (mapforge.wad.catalog). -> texture names found in no WAD."""
+    used = {f.texture for b in mapfile.brushes() for f in b.faces}
+    wads, missing = wads_for(used, cfg.wad_dirs)
+    own = [w for w in cfg.data.get("wad", {}).get("include", []) if w not in wads]
+    mapfile.worldspawn.properties["wad"] = ";".join(own + wads)
+    return missing
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -27,6 +40,10 @@ def main(argv: list[str] | None = None) -> int:
         g = generate(layout)
     except (OSError, SpecError, KeyError) as exc:
         print(f"generate failed: {exc}", file=sys.stderr)
+        return 1
+    missing = assign_wads(g.mapfile, cfg)
+    if missing:
+        print(f"generate failed: textures in no WAD of paths.wad_dirs: {missing}", file=sys.stderr)
         return 1
     out = map_dir / "src" / f"{args.map}.map"
     write_map(

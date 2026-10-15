@@ -78,6 +78,11 @@ tasks:
     cmds:
       - uv run python -m mapforge.decide.run --map {{.MAP}} {{.CLI_ARGS}}
 
+  textures:
+    desc: Texture catalog over our own and the game's WADs -> build/textures/catalog.json (+ one contact sheet PNG per WAD with -- --sheets)
+    cmds:
+      - uv run python -m mapforge.wad.catalog {{.CLI_ARGS}}
+
   topology:
     desc: Topology of a map (rooms and connections, docs/MAPMAKER.md) -> build/<map>/topology.yaml (MAP=<name>)
     requires:
