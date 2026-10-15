@@ -189,6 +189,7 @@ def _pipe(lo: tuple, hi: tuple, tex) -> Brush:
     return _extrude_uz(profile, ax, lo[1 - ax], hi[1 - ax], side)
 
 
+DOOR_LIGHT_OUT = 48  # a door light hangs this far from the opening, inside each area
 FRAME_W, FRAME_D = 16, 8  # a door frame: jamb/lintel width, how far it stands out of the wall
 
 
@@ -771,10 +772,12 @@ def generate(layout: Layout) -> Generated:
                             "model": mo.model, "origin": f"{mo.pos[0]} {mo.pos[1]} {z}",
                             "angles": f"0 {mo.yaw} 0", "spawnflags": "1", "framerate": "1",
                             "scale": "1", "rendermode": "0", "renderamt": "255"}))  # fmt: skip
-        if mo.clip:
+        if mo.clip:  # from the floor up, also when the model's origin is raised to stand on it
             w, d, h = mo.clip
-            lo_c = (mo.pos[0] - w // 2, mo.pos[1] - d // 2, z)
-            world.brushes.append(box_brush(lo_c, (lo_c[0] + w, lo_c[1] + d, z + h), tex["clip"]))
+            lo_c = (mo.pos[0] - w // 2, mo.pos[1] - d // 2, a.floor)
+            world.brushes.append(
+                box_brush(lo_c, (lo_c[0] + w, lo_c[1] + d, a.floor + h), tex["clip"])
+            )
 
     # Room acoustics: an env_sound per area (explicit room type, or by size with `sounds`).
     wet = {w.area for w in layout.water}
@@ -845,6 +848,27 @@ def generate(layout: Layout) -> Generated:
             if a.inside(*p, margin=32):
                 ents.append(entity({"classname": "light", "origin": f"{p[0]} {p[1]} {d_lo[2] - 16}",
                                     "_light": light}))  # fmt: skip
+
+    # Door lights: both sides of a lit opening, DOOR_LIGHT_OUT into each area, under the
+    # opening's top - a chokepoint should read clearly from both sides.
+    for d in layout.doors:
+        if not d.light:
+            continue
+        (o_lo, o_hi) = voids[d.name]
+        through = 1 if (o_hi[0] - o_lo[0]) > (o_hi[1] - o_lo[1]) else 0  # the wall's thin axis
+        for name, sign in zip(d.between, (-1, 1), strict=True):
+            a = areas[name]
+            p = [(o_lo[0] + o_hi[0]) // 2, (o_lo[1] + o_hi[1]) // 2]
+            for s_ in (sign, -sign):  # the side of the opening that lies in this area
+                q = list(p)
+                q[through] = (o_lo[through] if s_ < 0 else o_hi[through]) + s_ * DOOR_LIGHT_OUT
+                if a.inside(*q):
+                    break
+            else:
+                continue
+            z = min(o_hi[2], a.top) - 16
+            ents.append(entity({"classname": "light", "origin": f"{q[0]} {q[1]} {z}",
+                                "_light": light_cfg(a)[1]}))  # fmt: skip
 
     # Spawns face the middle of the map.
     centre = ((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2)

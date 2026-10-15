@@ -601,3 +601,18 @@ def test_door_frames_are_detail_jambs_and_a_lintel():
     det = [b for e in g.mapfile.entities if e.classname == "func_detail" for b in e.brushes
            if b.faces[0].texture == "DEV_METAL"]  # fmt: skip
     assert len(det) == 2  # no room for a lintel: jambs only
+
+
+def test_door_lights_hang_on_both_sides_of_the_opening():
+    data = copy.deepcopy(FEAT)
+    next(d for d in data["doors"] if d["name"] == "mid_a").update(light=True)
+    g = generate(parse_layout(data))
+    plain = generate(feat())
+    lo, hi = g.voids["mid_a"]
+    lights = [e.properties["origin"] for e in g.mapfile.entities if e.classname == "light"]
+    before = [e.properties["origin"] for e in plain.mapfile.entities if e.classname == "light"]
+    new = [tuple(map(int, o.split())) for o in lights if o not in before]
+    assert len(new) == 2
+    ys = sorted(p[1] for p in new)
+    assert ys == [lo[1] - 48, hi[1] + 48]  # mid_a runs between mid (south) and a_site (north)
+    assert all(p[0] == (lo[0] + hi[0]) // 2 for p in new)

@@ -189,11 +189,12 @@ ambient:
 ```
 - `ambient_generic` (looper); `sound` er en sti under `sound/`, som spillet selv har (`cstrike/sound` eller `valve/sound`, CS 1.6 falder tilbage på valve). Generatoren afviser stier, der ikke findes i `paths.sound_dirs` (tjekket kun når Half-Life-installationen er mountet). Standard: områdets midte, 64 over gulvet, volumen 6, radius medium.
 
-### Dørkarme (2026-10-15)
+### Dørkarme og dørlys (2026-10-15)
 ```yaml
 doors:
   - {name: d_long_n2, between: [long_ec_n, a_site], width: 192, frame: TSIBEAM}
 ```
+- `light: true` på en dør: et lys 48 inde i hvert af de to områder, midt for åbningen og 16 under dens overkant (eller loftet), med områdets lysfarve og -styrke. Til chokepoints, så de læses tydeligt fra begge sider.
 - `frame` (tekstur): to karme og et overligger, 16 brede og 8 ud af væggen på begge sider, som `func_detail` (deler ikke VIS). Overliggeren udelades, hvor den ville nå loftet (en dør i fuld højde får kun karme). Ikke på vinduer, vents eller døre med `arch`.
 
 ### Modeller fra spillet (2026-10-15)
@@ -203,7 +204,7 @@ models:
   - {name: b_lamp, area: b_site, model: models/light.mdl, pos: [x, y], z: 200}
 ```
 - `env_sprite` med en `.mdl`, som spillet selv har (`cstrike/models`, `valve/models`); stien skal starte med `models/`. Generatoren afviser modeller, der ikke findes i `paths.model_dirs` (når Half-Life-installationen er mountet).
-- Modellen er ikke solid. `clip: [w, d, h]` lægger en CLIP-boks (spiller-clip, ses ikke) centreret om `pos` fra `z`, så den blokerer; uden `clip` er den ren pynt (sæt den op ad en væg eller over hovedhøjde).
+- Modellen er ikke solid. `clip: [w, d, h]` lægger en CLIP-boks (spiller-clip, ses ikke) centreret om `pos` fra områdets gulv (også når `z` løfter modellens origin, fx `pallet_with_bags`: z 22), så den blokerer; uden `clip` er den ren pynt (sæt den op ad en væg eller over hovedhøjde).
 - Vores renderer tegner ikke modeller, så stilreviewet ser dem ikke. ⚠️ VERIFICÉR visningen i CS 1.6-klienten.
 
 ### Vinkler og niveauer (2026-10-14): skrå rum i vilkårlig vinkel, broer, overgange

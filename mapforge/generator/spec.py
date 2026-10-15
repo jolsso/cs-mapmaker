@@ -88,6 +88,7 @@ class Door:
     gate: str = "none"  # an openable door leaf in the opening (func_door / func_door_rotating)
     arch: bool = False  # rounded top corners (a plain door; full width stays >= 80 high)
     frame: str | None = None  # texture of a door frame (jambs + lintel, func_detail)
+    light: bool = False  # a light on both sides of the opening, under its top (readable chokes)
 
     @property
     def walkable(self) -> bool:
@@ -598,6 +599,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
                 gate=str(d.get("gate", "none")),
                 arch=bool(d.get("arch", False)),
                 frame=d.get("frame"),
+                light=bool(d.get("light", False)),
             )
         )
         dr = doors[-1]
