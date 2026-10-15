@@ -148,6 +148,8 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [x] Loop-robusthed (2026-10-14): budget tæller kun aktiv køretid, en afbrudt simulering genoptages (færdige batches/servere beholdes, runder reddes fra efterladte containere), Docker tjekkes før start
 - [x] Skitsestreger → skrå korridorer (`./mf sketch`, 2026-10-14)
 - [x] Knæk på skrå korridorer (`via:`, værktøjskassen `bend_corridor`, 2026-10-14): fundet af loopet på de_viaduct01 – en skrå korridor er stadig en lige sigtelinje langs sin egen akse. Fra 2026-10-15 må en skrå irregularity få knæk ind og ud igen; landmarks og chokes er stadig låst
+- [ ] Pakke 3 (lagt i roadmappen 2026-10-15): flere kassetyper (paller, stablede sæt med boost-trin) som cover-presets; runde former som facetterede prismer (tønder/cylindre som cover, runde søjler) og buer i døråbninger (`arch` på en dør); værktøjskassen: `add_cover` med de nye presets/former
+- [ ] Bevægelige elementer (pakke 3): elevator (`func_plat`/`func_train`) og knapper (`func_button`) ⚠️ VERIFICÉR at YaPB's graf kan bruge elevatorer, før de tilbydes i værktøjskassen
 
 **Accept:** et genereret map med de nye features compiler, validerer uden fejl, simuleres (YaPB når begge sites) og forbedres af loopet uden manuelle trin.
 
@@ -159,6 +161,9 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [ ] Tekstur-pipeline: billede → kvantisering → WAD3 (kun fri licens)
 - [ ] Claude-review af klient-screenshots mod stilguide
 - [ ] Lysstyrkekort uden mørke spilzoner
+- [ ] Props/modeller (`.mdl` via `cycler`/`env_model`, kun egne eller fri licens) som pynt uden gameplay-betydning (lagt i roadmappen 2026-10-15)
+- [ ] Arkitekturdetaljer i `func_detail`: dørkarme, lister, sokler, skrå tage – må ikke ændre gangbarhed eller sigtelinjer
+- [ ] Lyd: `ambient_generic` (vand, maskiner, vind) pr. zone, ud over den automatiske rumklang
 
 **Accept:** Final compile, ingen mørke zoner, stilreview uden kritiske fund.
 
