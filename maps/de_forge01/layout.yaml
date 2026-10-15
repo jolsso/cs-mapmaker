@@ -26,37 +26,52 @@ grid: 16
 wall: 16
 sky:
   name: desert
-  sun: {pitch: -55, yaw: 120, color: [255, 238, 210], brightness: 300, ambient: 110}
+  sun: {pitch: -35, yaw: 225, color: [255, 220, 180], brightness: 220, ambient: 90}   # low afternoon sun (ART_DIRECTION §5)
 lights: {spacing: 320, brightness: 230, color: [255, 232, 200]}
+
+# Art pass (phase 7, 2026-10-15): industrial theme - a steel works being shut down
+# (maps/de_forge01/ART_DIRECTION.md). Textures from the game's own WADs (cstrike.wad,
+# referenced, never embedded). Textures and light only: the layout is frozen since Gate B.
+zones:
+  t: {floor: CSTRIKE_FT4APHT, wall: CSTRIKE_WB6PLN1, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_OE4PNL,
+      light: {color: [255, 226, 170]}}
+  ct: {floor: CSTRIKE_CR2PLN, wall: CSTRIKE_WR4CCPN, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME4METL,
+       light: {color: [225, 235, 255]}}
+  mid: {floor: CSTRIKE_FT2DIRT, wall: -0CSTRIKE_WR3CC, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME2RSTW}
+  a: {floor: CSTRIKE_FE2SQRS, wall: CSTRIKE_ME2RSTW, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME2DRST,
+      light: {color: [255, 190, 140], brightness: 240}}
+  b: {floor: CSTRIKE_ME1GRAT, wall: -0CSTRIKE_WE1MT, ceiling: CSTRIKE_ME1CLNG, cover: CSTRIKE_OE4PNL,
+      light: {color: [190, 225, 230], brightness: 220}}
+texlights: {-0CSTRIKE_MH5TL: [255, 160, 90, 700]}   # the furnace wall at A (Ovnvæggen)
 
 areas:
   # --- spawns and sites ---
-  - {name: t_spawn, rect: [-384, -2432, 384, -1664], height: 256, outdoor: true, role: t_spawn}   # pushed south: T -> site ~16-18 s
-  - {name: ct_spawn, rect: [-128, 1440, 640, 2048], height: 256, outdoor: true, role: ct_spawn}
-  - {name: a_site, rect: [1280, 1280, 2048, 2048], floor: 32, height: 320, outdoor: true, role: site}
-  - {name: b_site, rect: [-2048, 1280, -1280, 2048], height: 224, role: site}
-  - {name: mid, rect: [-384, -384, 384, 384], height: 288, outdoor: true, role: mid}
+  - {name: t_spawn, rect: [-384, -2432, 384, -1664], height: 256, outdoor: true, role: t_spawn, zone: t}   # pushed south: T -> site ~16-18 s
+  - {name: ct_spawn, rect: [-128, 1440, 640, 2048], height: 256, outdoor: true, role: ct_spawn, zone: ct}
+  - {name: a_site, rect: [1280, 1280, 2048, 2048], floor: 32, height: 320, outdoor: true, role: site, zone: a}
+  - {name: b_site, rect: [-2048, 1280, -1280, 2048], height: 224, role: site, zone: b}
+  - {name: mid, rect: [-384, -384, 384, 384], height: 288, outdoor: true, role: mid, zone: mid}
   # --- east: A long (long-range lane) ---
-  - {name: a_long_start, rect: [1280, -2048, 2048, -1280], height: 288, outdoor: true, role: corridor}
-  - {name: a_long, rect: [1280, -384, 2048, 384], height: 288, outdoor: true, role: corridor}
-  - {name: long_ec_s, rect: [1472, -1264, 1856, -400], height: 288, outdoor: true, role: corridor}
-  - {name: long_ec_n, rect: [1472, 400, 1856, 1264], height: 288, outdoor: true, role: corridor}
-  - {name: b_tunnels, rect: [-2048, -384, -1280, 384], height: 160, role: corridor}
-  - {name: b_tunnel_n, rect: [-1792, 400, -1536, 1264], height: 144, role: corridor}
+  - {name: a_long_start, rect: [1280, -2048, 2048, -1280], height: 288, outdoor: true, role: corridor, zone: a}
+  - {name: a_long, rect: [1280, -384, 2048, 384], height: 288, outdoor: true, role: corridor, zone: a}
+  - {name: long_ec_s, rect: [1472, -1264, 1856, -400], height: 288, outdoor: true, role: corridor, zone: a}
+  - {name: long_ec_n, rect: [1472, 400, 1856, 1264], height: 288, outdoor: true, role: corridor, zone: a}
+  - {name: b_tunnels, rect: [-2048, -384, -1280, 384], height: 160, role: corridor, zone: b}
+  - {name: b_tunnel_n, rect: [-1792, 400, -1536, 1264], height: 144, role: corridor, zone: b}
   # --- middle and cross connectors ---
-  - {name: mid_s, rect: [-192, -1648, 192, -400], height: 256, outdoor: true, role: corridor}
-  - {name: t_to_long, rect: [400, -1856, 1264, -1472], height: 192, role: corridor}
-  - {name: t_to_b, rect: [-1264, -1856, -400, -1472], height: 192, role: corridor}
-  - {name: mid_to_long, rect: [400, -128, 1264, 128], height: 160, role: corridor}
-  - {name: mid_to_b, rect: [-1264, -128, -400, 128], height: 144, role: corridor}
-  - {name: mid_top, rect: [-960, 400, 960, 912], height: 256, outdoor: true, role: mid}
-  - {name: a_short_up, rect: [656, 928, 912, 1280], height: 192, role: corridor}
-  - {name: a_short, rect: [656, 1296, 1264, 1504], height: 192, role: corridor}
-  - {name: b_short_up, rect: [-912, 928, -656, 1280], height: 192, role: corridor}
-  - {name: b_short, rect: [-1264, 1296, -656, 1504], height: 192, role: corridor}
-  - {name: ct_to_a, rect: [656, 1600, 1264, 1856], height: 192, role: corridor}
-  - {name: ct_to_b, rect: [-1264, 1600, -144, 1856], height: 192, role: corridor}
-  - {name: t_b_cut, rect: [-1264, -1456, -1008, -144], height: 144, role: corridor}
+  - {name: mid_s, rect: [-192, -1648, 192, -400], height: 256, outdoor: true, role: corridor, zone: mid}
+  - {name: t_to_long, rect: [400, -1856, 1264, -1472], height: 192, role: corridor, zone: t}
+  - {name: t_to_b, rect: [-1264, -1856, -400, -1472], height: 192, role: corridor, zone: t}
+  - {name: mid_to_long, rect: [400, -128, 1264, 128], height: 160, role: corridor, zone: mid}
+  - {name: mid_to_b, rect: [-1264, -128, -400, 128], height: 144, role: corridor, zone: mid}
+  - {name: mid_top, rect: [-960, 400, 960, 912], height: 256, outdoor: true, role: mid, zone: mid}
+  - {name: a_short_up, rect: [656, 928, 912, 1280], height: 192, role: corridor, zone: a}
+  - {name: a_short, rect: [656, 1296, 1264, 1504], height: 192, role: corridor, zone: a}
+  - {name: b_short_up, rect: [-912, 928, -656, 1280], height: 192, role: corridor, zone: b}
+  - {name: b_short, rect: [-1264, 1296, -656, 1504], height: 192, role: corridor, zone: b}
+  - {name: ct_to_a, rect: [656, 1600, 1264, 1856], height: 192, role: corridor, zone: ct}
+  - {name: ct_to_b, rect: [-1264, 1600, -144, 1856], height: 192, role: corridor, zone: ct}
+  - {name: t_b_cut, rect: [-1264, -1456, -1008, -144], height: 144, role: corridor, zone: t}
 
 doors:
   # T side
@@ -101,16 +116,16 @@ stairs:
 
 cover:
   # A site: double stack, a short crate and a wall by the long entrance
-  - {name: a_box_big, area: a_site, pos: [1552, 1680], size: [128, 128, 96]}
+  - {name: a_box_big, area: a_site, pos: [1552, 1680], size: [128, 128, 96], texture: TSPLAINRED}
   - {name: a_box_small, area: a_site, pos: [1680, 1600], size: [64, 64, 48]}
-  - {name: a_wall, area: a_site, pos: [1904, 1456], size: [32, 192, 96]}
+  - {name: a_wall, area: a_site, pos: [1904, 1456], size: [32, 192, 96], texture: -0CSTRIKE_MH5TL}
   - {name: a_box_short, area: a_site, pos: [1424, 1488], size: [64, 64, 64]}
   # B site: two pillars and a crate cluster
-  - {name: b_pillar_w, area: b_site, pos: [-1856, 1600], size: [64, 64, 224]}
-  - {name: b_pillar_e, area: b_site, pos: [-1472, 1760], size: [64, 64, 224]}
+  - {name: b_pillar_w, area: b_site, pos: [-1856, 1600], size: [64, 64, 224], texture: -0CSTRIKE_ME1PL}
+  - {name: b_pillar_e, area: b_site, pos: [-1472, 1760], size: [64, 64, 224], texture: -0CSTRIKE_ME1PL}
   - {name: b_crates, area: b_site, pos: [-1664, 1920], size: [128, 64, 64]}
   # iteration 5: post-plant cover where T enters (tunnel/short) and a low platform between pillars
-  - {name: b_platform, area: b_site, pos: [-1664, 1680], size: [192, 128, 32]}
+  - {name: b_platform, area: b_site, pos: [-1664, 1680], size: [192, 128, 32], texture: CSTRIKE_ME4DCLN}
   - {name: b_box_se, area: b_site, pos: [-1440, 1424], size: [64, 64, 64]}
   - {name: ct_b_box, area: ct_to_b, pos: [-704, 1792], size: [64, 64, 64]}
   # iteration 6: screen wall inside B's CT door (review: CT spawn still saw onto B) and a crate
@@ -118,14 +133,14 @@ cover:
   - {name: b_ct_screen, area: b_site, pos: [-1408, 1728], size: [32, 256, 128]}
   - {name: mid_s_box, area: mid_s, pos: [-64, -1024], size: [96, 64, 64]}
   # mid and the mid_top junction
-  - {name: mid_box, area: mid, pos: [0, 0], size: [192, 96, 96]}
+  - {name: mid_box, area: mid, pos: [0, 0], size: [192, 96, 96], texture: CSTRIKE_OE4PNLH}
   - {name: top_box_w, area: mid_top, pos: [-512, 656], size: [96, 96, 64]}
   - {name: top_box_e, area: mid_top, pos: [448, 720], size: [96, 96, 64]}
   # long: cover along the lane
-  - {name: long_box, area: a_long, pos: [1760, 0], size: [96, 96, 64]}
+  - {name: long_box, area: a_long, pos: [1760, 0], size: [96, 96, 64], texture: CSTRIKE_ME4GREB}
   - {name: long_start_box, area: a_long_start, pos: [1664, -1568], size: [128, 64, 64]}
   # B route
-  - {name: b_tun_wall, area: b_tunnels, pos: [-1664, 0], size: [256, 32, 160]}
+  - {name: b_tun_wall, area: b_tunnels, pos: [-1664, 0], size: [256, 32, 160], texture: CSTRIKE_OE6TNKF}
   - {name: b_tun_box, area: b_tunnels, pos: [-1472, 224], size: [64, 64, 64]}
   - {name: b_cut_chicane, area: t_b_cut, pos: [-1184, -800], size: [160, 32, 128]}
   - {name: mid_top_cover, area: mid_top, pos: [-824, 704], size: [272, 32, 128]}
