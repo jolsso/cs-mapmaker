@@ -108,10 +108,16 @@ def test_apply_arch_on_and_off():
     assert not failed and "arch" not in yaml.safe_load(new)["doors"][0]
 
 
+def _open_fitness(f: dict) -> dict:
+    """The real fitness config with de_forge01's geometry open (it is frozen after Gate B)."""
+    f["locked"]["geometry_frozen"] = False
+    return f
+
+
 def test_policy_counts_windows_per_iteration_and_uses_per_map_locks():
     from mapforge.decide.policy import check_plan, load_fitness, locked_for
 
-    f = load_fitness()
+    f = _open_fitness(load_fitness())
     w = {"type": "add_window", "rationale": "r",
          "params": {"from": "a", "to": "b", "width": 96, "sill": 80}}  # fmt: skip
     plan = {"summary": "s", "changes": [w, w], "expected_effect": "e", "risk": "r",
@@ -228,7 +234,7 @@ def test_policy_allows_area_changes_only_on_a_human_wish():
             "changes": [{"type": "remove_area", "params": {"target": "mid_to_b"}, "rationale": "x"},
                         {"type": "remove_area", "params": {"target": "mid_to_b"}, "rationale": "x",
                          "addresses": ["annotation:4"]}]}  # fmt: skip
-    v = check_plan(plan, load_fitness(), 6)
+    v = check_plan(plan, _open_fitness(load_fitness()), 6)
     assert len(v.rejected) == 1 and "human" in v.rejected[0]["reason"] and len(v.accepted) == 1
 
 

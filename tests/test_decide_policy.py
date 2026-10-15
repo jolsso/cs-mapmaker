@@ -5,6 +5,8 @@ import pytest
 from mapforge.decide.policy import check_plan, load_fitness
 
 FITNESS = load_fitness()
+# the policy rules are tested on open geometry, whatever gate the real map is at
+FITNESS["locked"]["geometry_frozen"] = False
 
 
 def plan(*changes, escalate=False, reason=""):
