@@ -315,6 +315,7 @@ class Layout:
     ambient: list[Ambient] = field(default_factory=list)
     models: list[Model] = field(default_factory=list)
     roofs: list[Roof] = field(default_factory=list)
+    wall_details: dict[str, Any] | None = None  # locked doors / windows along blank walls
 
 
 DEFAULT_TEXTURES = {
@@ -581,6 +582,32 @@ def _skyline(sk: Any) -> dict[str, Any] | None:
         raise SpecError("skyline.air: >= 64 on the 8 grid (open air over the highest roof)")
     return {"heights": heights, "air": air,
             "facade": sk.get("facade"), "roof": sk.get("roof")}  # fmt: skip
+
+
+def _wall_details(wd: Any, areas: dict[str, Area]) -> dict[str, Any] | None:
+    """wall_details: {areas: [...], doors: [{texture, size: [w, h]}], windows: [{texture,
+    size: [w, h], z}], spacing: 320, depth: 8} - each panel shows exactly one texture."""
+    if not wd:
+        return None
+    wd = dict(wd)
+    names = [str(n) for n in wd.get("areas", [])]
+    unknown = [n for n in names if n not in areas]
+    if unknown:
+        raise SpecError(f"wall_details.areas: unknown areas {unknown}")
+    panels = []
+    for kind in ("doors", "windows"):
+        for d in wd.get(kind, []) or []:
+            w, h = (int(v) for v in d["size"])
+            z = int(d.get("z", 0 if kind == "doors" else 96))
+            if w % 16 or h % 8 or z % 8 or w <= 0 or h <= 0:
+                raise SpecError(f"wall_details.{kind}: size on the grid (w / 16, h / 8), z / 8")
+            panels.append({"kind": kind[:-1], "texture": str(d["texture"]), "w": w, "h": h, "z": z})
+    if not panels:
+        raise SpecError("wall_details: at least one door or window texture")
+    spacing, depth = int(wd.get("spacing", 320)), int(wd.get("depth", 8))
+    if spacing < 128 or spacing % 16 or depth % 8 or depth <= 0:
+        raise SpecError("wall_details: spacing >= 128 (/ 16), depth / 8")
+    return {"areas": names, "panels": panels, "spacing": spacing, "depth": depth}
 
 
 def parse_layout(data: dict[str, Any]) -> Layout:
@@ -1007,6 +1034,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         ambient=ambient,
         models=models,
         roofs=roofs,
+        wall_details=_wall_details(data.get("wall_details"), areas),
     )
 
 

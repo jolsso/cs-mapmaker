@@ -701,7 +701,7 @@ def test_roofed_and_pitched_map_compiles_without_a_leak(tmp_path):
     compile_map(cfg, "de_gen_feat")  # raises CompileError on a leak
 
 
-def test_skyline_yard_walls_even_rooms_flat_blocks_varied_with_gables():
+def test_skyline_yard_walls_even_and_city_blocks_with_gables():
     from mapforge.generator.build import PARAPET, skyline_plan
 
     data = copy.deepcopy(FEAT)
@@ -717,9 +717,9 @@ def test_skyline_yard_walls_even_rooms_flat_blocks_varied_with_gables():
     i_wall = xs.index(ct.rect[2])  # the column just east of the yard (its wall)
     j_mid = ys.index(0)
     assert sky.roof[i_wall, j_mid] == ct.top + PARAPET
-    mid = lay.areas["mid"]  # an indoor corridor: flat roof `wall` over its ceiling
-    assert sky.roof[xs.index(0), j_mid] == mid.top + lay.wall
-    assert sky.blocks and all(b["z"] >= mid.top for b in sky.blocks)
+    mid = lay.areas["mid"]  # an indoor corridor lies under a building that covers it
+    assert sky.roof[xs.index(0), j_mid] >= mid.top + lay.wall
+    assert sky.blocks and all(b["rect"] for b in sky.blocks)  # city blocks: rectangles
     gables = [b for b in world if any(f.texture == "DEV_CONCRETE" for f in b.faces)
               and len(b.faces) == 5]  # fmt: skip
     assert gables  # prisms on the rectangular blocks
@@ -745,3 +745,31 @@ def test_skyline_map_compiles_sealed(tmp_path):
     write_map(g.mapfile, tmp_path / "maps" / "de_gen_feat" / "src" / "de_gen_feat.map")
     make_dev_wad()
     compile_map(cfg, "de_gen_feat")  # raises CompileError on a leak
+
+
+def test_wall_details_are_whole_doors_and_windows_clear_of_openings():
+    from mapforge.generator.build import wall_detail_boxes
+
+    data = copy.deepcopy(FEAT)
+    data["wall_details"] = {
+        "areas": ["mid", "ct_spawn"], "spacing": 192,
+        "doors": [{"texture": "DEV_DOOR", "size": [64, 128]}],
+        "windows": [{"texture": "DEV_GLASS", "size": [64, 48], "z": 96}],
+    }  # fmt: skip
+    lay = parse_layout(data)
+    g = generate(lay)
+    panels = wall_detail_boxes(lay, g.voids)
+    assert len(panels) >= 4 and {t for _, t in panels} == {"DEV_DOOR", "DEV_GLASS"}
+    doors = [b for n, b in g.voids.items() if n not in lay.areas]
+    for (lo, hi), _ in panels:
+        assert hi[0] - lo[0] == 8 or hi[1] - lo[1] == 8  # flat against a wall
+        for d_lo, d_hi in doors:  # never in front of a real opening
+            overlap_x = d_lo[0] < hi[0] and lo[0] < d_hi[0]
+            assert not (overlap_x and d_lo[1] < hi[1] and lo[1] < d_hi[1])
+    det = [b for e in g.mapfile.entities if e.classname == "func_detail" for b in e.brushes
+           if b.faces[0].texture == "DEV_DOOR"]  # fmt: skip
+    assert det
+    face = det[0].faces[0]  # its texture starts at the panel's corner (one whole door)
+    v = brush_geometry(det[0]).vertices
+    s_vals = v[:, :3] @ np.array(face.u_axis[:3]) + face.u_axis[3]
+    assert s_vals.min() == 0

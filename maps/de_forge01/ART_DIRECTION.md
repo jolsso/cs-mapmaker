@@ -30,7 +30,7 @@ Tema låst 2026-10-15 (Gate B, menneskets valg): **industri**. Geometrien er fro
 | Ovnvæggen | `a_site` (`a_wall`) | Væg ved long-indgangen med ovnlys (texlight) |
 | Transformatoren | `mid` (`mid_box`) | Grøn-grå kasse med advarselsskilt midt på mid |
 | Broen | `mid_top` | Overdækket krydsning; varmere lys end mid |
-| Kabelkanalen | `b_tunnels` (`b_tun_wall`) | Lav, våd tunnel med kabelbakker og teal-lys |
+| Vandtankene | `b_tunnels` (`b_tank_w`, `b_tank_e`) | To teal vandtanke i den lave, våde tunnel |
 | Søjlerne | `b_site` (`b_pillar_w`, `b_pillar_e`) | To høje teal-malede køletårnssøjler |
 | Platformen | `b_site` (`b_platform`) | Lav pumpeplatform mellem søjlerne |
 | Vagthuset | `ct_spawn` | Lyst hjørne med blå skiltning |

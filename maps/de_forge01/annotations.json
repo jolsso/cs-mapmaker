@@ -844,5 +844,215 @@
       "time": "2026-10-15 14:30:06",
       "category": null
     }
+  },
+  {
+    "kind": "point",
+    "text": "the sky still needs fixing. I just need like a normalt sky, where I can see the sun etc. Not this weird sky. (in game)",
+    "points": [
+      [
+        232,
+        -892
+      ]
+    ],
+    "id": 24,
+    "status": "done",
+    "created": "2026-10-15 15:12",
+    "resolution": "2026-10-15 art pass: sky: grnplsnt (ordinary blue sky with a visible sun), sunlight turned towards it - please check the shadows in game",
+    "ingame": {
+      "key": "2026-10-15 15:08:15|the sky still needs fixing. I just need like a normalt sky, where I can see the sun etc. Not this weird sky.",
+      "eye": [
+        -91,
+        -2038,
+        53
+      ],
+      "aim": [
+        232,
+        -892,
+        847
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:08:15",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "can you make some inaccessible doors or windows along the path here to make it more genuine (in game)",
+    "points": [
+      [
+        -191,
+        -750
+      ]
+    ],
+    "id": 25,
+    "status": "done",
+    "created": "2026-10-15 15:12",
+    "resolution": "2026-10-15 art pass: wall_details: locked doors and windows along the yards and T's corridors (whole textures, every 320 units)",
+    "ingame": {
+      "key": "2026-10-15 15:08:39|can you make some inaccessible doors or windows along the path here to make it more genuine",
+      "eye": [
+        43,
+        -523,
+        53
+      ],
+      "aim": [
+        -191,
+        -750,
+        48
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:08:39",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "still needs roof on all the top buildings (in game)",
+    "points": [
+      [
+        -399,
+        -1938
+      ]
+    ],
+    "id": 26,
+    "status": "done",
+    "created": "2026-10-15 15:12",
+    "resolution": "2026-10-15 art pass: skyline v3: every building block has a gable roof",
+    "ingame": {
+      "key": "2026-10-15 15:08:54|still needs roof on all the top buildings",
+      "eye": [
+        -80,
+        -1773,
+        53
+      ],
+      "aim": [
+        -399,
+        -1938,
+        356
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:08:54",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "maybe make this one large container as it will fit the lore better (in game)",
+    "points": [
+      [
+        -1140,
+        -783
+      ]
+    ],
+    "id": 27,
+    "status": "done",
+    "created": "2026-10-15 15:12",
+    "resolution": "2026-10-15 art pass: the chicane in the T->B shortcut is a large container",
+    "ingame": {
+      "key": "2026-10-15 15:09:13|maybe make this one large container as it will fit the lore better",
+      "eye": [
+        -1024,
+        -579,
+        53
+      ],
+      "aim": [
+        -1140,
+        -783,
+        48
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:09:13",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "what is this? (in game)",
+    "points": [
+      [
+        -1570,
+        -16
+      ]
+    ],
+    "id": 28,
+    "status": "done",
+    "created": "2026-10-15 15:12",
+    "resolution": "2026-10-15 art pass: the cable wall in the B tunnels became two teal water tanks (one installation); landmark renamed Vandtankene",
+    "ingame": {
+      "key": "2026-10-15 15:09:20|what is this?",
+      "eye": [
+        -1301,
+        -146,
+        53
+      ],
+      "aim": [
+        -1570,
+        -16,
+        45
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:09:20",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "what is this platform for? Just a platform. Needs lore (in game)",
+    "points": [
+      [
+        -1567,
+        1625
+      ]
+    ],
+    "id": 29,
+    "status": "done",
+    "created": "2026-10-15 15:12",
+    "resolution": "2026-10-15 art pass: the B platform got a pump and a motor on top",
+    "ingame": {
+      "key": "2026-10-15 15:10:56|what is this platform for? Just a platform. Needs lore",
+      "eye": [
+        -1418,
+        1545,
+        53
+      ],
+      "aim": [
+        -1567,
+        1625,
+        29
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:10:56",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "look at all the top buildings and make sure they align. This looks like shit. (in game)",
+    "points": [
+      [
+        655,
+        1585
+      ]
+    ],
+    "id": 30,
+    "status": "done",
+    "created": "2026-10-15 15:12",
+    "resolution": "2026-10-15 art pass: skyline v3: the yards are the streets, the blocks between them are buildings with one height each, lined up along the yards",
+    "ingame": {
+      "key": "2026-10-15 15:11:27|look at all the top buildings and make sure they align. This looks like shit.",
+      "eye": [
+        -48,
+        1758,
+        53
+      ],
+      "aim": [
+        655,
+        1585,
+        335
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:11:27",
+      "category": null
+    }
   }
 ]

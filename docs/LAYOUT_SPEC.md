@@ -198,10 +198,21 @@ skyline:                      # eller bare `skyline: true`
   roof: TSROOF                # tagflader (standard: textures.ceiling)
 ```
 - Uden `skyline` er skallen klassisk: massiv op til toppen, himmel kun lodret over udendørs områder.
-- Med `skyline` regnes på planen (x/y): en **gårds** egen søjle er åben over dens top, og **væggene om den** slutter 16 over (samme højde hele vejen rundt). Et **indendørs rum eller en korridor** får et fladt tag `wall` over loftet (et skråt loft: over kippen) – uden variation, så korridorer ikke giver trappetrin. De **massive blokke mellem ruterne er bygningerne**: hver sammenhængende blok får én højde (mindst som væggene omkring den) + en variation og et **saddeltag**, hvis blokken er et rektangel (kip langs den lange side, rejsning halvdelen af den korte side, højst 96).
+- Med `skyline` er **gårdene gaderne**: deres kanter (og en vægtykkelse ud fra dem) skærer planen op i byblokke. En gårds egen søjle er åben over dens top, og **væggen om den** slutter 16 over (samme højde hele vejen rundt); en åbning mellem to gårde er åben opad (ingen bjælke over den). **Hver anden blok er én bygning** – høj nok til alt indendørs under den (loft + væg; et skråt loft: kip + væg) og til gårdvæggene ved siden af – plus en variation og et **saddeltag** (kip langs den lange side, rejsning halvdelen af den korte, højst 96). Så flugter bygningerne langs gårdene, og alle har tag.
 - Over tagene er der åben luft op til himlen, og himlen dækker skallens yderside. Hver gård får et spiller-clip-loft i sin oprindelige top, så ingen kan booste op på tagene (granater og skud går igennem clip).
 - Mere kan ses hen over tagene: hold øje med r_speeds/wpoly i valideringen.
-- Første version (pr. område) gav smalle striber i mange højder uden tag – fundet ved spiltest 2026-10-15.
+- Version 1 (pr. område) gav smalle striber uden tag, version 2 (pr. massiv blok) stumper, der ikke flugtede – begge fundet ved spiltest 2026-10-15.
+
+### Låste døre og vinduer langs væggene (2026-10-15)
+```yaml
+wall_details:
+  areas: [t_spawn, mid_s, ct_spawn]
+  spacing: 320                # en åbning hver 320 units langs hver væg; døre og vinduer skiftes
+  depth: 8                    # hvor langt panelet står ud fra væggen
+  doors:   [{texture: TSDOOR4, size: [80, 128]}, {texture: DOOR01, size: [128, 192]}]
+  windows: [{texture: WINDOW04A, size: [128, 64], z: 112}]
+```
+- Hvert panel har teksturens størrelse, og teksturen forskydes, så den starter i panelets hjørne – én hel dør eller ét helt vindue, ikke et udsnit af mønstret. Paneler holder 16 fri af rigtige åbninger, cover, modeller og stiger, og passer under loftet. `func_detail`. Tekstur pr. plads vælges stabilt.
 
 ### Tage og skrå lofter (2026-10-15)
 ```yaml

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 import numpy as np
@@ -268,6 +268,79 @@ def roof_brushes(ro, a: Area, tex: str, post_tex: str) -> list[Brush]:
     return out
 
 
+def fit_texture(brush: Brush, lo: tuple, hi: tuple) -> Brush:
+    """Shift every face's texture so it starts at the box's corner (texture space): a panel the
+    size of its texture shows exactly one door or window, not a slice of the tiling."""
+    corners = [(x, y, z) for x in (lo[0], hi[0]) for y in (lo[1], hi[1]) for z in (lo[2], hi[2])]
+    faces = []
+    for f in brush.faces:
+        u, v = f.u_axis, f.v_axis
+        su = -min(sum(c[k] * u[k] for k in range(3)) for c in corners)
+        sv = -min(sum(c[k] * v[k] for k in range(3)) for c in corners)
+        faces.append(replace(f, u_axis=(u[0], u[1], u[2], su), v_axis=(v[0], v[1], v[2], sv)))
+    return replace(brush, faces=faces)
+
+
+def wall_detail_boxes(layout: Layout, voids: dict[str, Box]) -> list[tuple[Box, str]]:
+    """Locked doors and windows along the walls of the listed areas: every `spacing` along each
+    wall, doors and windows taking turns (textures picked stably), `depth` out of the wall.
+    A panel keeps 16 clear of openings, cover, models and ladders, and fits under the ceiling."""
+    wd = layout.wall_details or {}
+    if not wd:
+        return []
+    doors = [p for p in wd["panels"] if p["kind"] == "door"]
+    windows = [p for p in wd["panels"] if p["kind"] == "window"]
+    spacing, depth = wd["spacing"], wd["depth"]
+    out = []
+    for name in wd["areas"]:
+        a = layout.areas[name]
+        if a.poly is not None:
+            continue
+        x0, y0, x1, y1 = a.rect
+        blockers = [b for n, b in voids.items() if n not in layout.areas]  # doors, hatches
+        for c in layout.cover:
+            if c.area == name:
+                (px, py), (w, d, _) = c.pos, c.size
+                blockers.append(((px - w // 2, py - d // 2, 0), (px + w // 2, py + d // 2, 0)))
+        for m in layout.models:
+            if m.area == name and m.clip:
+                w, d, _ = m.clip
+                blockers.append(((m.pos[0] - w // 2, m.pos[1] - d // 2, 0),
+                                 (m.pos[0] + w // 2, m.pos[1] + d // 2, 0)))  # fmt: skip
+        for ld in layout.ladders:
+            if ld.area == name:
+                blockers.append(_ladder_box(layout, ld))
+        sides = [("-x", 0, x0, (y0, y1)), ("+x", 0, x1, (y0, y1)),
+                 ("-y", 1, y0, (x0, x1)), ("+y", 1, y1, (x0, x1))]  # fmt: skip
+        for side, ax, at, (s0, s1) in sides:
+            inward = 1 if side[0] == "-" else -1
+            k = 0
+            for c in range(s0 + spacing // 2, s1 - spacing // 4, spacing):
+                pool = (doors, windows)[k % 2] or doors or windows
+                k += 1
+                pick = int(hashlib.sha1(f"{name}{side}{c}".encode()).hexdigest(), 16)
+                p = pool[pick % len(pool)]
+                half = p["w"] // 2
+                c8 = c // 8 * 8
+                u0, u1 = c8 - half, c8 + half
+                if u0 < s0 + 16 or u1 > s1 - 16 or p["z"] + p["h"] + 16 > a.height:
+                    continue
+                t0, t1 = (at, at + depth) if inward > 0 else (at - depth, at)
+                lo = [0, 0, a.floor + p["z"]]
+                hi = [0, 0, a.floor + p["z"] + p["h"]]
+                lo[ax], hi[ax] = t0, t1
+                lo[1 - ax], hi[1 - ax] = u0, u1
+                clear = True
+                for b_lo, b_hi in blockers:  # 16 of room around the panel, in plan
+                    if (b_lo[0] < hi[0] + 16 and lo[0] - 16 < b_hi[0]
+                            and b_lo[1] < hi[1] + 16 and lo[1] - 16 < b_hi[1]):  # fmt: skip
+                        clear = False
+                        break
+                if clear:
+                    out.append(((tuple(lo), tuple(hi)), p["texture"]))
+    return out
+
+
 def door_box(door: Door, areas: dict[str, Area], wall: int) -> Box:
     """The empty box cut through the wall between the two areas of a door.
 
@@ -345,69 +418,78 @@ class Skyline:
 
 
 def skyline_plan(layout: Layout, voids: dict[str, Box], xs, ys) -> Skyline:
-    """The buildings around the play space, on the plan grid:
-    - a yard's own column is open above its top; the walls around it end PARAPET above that
-      (the same height all the way round);
-    - an indoor room or corridor has a flat roof `wall` above its ceiling (a pitched hall: over
-      its ridge) - no variation, so corridors make no steps;
-    - the solid blocks between the routes are the buildings: each connected block gets one
-      height (at least the walls around it) plus a variation picked from the block's position
-      (stable), and a gable roof when it is a rectangle."""
+    """The buildings around the play space, on the plan grid (third version, after two play
+    tests: per-area heights gave strips, per-block heights gave fragments that did not line up).
+
+    The yards are the streets. Their edges (and a wall's thickness off them) cut the plan into
+    city blocks:
+    - a yard's own column is open above its top; the strip of wall around it ends PARAPET above
+      that (the same height all the way round); an opening between two yards stays open;
+    - every other block is one building: high enough for everything inside it (an indoor room
+      or corridor: its ceiling + wall; a pitched hall: its ridge + wall) and for the yard walls
+      around it, plus a stable variation from the block's position, with a gable roof.
+    Buildings therefore line up along the yards and every one of them has a roof."""
     sk = layout.skyline or {}
     hs, wall = sk["heights"], layout.wall
+    sx0, sx1, sy0, sy1 = xs[0], xs[-1], ys[0], ys[-1]
+    yards = [a for a in layout.areas.values() if a.outdoor]
+    cut_x, cut_y = {sx0, sx1}, {sy0, sy1}
+    for a in yards:
+        x0, y0, x1, y1 = a.rect
+        cut_x |= {x0 - wall, x0, x1, x1 + wall}
+        cut_y |= {y0 - wall, y0, y1, y1 + wall}
+    bx = sorted(c for c in cut_x if sx0 <= c <= sx1)
+    by = sorted(c for c in cut_y if sy0 <= c <= sy1)
     cx = (np.array(xs[:-1]) + np.array(xs[1:])) / 2
     cy = (np.array(ys[:-1]) + np.array(ys[1:])) / 2
     gx, gy = np.meshgrid(cx, cy, indexing="ij")
-    roof = np.full(gx.shape, -np.inf)
-    taken = np.zeros(gx.shape, dtype=bool)
-    near = np.full(gx.shape, np.inf)  # distance to the nearest area (plan)
-    edge = np.full(gx.shape, -np.inf)  # the wall height an adjacent area asks for
-    for a in layout.areas.values():
+    roof = np.zeros(gx.shape)
+
+    def dist(a: Area, x, y):
         x0, y0, x1, y1 = a.rect
-        top = voids[a.name][1][2]
-        inside = (gx > x0) & (gx < x1) & (gy > y0) & (gy < y1)
-        roof[inside] = np.maximum(roof[inside], top if a.outdoor else top + wall)
-        taken |= inside
-        dx = np.maximum(np.maximum(x0 - gx, gx - x1), 0)
-        d = dx + np.maximum(np.maximum(y0 - gy, gy - y1), 0)
-        near = np.minimum(near, d)
-        ask = top + (PARAPET if a.outdoor else wall)
-        close = d <= wall
-        edge[close] = np.maximum(edge[close], ask)
-    walls = ~taken & (near <= wall)
-    roof[walls] = edge[walls]
-    block = ~taken & ~walls
+        return np.maximum(np.maximum(x0 - x, x - x1), 0) + np.maximum(np.maximum(y0 - y, y - y1), 0)
+
+    # first the yards and their walls (the buildings need their heights)
+    kind = {}
+    for i in range(len(bx) - 1):
+        for j in range(len(by) - 1):
+            mx, my = (bx[i] + bx[i + 1]) / 2, (by[j] + by[j + 1]) / 2
+            inside = [a for a in yards if dist(a, mx, my) == 0]
+            near = [a for a in yards if 0 < dist(a, mx, my) <= wall]
+            if inside:
+                kind[i, j] = ("yard", max(voids[a.name][1][2] for a in inside))
+            elif near:
+                kind[i, j] = ("wall", max(voids[a.name][1][2] for a in near) + PARAPET)
+            else:
+                kind[i, j] = ("building", 0)
     blocks = []
-    seen = np.zeros(gx.shape, dtype=bool)
-    nx, ny = gx.shape
-    for i0 in range(nx):
-        for j0 in range(ny):
-            if not block[i0, j0] or seen[i0, j0]:
-                continue
-            stack, cells = [(i0, j0)], []
-            seen[i0, j0] = True
-            while stack:  # a connected block (4-neighbours on the plan grid)
-                i, j = stack.pop()
-                cells.append((i, j))
-                for a, b in ((i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)):
-                    if 0 <= a < nx and 0 <= b < ny and block[a, b] and not seen[a, b]:
-                        seen[a, b] = True
-                        stack.append((a, b))
-            ii = np.array([c[0] for c in cells])
-            jj = np.array([c[1] for c in cells])
-            bx0, bx1 = xs[ii.min()], xs[ii.max() + 1]
-            by0, by1 = ys[jj.min()], ys[jj.max() + 1]
-            # the walls next to the block: the block stands at least as high as they are
-            m = 2 * wall
-            pad = (gx >= bx0 - m) & (gx <= bx1 + m) & (gy >= by0 - m) & (gy <= by1 + m)
-            around = roof[pad & walls]
-            base = float(around.max()) if around.size else float(np.max(roof[np.isfinite(roof)]))
-            pick = int(hashlib.sha1(f"{bx0},{by0},{bx1},{by1}".encode()).hexdigest(), 16) % len(hs)
-            z = int(base) + hs[pick]
-            roof[ii, jj] = z
-            rect = len(cells) == (ii.max() - ii.min() + 1) * (jj.max() - jj.min() + 1)
-            blocks.append({"z": z, "box": (int(bx0), int(by0), int(bx1), int(by1)), "rect": rect})
-    roof[~np.isfinite(roof)] = 0
+    for (i, j), (k, z) in kind.items():
+        x0, x1, y0, y1 = bx[i], bx[i + 1], by[j], by[j + 1]
+        cells = (gx > x0) & (gx < x1) & (gy > y0) & (gy < y1)
+        if k != "building":
+            roof[cells] = z
+            continue
+        need = 0
+        for a in layout.areas.values():  # everything indoor under this block
+            ax0, ay0, ax1, ay1 = a.rect
+            if not a.outdoor and ax0 < x1 and x0 < ax1 and ay0 < y1 and y0 < ay1:
+                need = max(need, voids[a.name][1][2] + wall)
+        for (i2, j2), (k2, z2) in kind.items():  # and the yard walls touching it
+            if k2 == "wall" and abs(i2 - i) + abs(j2 - j) == 1:
+                need = max(need, z2)
+        if not need:
+            need = max(voids[a.name][1][2] for a in layout.areas.values()) + wall
+        pick = int(hashlib.sha1(f"{x0},{y0},{x1},{y1}".encode()).hexdigest(), 16) % len(hs)
+        z = int(need) + hs[pick]
+        roof[cells] = z
+        blocks.append({"z": z, "box": (int(x0), int(y0), int(x1), int(y1)), "rect": True})
+    for d in layout.doors:  # an opening between two yards is open above (no beam over it)
+        a, b = (layout.areas[n] for n in d.between)
+        if a.outdoor and b.outdoor and d.walkable:
+            (dx0, dy0, _), (dx1, dy1, dz1) = voids[d.name]
+            if dz1 >= min(a.top, b.top):
+                gap = (gx > dx0) & (gx < dx1) & (gy > dy0) & (gy < dy1)
+                roof[gap] = dz1
     return Skyline(roof, blocks)
 
 
@@ -970,6 +1052,8 @@ def generate(layout: Layout) -> Generated:
                             "_light": f"{r} {g} {bl} {sp.brightness}",
                             "_cone": str(sp.cone[0]), "_cone2": str(sp.cone[1])}))  # fmt: skip
 
+    for (p_lo, p_hi), ptex in wall_detail_boxes(layout, voids):  # locked doors and windows
+        frames.append(fit_texture(box_brush(p_lo, p_hi, ptex), p_lo, p_hi))
     if frames:
         ents.append(entity({"classname": "func_detail", "zhlt_detaillevel": "1"}, frames))
 

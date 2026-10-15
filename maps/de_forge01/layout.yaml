@@ -25,8 +25,8 @@ name: de_forge01
 grid: 16
 wall: 16
 sky:
-  name: TrainYard   # de_train's sky (in-game feedback: the desert sky was out of place)
-  sun: {pitch: -35, yaw: 225, color: [255, 220, 180], brightness: 220, ambient: 90}   # low afternoon sun (ART_DIRECTION §5)
+  name: grnplsnt    # an ordinary blue sky with a visible sun (in-game feedback: desert and TrainYard looked wrong)
+  sun: {pitch: -30, yaw: 90, color: [255, 236, 210], brightness: 220, ambient: 90}   # light from the sun in the skybox's back side (check in game)
 lights: {spacing: 320, brightness: 230, color: [255, 232, 200]}
 
 # Landmarks and chokepoints (ART_DIRECTION.md §2-3): callouts on existing cover and doors.
@@ -35,7 +35,7 @@ landmarks:
   - {name: Ingot-stablen, element: a_box_big, zone: a_site, function: "den store stak på A; callout og cover"}
   - {name: Transformatoren, element: mid_box, zone: mid, function: "midt på mid; callout"}
   - {name: Slaggevognen, element: long_box, zone: a_long, function: "midt på long; callout"}
-  - {name: Kabelkanalen, element: b_tun_wall, zone: b_tunnels, function: "væggen i B-tunnellerne; callout"}
+  - {name: Vandtankene, element: b_tank_w, zone: b_tunnels, function: "to teal vandtanke i B-tunnellerne; callout"}
   - {name: Søjlerne, element: b_pillar_w, zone: b_site, function: "teal køletårnssøjler på B; callout"}
   - {name: Platformen, element: b_platform, zone: b_site, function: "lav pumpeplatform mellem søjlerne"}
 chokes:
@@ -84,6 +84,16 @@ skyline:   # buildings of different heights around the yards (an industrial skyl
 roofs:     # canopies over parts of the yards (above head height)
   - {name: a_lean_to, area: a_site, rect: [1536, 1920, 1792, 2048], z: 176, shape: shed, axis: y, rise: 32}   # over the conveyor
   - {name: t_canopy, area: t_spawn, rect: [-384, -2432, -128, -2176], z: 176, shape: flat, posts: true}   # posts: it read as a floating platform
+wall_details:   # locked doors and windows along the yards and T's corridors (in-game feedback: more genuine)
+  areas: [t_spawn, mid_s, mid, mid_top, a_long_start, a_long, long_ec_s, long_ec_n, ct_spawn, t_to_long, t_to_b]
+  spacing: 320
+  doors:
+    - {texture: TSDOOR4, size: [80, 128]}
+    - {texture: CSTRIKE_DJ2OLD, size: [64, 128]}
+    - {texture: DOOR01, size: [128, 192]}
+  windows:
+    - {texture: WINDOW04A, size: [128, 64], z: 112}
+    - {texture: WINDOW03A, size: [64, 144], z: 64}
 areas:
   # --- spawns and sites ---
   - {name: t_spawn, rect: [-384, -2432, 384, -1664], height: 256, outdoor: true, role: t_spawn, zone: t}   # pushed south: T -> site ~16-18 s
@@ -166,6 +176,8 @@ cover:
   - {name: b_crates, area: b_site, pos: [-1664, 1920], size: [128, 64, 64]}
   # iteration 5: post-plant cover where T enters (tunnel/short) and a low platform between pillars
   - {name: b_platform, area: b_site, pos: [-1664, 1680], size: [192, 128, 32], texture: CSTRIKE_ME4DCLN}
+  - {name: b_pump, area: b_site, pos: [-1712, 1680], size: [64, 64, 64], z: 32, shape: cylinder, texture: TSHULL7}   # the pump on the platform
+  - {name: b_motor, area: b_site, pos: [-1600, 1680], size: [48, 48, 40], z: 32, texture: TSCAUTION}
   - {name: b_box_se, area: b_site, pos: [-1440, 1424], size: [64, 64, 64]}
   - {name: ct_b_box, area: ct_to_b, pos: [-704, 1792], size: [64, 64, 64]}
   # iteration 6: screen wall inside B's CT door (review: CT spawn still saw onto B) and a crate
@@ -180,9 +192,11 @@ cover:
   - {name: long_box, area: a_long, pos: [1760, 0], size: [96, 96, 64], texture: CSTRIKE_ME4GREB}
   - {name: long_start_box, area: a_long_start, pos: [1664, -1568], size: [128, 64, 64]}
   # B route
-  - {name: b_tun_wall, area: b_tunnels, pos: [-1664, 0], size: [256, 32, 160], texture: TSCABLES}
+  - {name: b_tank_w, area: b_tunnels, pos: [-1712, 0], size: [96, 96, 160], shape: cylinder, texture: -0CSTRIKE_ME1PL}   # water tanks
+  - {name: b_tank_e, area: b_tunnels, pos: [-1616, 0], size: [96, 96, 160], shape: cylinder, texture: -0CSTRIKE_ME1PL}
+  - {name: b_tank_link, area: b_tunnels, pos: [-1664, 0], size: [96, 96, 160], texture: -0CSTRIKE_ME1PL}   # one installation, no notch
   - {name: b_tun_box, area: b_tunnels, pos: [-1472, 224], size: [64, 64, 64]}
-  - {name: b_cut_chicane, area: t_b_cut, pos: [-1184, -800], size: [160, 32, 128]}
+  - {name: b_cut_chicane, area: t_b_cut, pos: [-1184, -800], size: [160, 96, 128], preset: container}   # a big container (in-game feedback)
   - {name: mid_top_cover, area: mid_top, pos: [-824, 704], size: [272, 32, 128]}
   - {name: mid_top_cover_2, area: mid_top, pos: [-576, 560], size: [32, 320, 128]}
   - {name: a_long_start_cover, area: a_long_start, pos: [1912, -1712], size: [272, 32, 128]}
