@@ -27,6 +27,17 @@ def assign_wads(mapfile: MapFile, cfg: Config) -> list[str]:
     return missing
 
 
+def missing_sounds(layout, cfg: Config) -> list[str]:
+    """Ambient sound paths found in none of paths.sound_dirs (no check if none of them exist,
+    e.g. without the Half-Life install)."""
+    dirs = [cfg.root / d for d in cfg.data["paths"].get("sound_dirs", [])]
+    dirs = [d for d in dirs if d.is_dir()]
+    if not dirs:
+        return []
+    return sorted({a.sound for a in layout.ambient
+                   if not any((d / a.sound).is_file() for d in dirs)})  # fmt: skip
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--map", required=True)
@@ -44,6 +55,10 @@ def main(argv: list[str] | None = None) -> int:
     missing = assign_wads(g.mapfile, cfg)
     if missing:
         print(f"generate failed: textures in no WAD of paths.wad_dirs: {missing}", file=sys.stderr)
+        return 1
+    unheard = missing_sounds(layout, cfg)
+    if unheard:
+        print(f"generate failed: sounds in no dir of paths.sound_dirs: {unheard}", file=sys.stderr)
         return 1
     out = map_dir / "src" / f"{args.map}.map"
     write_map(

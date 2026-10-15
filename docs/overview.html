@@ -599,10 +599,11 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
           <li>Regelbaseret lys, <code>lights.rad</code>-texlights, zonefarver</li>
           <li class="ok">Spillets standard-WADs som tekstur-kilde: 5243 teksturer i 28 WADs, refereres (embeddes aldrig); <code>./mf textures</code> laver katalog og kontaktark</li>
           <li>Tekstur-pipeline for det, spillets WADs ikke har: billede → WAD3 (kun egne/fri licens)</li>
-          <li>Claude reviewer screenshots mod stilguiden</li>
+          <li class="ok">Stilreview: kameraer over hvert område, hver chokepoint og hvert landmark (76 billeder på de_forge01), vurderet mod art direction af en subagent; pass i koden</li>
+          <li>Klient-screenshots fra rigtig CS 1.6 til stilreviewet (skal verificeres)</li>
           <li>Modeller, der følger med spillet, som pynt (intet distribueres, ingen egne <code>.mdl</code>; skal verificeres)</li>
           <li>Arkitekturdetaljer: dørkarme, lister, sokler, skrå tage (<code>func_detail</code>, ændrer ikke gangbarhed)</li>
-          <li>Lyd: <code>ambient_generic</code> pr. zone ud over rumklang</li>
+          <li class="ok">Lyd: <code>ambient_generic</code> med spillets egne stemningslyde (ovn, pumper, drypvand, vind)</li>
         </ul>
         <p class="accept"><b>Accept:</b> final compile, ingen mørke zoner, stilreview uden kritiske fund.</p>
       </div>

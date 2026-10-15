@@ -191,6 +191,23 @@ class Water:
 
 
 @dataclass(frozen=True)
+class Ambient:
+    """A looping ambient sound (ambient_generic) in an area: a path under sound/ that the game
+    ships (cstrike or valve, e.g. ambience/industrial1.wav)."""
+
+    name: str
+    area: str
+    sound: str
+    pos: tuple[int, int] | None = None  # default: the area's middle
+    z: int = 64  # above the area floor
+    volume: int = 6  # 1-10 (the entity's "health")
+    radius: str = "medium"  # small | medium | large | everywhere
+
+
+AMBIENT_RADIUS = {"everywhere": 1, "small": 2, "medium": 4, "large": 8}  # spawnflags
+
+
+@dataclass(frozen=True)
 class Spot:
     """A spot light (light_spot) in an area."""
 
@@ -251,6 +268,7 @@ class Layout:
     texlights: dict[str, list[int]] = field(default_factory=dict)  # texture -> [r, g, b, intensity]
     sounds: bool = False  # env_sound per area: reverb from its size (unless area.sound is set)
     bridges: list[Bridge] = field(default_factory=list)
+    ambient: list[Ambient] = field(default_factory=list)
 
 
 DEFAULT_TEXTURES = {
@@ -760,6 +778,24 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             brightness=int(sp.get("brightness", 300)),
             color=_ints(sp.get("color", [255, 240, 220]), 3, f"spot {sp['name']}.color"),
         ))  # fmt: skip
+    ambient = []
+    for am in data.get("ambient", []) or []:
+        amb = Ambient(
+            name=am["name"], area=need(am["area"], am["name"]), sound=str(am["sound"]),
+            pos=_ints(am["pos"], 2, f"ambient {am['name']}.pos") if "pos" in am else None,
+            z=int(am.get("z", 64)), volume=int(am.get("volume", 6)),
+            radius=str(am.get("radius", "medium")),
+        )  # fmt: skip
+        if amb.radius not in AMBIENT_RADIUS:
+            raise SpecError(f"ambient {amb.name}: radius must be one of {sorted(AMBIENT_RADIUS)}")
+        if not 1 <= amb.volume <= 10:
+            raise SpecError(f"ambient {amb.name}: volume must be 1-10")
+        if not amb.sound.lower().endswith(".wav") or amb.sound.startswith(("/", "sound/")):
+            raise SpecError(f"ambient {amb.name}: sound is a .wav path under sound/, e.g. "
+                            "ambience/industrial1.wav")  # fmt: skip
+        if amb.pos is not None and not areas[amb.area].inside(*amb.pos):
+            raise SpecError(f"ambient {amb.name}: pos is outside {amb.area}")
+        ambient.append(amb)
     bridges = []
     for b in data.get("bridges", []) or []:
         br = Bridge(
@@ -810,7 +846,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             # grid outwards from area centre + offset
             "offset": _ints(sp.get("offset", [0, 0]), 2, f"spawns.{team}.offset"),
         }
-    groups = (doors, stairs, cover, ramps, wedges, ladders, hatches, water, spots, bridges)
+    groups = (doors, stairs, cover, ramps, wedges, ladders, hatches, water, spots, bridges, ambient)
     names = [x.name for group in groups for x in group]
     dup = {n for n in names if names.count(n) > 1 or n in areas}
     if dup:
@@ -842,6 +878,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         texlights={**DEFAULT_TEXLIGHTS, **(data.get("texlights") or {})},
         sounds=bool(data.get("sounds", False)),
         bridges=bridges,
+        ambient=ambient,
     )
 
 

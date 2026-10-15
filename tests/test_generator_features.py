@@ -519,3 +519,32 @@ def test_rail_wagon_rails_are_a_step_and_the_props_bring_their_own_textures():
     assert len(rails) == 2  # 8 high: walk over them (max step 18)
     used = {f.texture for b in generate(lay).mapfile.brushes() for f in b.faces}
     assert {"TSIBEAM", "WHEELSIDE01", "TRAINSIDE02-1", "TRAINTOP01"} <= used
+
+
+def test_ambient_sounds_become_looping_ambient_generics():
+    lay = feat(ambient=[
+        {"name": "furnace", "area": "a_site", "sound": "ambience/industrial1.wav", "volume": 7},
+        {"name": "wind", "area": "mid", "sound": "ambience/wind1.wav", "pos": [0, 64],
+         "radius": "large"},
+    ])  # fmt: skip
+    amb = [e for e in generate(lay).mapfile.entities if e.classname == "ambient_generic"]
+    assert [(e.properties["message"], e.properties["spawnflags"]) for e in amb] == [
+        ("ambience/industrial1.wav", "4"),
+        ("ambience/wind1.wav", "8"),
+    ]
+    assert amb[1].properties["origin"] == "0 64 64" and amb[0].properties["health"] == "7"
+    with pytest.raises(SpecError, match="under sound/"):
+        feat(ambient=[{"name": "x", "area": "mid", "sound": "sound/ambience/wind1.wav"}])
+
+
+def test_missing_ambient_sounds_are_reported():
+    from pathlib import Path
+
+    from mapforge.generator.run import missing_sounds
+
+    cfg = load_config()
+    if not any(Path(d).is_dir() for d in cfg.data["paths"]["sound_dirs"]):
+        pytest.skip("needs the Half-Life install mounted at /refmaps/hl")
+    lay = feat(ambient=[{"name": "a", "area": "mid", "sound": "ambience/industrial1.wav"},
+                        {"name": "b", "area": "mid", "sound": "ambience/nope.wav"}])  # fmt: skip
+    assert missing_sounds(lay, cfg) == ["ambience/nope.wav"]

@@ -15,6 +15,11 @@ paths:
     - assets/wads
     - /refmaps/hl/cstrike
     - /refmaps/hl/valve
+  # Where the game's sounds live (ambient_generic paths are relative to these). CS 1.6 falls
+  # back to valve/ for content it does not have itself. Referenced, never copied.
+  sound_dirs:
+    - /refmaps/hl/cstrike/sound
+    - /refmaps/hl/valve/sound
 
 compiler:
   # SDHLT is the maintained fork of Vluzacn's ZHLT v34 (VHLT). Flags verified

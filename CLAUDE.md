@@ -62,6 +62,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf decide MAP=<navn> -- --emit     # ny runs/<map>/<NNN>/ med input-kontrakt + decide-prompt
 ./mf decide MAP=<navn> -- --answer   # tjek plan.json mod config/fitness.yaml → decision.json
 ./mf history MAP=<navn> NOTE="…"   # gem/opdatér version i history/<map>/ (sker automatisk efter render og review)
+./mf style MAP=<navn> [-- --answer]   # stilreview (fase 7): kameraer over hele banen → style_prompt.md → subagent → style.json
 ./mf textures [-- --sheets]   # tekstur-katalog over egne + spillets WADs → build/textures/catalog.json (+ kontaktark pr. WAD)
 ./mf topology MAP=<navn>    # topologi (rum og forbindelser) → build/<map>/topology.yaml; vises også på websitets Graf-side
 ./mf sketch MAP=<navn> [ID=<n>]  # skitsestreger (path-annotationer) → skrå korridorer + knæ-rum som layout-YAML

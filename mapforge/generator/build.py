@@ -21,7 +21,16 @@ import numpy as np
 
 from mapforge.generator.props import Solid
 from mapforge.generator.props import solids as prop_solids
-from mapforge.generator.spec import MATERIALS, Area, Bridge, Cover, Door, Layout, SpecError
+from mapforge.generator.spec import (
+    AMBIENT_RADIUS,
+    MATERIALS,
+    Area,
+    Bridge,
+    Cover,
+    Door,
+    Layout,
+    SpecError,
+)
 from mapforge.mapfile.parser import Brush, MapFile
 from mapforge.mapfile.writer import box_brush, entity, polyhedron_brush, prism_brush
 
@@ -708,6 +717,21 @@ def generate(layout: Layout) -> Generated:
                             "angles": f"{sp.pitch} {sp.yaw} 0", "pitch": str(sp.pitch),
                             "_light": f"{r} {g} {bl} {sp.brightness}",
                             "_cone": str(sp.cone[0]), "_cone2": str(sp.cone[1])}))  # fmt: skip
+
+    # Ambient sounds: looping ambient_generic, audible within its radius.
+    for am in layout.ambient:
+        a = areas[am.area]
+        x, y = (
+            am.pos
+            if am.pos
+            else a.centroid()
+            if a.poly
+            else ((a.rect[0] + a.rect[2]) // 2, (a.rect[1] + a.rect[3]) // 2)
+        )
+        ents.append(entity({"classname": "ambient_generic", "targetname": f"amb_{am.name}",
+                            "origin": f"{int(x)} {int(y)} {a.floor + am.z}", "message": am.sound,
+                            "health": str(am.volume), "pitch": "100", "pitchstart": "100",
+                            "spawnflags": str(AMBIENT_RADIUS[am.radius])}))  # fmt: skip
 
     # Room acoustics: an env_sound per area (explicit room type, or by size with `sounds`).
     wet = {w.area for w in layout.water}

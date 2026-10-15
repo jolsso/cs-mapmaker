@@ -168,11 +168,12 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [ ] Regelbaseret lysplacering + `lights.rad` texlights + zonefarver
 - [x] Spillets standard-WADs som tekstur-kilde (2026-10-15, menneskets ønske): 5243 teksturer i 28 WADs fra `cstrike/` og `valve/` (HL_DIR, read-only). `./mf textures [-- --sheets]` → katalog + kontaktark; generatoren skriver selv de WADs, layoutets teksturer ligger i, i `wad`-nøglen (egne først); spillets WADs refereres, embeddes aldrig (test). ⚠️ VERIFICÉR i klienten, at `wad`-nøglens container-stier (`/refmaps/hl/...`) slås op på filnavnet (Hammer-praksis tyder på det)
 - [ ] Tekstur-pipeline for det, spillets WADs ikke har: billede → kvantisering → WAD3 (kun egne/fri licens)
-- [ ] Claude-review af klient-screenshots mod stilguide
+- [x] Stilreview mod art direction (2026-10-15): `./mf style MAP=…` rendrer systematiske kameraer ud fra layoutet (hvert område fra midten, begge sider af chokepoints og site-indgange, hvert landmark; de_forge01: 76 billeder på ~12 s) med tal pr. billede (luma, udbrændt, sort, kontrast) → `style_prompt.md` + skema → frisk subagent → `-- --answer` → `style.json`. Pass i koden: ingen `critical` (manglende teksturer og mørke zoner er altid critical; ≥ 25 % udbrændt er medium)
+- [ ] Klient-screenshots (rigtig CS 1.6-klient: decals, modeller, spillets gamma) til stilreviewet ⚠️ VERIFICÉR kamera-scripting i klienten
 - [ ] Lysstyrkekort uden mørke spilzoner
 - [ ] Modeller, der følger med spillet, som pynt uden gameplay-betydning (`cycler_sprite`/`env_sprite`; intet distribueres, og egne `.mdl` er uden for scope, se MAPMAKER.md → Tema og assets) ⚠️ VERIFICÉR hvilke entities og stier CS 1.6 accepterer uden download (lagt i roadmappen 2026-10-15)
 - [ ] Arkitekturdetaljer i `func_detail`: dørkarme, lister, sokler, skrå tage – må ikke ændre gangbarhed eller sigtelinjer
-- [ ] Lyd: `ambient_generic` (vand, maskiner, vind) pr. zone, ud over den automatiske rumklang
+- [x] Lyd (2026-10-15): `ambient:` i layoutet → `ambient_generic` (loop, radius small/medium/large/everywhere, volumen 1–10) med lyde, spillet selv har (`valve/sound/ambience`, CS falder tilbage på valve); generatoren tjekker, at filen findes (`paths.sound_dirs`). de_forge01: ovnbrummen (A), pumper (B), drypvand (tunneller), vind (mid), maskiner ved spawns
 
 **Accept:** Final compile, ingen mørke zoner, stilreview uden kritiske fund.
 

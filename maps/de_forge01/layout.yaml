@@ -29,6 +29,21 @@ sky:
   sun: {pitch: -35, yaw: 225, color: [255, 220, 180], brightness: 220, ambient: 90}   # low afternoon sun (ART_DIRECTION §5)
 lights: {spacing: 320, brightness: 230, color: [255, 232, 200]}
 
+# Landmarks and chokepoints (ART_DIRECTION.md §2-3): callouts on existing cover and doors.
+landmarks:
+  - {name: Ovnvæggen, element: a_wall, zone: a_site, function: "glødende ovnvæg ved long-indgangen; callout"}
+  - {name: Ingot-stablen, element: a_box_big, zone: a_site, function: "den store stak på A; callout og cover"}
+  - {name: Transformatoren, element: mid_box, zone: mid, function: "midt på mid; callout"}
+  - {name: Slaggevognen, element: long_box, zone: a_long, function: "midt på long; callout"}
+  - {name: Kabelkanalen, element: b_tun_wall, zone: b_tunnels, function: "væggen i B-tunnellerne; callout"}
+  - {name: Søjlerne, element: b_pillar_w, zone: b_site, function: "teal køletårnssøjler på B; callout"}
+  - {name: Platformen, element: b_platform, zone: b_site, function: "lav pumpeplatform mellem søjlerne"}
+chokes:
+  - {name: Long-porten, door: d_long_n2, type: doorway, engagement: long, utility: smoke}
+  - {name: Tunnel-mundingen, door: d_b_tun_n2, type: doorway, engagement: close, utility: flash}
+  - {name: Short A, door: d_ashort_a, type: doorway, engagement: mid, utility: flash}
+  - {name: Short B, door: d_bshort_b, type: doorway, engagement: mid, utility: smoke}
+
 # Art pass (phase 7, 2026-10-15): industrial theme - a steel works being shut down
 # (maps/de_forge01/ART_DIRECTION.md). Textures from the game's own WADs (cstrike.wad,
 # referenced, never embedded). Textures and light only: the layout is frozen since Gate B.
@@ -44,6 +59,13 @@ zones:
       light: {color: [190, 225, 230], brightness: 220}}
 texlights: {-0CSTRIKE_MH5TL: [255, 160, 90, 700]}   # the furnace wall at A (Ovnvæggen)
 
+ambient:   # ART_DIRECTION §6 (sounds the game ships: valve/sound/ambience)
+  - {name: a_furnace, area: a_site, sound: ambience/industrial1.wav, volume: 6}
+  - {name: b_pumps, area: b_site, sound: ambience/pumper.wav, volume: 6}
+  - {name: b_drips, area: b_tunnels, sound: ambience/drips.wav, volume: 5, radius: small}
+  - {name: mid_wind, area: mid, sound: ambience/wind1.wav, volume: 4}
+  - {name: t_machines, area: t_spawn, sound: ambience/industrial3.wav, volume: 3}
+  - {name: ct_machines, area: ct_spawn, sound: ambience/dronemachine1.wav, volume: 3}
 areas:
   # --- spawns and sites ---
   - {name: t_spawn, rect: [-384, -2432, 384, -1664], height: 256, outdoor: true, role: t_spawn, zone: t}   # pushed south: T -> site ~16-18 s

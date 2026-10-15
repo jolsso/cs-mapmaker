@@ -181,6 +181,14 @@ cover:
 - `rail_wagon`: to skinner (8 høje – et trin, ingen væg), bogier i enderne, et lukket undervogn imellem (intet hul at sidde fast i) og vognkassen ovenpå.
 - Props kan ændre spillet, og efter Gate B er de stadig frie (kun layoutet er låst, FITNESS.md). Værktøjskassen: `add_cover` med `preset`.
 
+### Lyd (2026-10-15)
+```yaml
+ambient:
+  - {name: a_furnace, area: a_site, sound: ambience/industrial1.wav, volume: 6}   # radius: small|medium|large|everywhere
+  - {name: b_drips, area: b_tunnels, sound: ambience/drips.wav, pos: [x, y], z: 64, radius: small}
+```
+- `ambient_generic` (looper); `sound` er en sti under `sound/`, som spillet selv har (`cstrike/sound` eller `valve/sound`, CS 1.6 falder tilbage på valve). Generatoren afviser stier, der ikke findes i `paths.sound_dirs` (tjekket kun når Half-Life-installationen er mountet). Standard: områdets midte, 64 over gulvet, volumen 6, radius medium.
+
 ### Vinkler og niveauer (2026-10-14): skrå rum i vilkårlig vinkel, broer, overgange
 ```yaml
 areas:

@@ -78,6 +78,13 @@ tasks:
     cmds:
       - uv run python -m mapforge.decide.run --map {{.MAP}} {{.CLI_ARGS}}
 
+  style:
+    desc: Style review (phase 7) - cameras over every area/door/landmark -> build/<map>/style/ + style_prompt.md (MAP=<name>; -- --answer scores the subagent's answer)
+    requires:
+      vars: [MAP]
+    cmds:
+      - uv run python -m mapforge.style.run --map {{.MAP}} {{.CLI_ARGS}}
+
   textures:
     desc: Texture catalog over our own and the game's WADs -> build/textures/catalog.json (+ one contact sheet PNG per WAD with -- --sheets)
     cmds:
