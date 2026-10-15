@@ -248,3 +248,15 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 **Accept:** Ét map pr. mode fra brief til Gate B uden manuelle trin mellem gates; brief-troskab ≥ 4 på `concept`, sites og `must_have`.
 
 🚦 **Gate M2 – Mapmaker:** Mennesket laver ét map i hver mode og vurderer: fik jeg det map, jeg beskrev/tegnede? Ville jeg spille det?
+
+## Parkeret
+Kendte problemer og idéer, der bevidst ikke arbejdes på nu. De tages op, når de blokerer en fase, eller når mennesket beder om det.
+
+### YaPB's auto-graf vs. vores geometri (parkeret 2026-10-15)
+**Problem:** På de_viaduct01 (iteration 003–004) nåede bots ikke site B, efter at loopet havde lagt et knæk på B long (`bend_corridor`). Det skete ved alle graf-afstande (80–128), og `reachable_from_t` var 0. Validatorens walk-graf fandt B nåbar. Da korridoren blev rettet ud igen, nåede bots B. Derudover laver YaPB's auto-analyse aldrig `NodeFlag::Lift`, så bots kan ikke bruge elevatorer (verificeret i `analyze.cpp`/`navigate.cpp`). Indtil videre er `bend_corridor` i praksis ikke brugbar for loopet, og elevatorer er kun for mennesker.
+
+- [ ] **Diagnose først:** sammenlign den cachede YaPB-graf fra iteration 003 (`build/de_viaduct01/yapb/`) med walk-grafen ved knæ-rummet. Ligger fejlen i vores geometri (trin/kant ved overgangen) → ret generatoren. Ligger den i analyzeren → vælg en af løsningerne nedenfor
+- [ ] **Løsning A – patch YaPB's analyzer:** fork (MIT-licens), ret `analyze.cpp`, byg fra kilde i HLDS-imaget i stedet for den pinnede release (`docker/hlds/addons.lock`). Lille ændring, hvis fejlen er lokal; kan sendes upstream som PR. Ulempe: merge ved hver ny YaPB-version
+- [ ] **Løsning B (foretrukken) – skriv grafen selv:** oversæt walk-grafen fra BSP'en til YaPB's graf-format, inkl. `Lift`-flag ved elevatorer. Bots og validator ser samme gangbarhed, og bots kan bruge elevatorer. ⚠️ VERIFICÉR graf-formatet (komprimering, version, node-/sti-flag) mod YaPB's kilde, før der bygges på det
+
+**Accept (når den tages op):** et map med et knæk på en skrå korridor og en elevator: YaPB når begge sites i smoke-testen, og bots bruger elevatoren i mindst én runde.

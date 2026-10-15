@@ -629,6 +629,14 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
 </section>
 
 <section>
+  <span class="eyebrow">Parkeret</span>
+  <h2>Kendte problemer, vi venter med</h2>
+  <ul>
+    <li><b>YaPB's auto-graf vs. vores geometri:</b> bots nåede ikke B gennem et knæk på en skrå korridor (de_viaduct01, iteration 003), selvom validatoren så en vej, og auto-grafen laver aldrig elevator-noder. Først diagnose; derefter enten en patch af YaPB's analyzer eller (foretrukket) at vi selv skriver YaPB-grafen ud fra walk-grafen, så bots også kan bruge elevatorer.</li>
+  </ul>
+</section>
+
+<section>
   <span class="eyebrow">Uafklaret</span>
   <h2>Punkter der skal verificeres</h2>
   <div class="verify-wrap">
