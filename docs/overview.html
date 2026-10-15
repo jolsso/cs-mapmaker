@@ -596,13 +596,14 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
           <li class="ok">Prop-bibliotek til temaet industri: container, slaggevogn på skinner (som toget på de_train), støbeske, gaffeltruck, ingot-stak, rør, med teksturer fra spillets WADs</li>
           <li class="ok">Dressing på de_forge01, del 1: fem zoner med teksturer fra spillets WADs (A rust og ovnglød, B teal metal), lav eftermiddagssol; ingen mørke zoner</li>
           <li>Dressing på de_forge01, del 2: props gennem loopet, layoutet uændret</li>
-          <li>Regelbaseret lys, <code>lights.rad</code>-texlights, zonefarver</li>
+          <li class="ok">Regelbaseret lys: gitter pr. område, zonefarver, teksturlys, lys under broer og dørlys ved chokepoints</li>
           <li class="ok">Spillets standard-WADs som tekstur-kilde: 5243 teksturer i 28 WADs, refereres (embeddes aldrig); <code>./mf textures</code> laver katalog og kontaktark</li>
           <li>Tekstur-pipeline for det, spillets WADs ikke har: billede → WAD3 (kun egne/fri licens)</li>
           <li class="ok">Stilreview: kameraer over hvert område, hver chokepoint og hvert landmark (76 billeder på de_forge01), vurderet mod art direction af en subagent; pass i koden</li>
           <li class="ok">Billigere stilreview: kontaktark, alle ark læses i én tur, kun ændrede vinkler</li>
           <li class="ok">Lokal model (LM Studio, qwen3.8-27b) som løbende reviewer; Claude dømmer ved accept</li>
           <li class="ok">Stilreview på map-siden: noter under hvert billede undervejs, fremdrift, lightbox med minimap og kamerets retning</li>
+          <li class="ok">Stilreview pr. version: vinkler, noter og dom gemmes med versionen og vises i versionens Render-panel; alle billeder åbner i lightboxen</li>
           <li>Klient-screenshots fra rigtig CS 1.6 til stilreviewet (skal verificeres)</li>
           <li class="ok">Modeller, der følger med spillet (<code>env_sprite</code>, fx transportbånd, paller, gaffeltruck), med valgfri clip-boks; visning i klienten skal verificeres</li>
           <li class="ok">Dørkarme (<code>frame</code> på en dør, <code>func_detail</code>)</li>

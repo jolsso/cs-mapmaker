@@ -88,16 +88,18 @@ def review_sheet(cfg: Config, map_name: str, sheet: dict, sheet_png: Path, art: 
             {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
         ]}],
     }  # fmt: skip
-    got = None
-    for _ in range(2):  # an empty answer = the reasoning used the budget: retry with more
+    got, why = None, ""
+    for _ in range(3):  # empty or cut-off answer = the reasoning used the budget: retry with more
         resp = _post(lc["url"].rstrip("/") + "/chat/completions", body, lc.get("timeout_s", 600))
         content = (resp["choices"][0]["message"].get("content") or "").strip()
-        if content:
+        try:
             got = json.loads(content)
             break
-        body["max_tokens"] = 2 * body["max_tokens"]
+        except ValueError as exc:
+            why = "empty answer" if not content else f"invalid JSON ({exc})"
+            body["max_tokens"] = int(body["max_tokens"] * 1.5)
     if got is None:
-        raise ValueError(f"empty answer twice (max_tokens up to {body['max_tokens']})")
+        raise ValueError(f"{why} three times (max_tokens up to {body['max_tokens']})")
     by_n = {t["n"]: t for t in sheet["tiles"]}
     notes = []
     for g in got.get("images", []):
@@ -122,12 +124,14 @@ def run_local(cfg: Config, map_name: str, publish=None, resume: bool = False) ->
     if resume and (style / "notes.json").is_file():
         notes = json.loads((style / "notes.json").read_text(encoding="utf-8"))
     done_sheets = {n["sheet"] for n in notes}
+    skipped: list[dict] = []
     started = time.time()
 
     def progress(state: str, done: int, current: str | None = None, error: str | None = None):
         p = {"state": state, "executor": "local", "model": cfg.data["style"]["local"]["model"],
              "done": done, "total": len(sheets), "current": current, "started": started,
-             "updated": time.time(), "views": sum(len(s["tiles"]) for s in sheets), "error": error}  # fmt: skip
+             "updated": time.time(), "views": sum(len(s["tiles"]) for s in sheets), "error": error,
+             "skipped": skipped}  # fmt: skip
         (style / "progress.json").write_text(json.dumps(p), encoding="utf-8")
         (style / "notes.json").write_text(json.dumps(notes, ensure_ascii=False), encoding="utf-8")
         if publish:
@@ -139,9 +143,11 @@ def run_local(cfg: Config, map_name: str, publish=None, resume: bool = False) ->
             continue
         try:
             notes += review_sheet(cfg, map_name, sheet, style / "sheets" / sheet["file"], art)
-        except (OSError, ValueError, KeyError) as exc:
+        except OSError as exc:  # the server is gone: stop (--resume goes on from here)
             progress("failed", k, sheet["file"], str(exc))
             raise RuntimeError(f"local model failed on {sheet['file']}: {exc}") from exc
+        except (ValueError, KeyError) as exc:  # this sheet only: its views stay unjudged
+            skipped.append({"sheet": sheet["file"], "error": str(exc)})
         nxt = sheets[k + 1]["file"] if k + 1 < len(sheets) else None
         progress("running" if nxt else "done", k + 1, nxt)
     findings = [{"severity": n["flag"], "image": n["image"], "where": n["subject"],
@@ -153,7 +159,9 @@ def run_local(cfg: Config, map_name: str, publish=None, resume: bool = False) ->
     flagged = sum(1 for n in notes if n["flag"] != "ok")
     return {
         "summary": f"Local model ({cfg.data['style']['local']['model']}): {len(notes)} views "
-                   f"judged, {flagged} with findings.",
+                   f"judged, {flagged} with findings"
+                   + (f"; {len(skipped)} sheet(s) skipped: "
+                      + ", ".join(x["sheet"] for x in skipped) if skipped else "") + ".",
         "findings": findings,
         "zones": [{"zone": z, "score": round(sum(v) / len(v)), "reason": "mean of the views"}
                   for z, v in sorted(zones.items())],

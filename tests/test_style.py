@@ -164,5 +164,69 @@ def test_local_review_retries_an_empty_answer_and_resumes(tmp_path, monkeypatch)
 
     monkeypatch.setattr(local, "_post", fake_post)
     answer = local.run_local(cfg, "m", resume=True)
-    assert budgets == [8000, 16000]  # only sheet b_1 asked, retried with twice the budget
+    assert budgets == [8000, 12000]  # only sheet b_1 asked, retried with 1.5x the budget
     assert {z["zone"] for z in answer["zones"]} == {"a", "b"}
+
+
+def test_export_writes_the_web_form(tmp_path):
+    import json
+
+    from mapforge.style.publish import block, export
+
+    build = tmp_path / "build"
+    (build / "style").mkdir(parents=True)
+    (build / "renders").mkdir()
+    Image.new("RGB", (1280, 720), (90, 60, 40)).save(build / "style" / "area_a_east.png")
+    (build / "style" / "index.json").write_text(json.dumps({"images": []}), encoding="utf-8")
+    (build / "style" / "notes.json").write_text("[]", encoding="utf-8")
+    Image.new("RGB", (1000, 800)).save(build / "renders" / "topdown_raw.png")
+    view = {"world_rect": [-100, -80, 100, 80], "size": [1000, 800], "units_per_px": 0.2}
+    base = {"base_for_overlays": {"file": "topdown_raw.png", "view": view}}
+    (build / "renders" / "index.json").write_text(json.dumps(base), encoding="utf-8")
+    out = export(build, tmp_path / "web")
+    assert Image.open(out / "area_a_east_full.jpg").size == (1280, 720)
+    assert Image.open(out / "area_a_east.jpg").size == (480, 270)
+    mm = json.loads((out / "minimap.json").read_text(encoding="utf-8"))
+    assert mm == {"world_rect": [-100, -80, 100, 80], "size": [512, 410]}
+    assert (out / "notes.json").is_file() and not (out / "progress.json").exists()
+    assert "data-base='img/v001/style/'" in block("img/v001/style/")
+
+
+def test_a_sheet_that_keeps_failing_is_skipped_not_fatal(tmp_path, monkeypatch):
+    import json
+
+    from mapforge.config import Config, load_config
+    from mapforge.style import local
+
+    base = load_config()
+    data = copy.deepcopy(base.data)
+    data["paths"].update(build_dir=str(tmp_path / "build"), maps_dir=str(tmp_path / "maps"))
+    cfg = Config(root=base.root, data=data)
+    style = tmp_path / "build" / "m" / "style"
+    (style / "sheets").mkdir(parents=True)
+    (tmp_path / "maps" / "m").mkdir(parents=True)
+    (tmp_path / "maps" / "m" / "ART_DIRECTION.md").write_text("art", encoding="utf-8")
+    sheets = []
+    for name in ("a_1.png", "b_1.png"):
+        Image.new("RGB", (8, 8)).save(style / "sheets" / name)
+        sheets.append({"file": name, "zone": name[0], "tiles": [
+            {"n": 1, "image": f"{name[0]}.png", "subject": name[0]}]})  # fmt: skip
+    (style / "sheets.json").write_text(json.dumps(sheets), encoding="utf-8")
+    good = json.dumps({"images": [{"n": 1, "zone_match": 4, "flag": "ok", "note": "", "fix": ""}]})
+
+    def fake_post(url, body, timeout):  # sheet a: cut-off JSON every time; sheet b: fine
+        text = body["messages"][0]["content"][0]["text"]
+        content = '{"images": [' if "Zone: a" in text else good
+        return {"choices": [{"message": {"content": content}}]}
+
+    monkeypatch.setattr(local, "_post", fake_post)
+    answer = local.run_local(cfg, "m")
+    prog = json.loads((style / "progress.json").read_text(encoding="utf-8"))
+    assert prog["state"] == "done" and [s["sheet"] for s in prog["skipped"]] == ["a_1.png"]
+    assert "1 sheet(s) skipped: a_1.png" in answer["summary"]
+
+
+def test_a_recompile_keeps_the_style_review():
+    from mapforge.compile.run import KEEP_ON_COMPILE
+
+    assert {"style", "style.json"} <= KEEP_ON_COMPILE

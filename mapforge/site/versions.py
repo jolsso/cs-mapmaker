@@ -487,11 +487,22 @@ def phase_panels(cfg: Config, name: str, v: Version, out: Path, img_dir: Path, i
             p = v.path(f"renders/{im['file']}")
             if p:
                 _copy(p, img_dir / im["file"])
-                inner.append(f"<figure><a href='{img_rel}/{e(im['file'])}' target='_blank'><img src='{img_rel}/{e(im['file'])}' "
-                             f"loading='lazy' alt=''></a><figcaption><b>{e(im['file'])}</b></figcaption></figure>")  # fmt: skip
+                inner.append(f"<figure><a href='{img_rel}/{e(im['file'])}' data-gallery='{e(tag)}' data-caption='{e(im['file'])} - {e(im.get('purpose', ''))}'>"
+                             f"<img src='{img_rel}/{e(im['file'])}' loading='lazy' alt=''></a>"
+                             f"<figcaption><b>{e(im['file'])}</b></figcaption></figure>")  # fmt: skip
         inner.append("</div>")
     else:
         inner.append("<p class='muted'>Ikke renderet.</p>")
+    # this version's style review in web form (history/<map>/<NNN>/style: JPEGs, notes, verdict)
+    style_src = next(
+        (s / "style" for s in v.srcs if (s / "style" / "minimap.json").is_file()), None
+    )
+    if style_src:
+        from mapforge.style.publish import block
+
+        for f in style_src.iterdir():
+            _copy(f, img_dir / "style" / f.name)
+        inner.append("<h3>Style review</h3>" + block(f"{img_rel}/style/"))
     parts.append(panel("render", "4 Render", "".join(inner)))
     # 5 Review
     r = v.json("review.json")

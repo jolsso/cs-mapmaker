@@ -1,10 +1,12 @@
-"""The style review on the website: the map page's "Style review" section shows every view with
-the note written under it, and a progress bar while an analysis runs.
+"""The style review on the website: every view with the notes written under it, a progress bar
+while an analysis runs, and a lightbox with a minimap of the camera.
 
-`publish` copies build/<map>/style/{index,sheets,notes,progress}.json and style.json to
-build/site/maps/<map>/style/ (and the views as small JPEGs with images=True); the page's script
-(style.js) polls those files every few seconds while progress.json says "running". The site build
-calls publish too, so the section survives a rebuild.
+`export` writes a style review's web form - its JSON (index, sheets, notes, progress, style.json),
+the views as JPEGs (thumbnail + full size) and the minimap - into one directory. It is used for:
+- the current build: build/site/maps/<map>/style/ (`publish`, polled by style.js while a run is
+  going; the site build calls it too, so the section survives a rebuild), and
+- each history version: history/<map>/<NNN>/style/ (mapforge.history.snapshot, only when the
+  views were rendered from that very .bsp), shown in the version's Render panel.
 """
 
 from __future__ import annotations
@@ -19,23 +21,25 @@ from mapforge.config import Config
 
 THUMB = (480, 270)
 FILES = ("index.json", "sheets.json", "notes.json", "progress.json")
+MINIMAP = 512  # px, longest side
 
 
 def site_dir(cfg: Config, map_name: str) -> Path:
     return cfg.path("build_dir") / "site" / "maps" / map_name / "style"
 
 
-def publish(cfg: Config, map_name: str, images: bool = False) -> Path | None:
-    """Copy the style review's data (and with images=True its views) to the website."""
-    build = cfg.path("build_dir") / map_name
+def export(build: Path, out: Path, images: bool = True) -> Path | None:
+    """Write build/style/ (+ build/style.json, the minimap from build/renders/) in web form to
+    out/. images=False: only the JSON (cheap; for polling during a run)."""
     src = build / "style"
     if not (src / "index.json").is_file():
         return None
-    out = site_dir(cfg, map_name)
     out.mkdir(parents=True, exist_ok=True)
     for name in FILES:
         if (src / name).is_file():
             shutil.copy2(src / name, out / name)
+        elif (out / name).is_file() and name != "index.json":
+            (out / name).unlink()  # e.g. no run since this render: no stale notes
     if (build / "style.json").is_file():
         shutil.copy2(build / "style.json", out / "style.json")
     if images:
@@ -50,7 +54,9 @@ def publish(cfg: Config, map_name: str, images: bool = False) -> Path | None:
     return out
 
 
-MINIMAP = 512  # px, longest side
+def publish(cfg: Config, map_name: str, images: bool = False) -> Path | None:
+    """The current build's style review on the website."""
+    return export(cfg.path("build_dir") / map_name, site_dir(cfg, map_name), images)
 
 
 def minimap(build: Path, out: Path) -> None:
@@ -72,13 +78,20 @@ def minimap(build: Path, out: Path) -> None:
     )
 
 
+def block(base: str) -> str:
+    """The style review's containers; style.js fills every `.style-review` from data-base."""
+    return (
+        f"<div class='style-review' data-base='{base}'><div class='style-progress small'></div>"
+        "<div class='style-summary'></div><div class='style-grid'></div></div>"
+    )
+
+
 def section(cfg: Config, map_name: str) -> str:
-    """The map page's section (empty if the map has no style review yet)."""
+    """The map page's section for the current build (empty if there is no style review yet)."""
     if publish(cfg, map_name, images=True) is None:
         return ""
     return (
         "<section class='panel' id='style'><h2>Style review <span class='muted small'>– every "
-        "area, chokepoint and landmark at eye height, judged against the art direction</span></h2>"
-        "<div id='style-progress' class='small'></div><div id='style-summary'></div>"
-        "<div id='style-grid' class='style-grid'></div></section>"
+        "area, chokepoint and landmark at eye height, judged against the art direction · "
+        "current build</span></h2>" + block("style/") + "</section>"
     )

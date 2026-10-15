@@ -124,6 +124,15 @@ def snapshot(cfg: Config, map_name: str, note: str | None = None) -> Path | None
                 "targets_met": m.get("targets_met"),
                 "t_winrate": m.get("metrics", {}).get("t_winrate", {}).get("value"),
             }
+    # the style review (views, notes, verdict) when its views were rendered from this .bsp
+    sindex = build / "style" / "index.json"
+    if sindex.is_file() and json.loads(sindex.read_text(encoding="utf-8")).get("bsp_sha256") == sha:
+        from mapforge.style.publish import export
+
+        export(build, target / "style")
+        if (build / "style.json").is_file():
+            st = json.loads((build / "style.json").read_text(encoding="utf-8"))
+            meta["style_passed"] = st.get("passed")
     layout = cfg.path("maps_dir") / map_name / "layout.yaml"
     if layout.is_file():
         shutil.copy2(layout, target / "layout.yaml")

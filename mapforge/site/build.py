@@ -1069,9 +1069,8 @@ def build_site(cfg: Config) -> Path:
         if m in topos:
             body += (f"<section class='panel'><h2>Topologi</h2><p class='muted'>{e(m)} som rum og forbindelser, "
                      f"med reglerne beregnet på grafen: <a href='../../graph.html#{e(m)}'>se grafen</a>.</p></section>")  # fmt: skip
-        style_html = style_section(cfg, m)
-        if style_html:
-            body += style_html + f"<script src='../../style.js?v={STYLE_VERSION}'></script>"
+        body += style_section(cfg, m)  # lightbox + style reviews (also the versions' own)
+        body += f"<script src='../../style.js?v={STYLE_VERSION}'></script>"
         body += f"<script src='../../live.js?v={JS_VERSION}'></script>"
         (mdir / "index.html").write_text(
             _page(f"MapForge – {m}", body, 2, m, maps), encoding="utf-8"

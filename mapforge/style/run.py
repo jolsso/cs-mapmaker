@@ -20,6 +20,7 @@ Exit 0 = pass (or prompt written), 1 = fail, 2 = could not run.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 import time
@@ -155,6 +156,9 @@ def render_style(cfg: Config, map_name: str) -> dict[str, Any]:
     )
     index = {
         "map": map_name,
+        "bsp_sha256": hashlib.sha256(
+            bsp_path.read_bytes()
+        ).hexdigest(),  # history ties it to a version
         "fov": FOV,
         "images": images,
         "missing_textures": sorted(n for n, s in renderer.texture_sources.items() if s == MISSING),
@@ -306,6 +310,7 @@ def main(argv: list[str] | None = None) -> int:
 
             if not args.resume:
                 n = emit(cfg, args.map, args.all)
+                snapshot(cfg, args.map)
                 print(f"style {args.map}: {n['changed']} of {n['images']} views on {n['sheets']} "
                       f"sheets -> local model {cfg.data['style']['local']['model']}")  # fmt: skip
                 publish(cfg, args.map, images=True)
@@ -317,10 +322,12 @@ def main(argv: list[str] | None = None) -> int:
             )
             result = score(cfg, args.map, answer, "local")
             publish(cfg, args.map)
+            snapshot(cfg, args.map)
             report(args.map, result)
             return 0 if result["passed"] else 1
         if args.answer is None:
             n = emit(cfg, args.map, args.all)
+            snapshot(cfg, args.map)
             print(f"style {args.map}: {n['images']} views ({n['changed']} changed) on {n['sheets']} sheets "
                   f"in {n['seconds']} s; prompt {build / 'style_prompt.md'} -> answer to "
                   f"{build / 'style_answer.json'}, then --answer")  # fmt: skip
@@ -331,8 +338,16 @@ def main(argv: list[str] | None = None) -> int:
     except (RuntimeError, OSError, json.JSONDecodeError) as exc:
         print(f"style review failed to run: {exc}", file=sys.stderr)
         return 2
+    snapshot(cfg, args.map)
     report(args.map, result)
     return 0 if result["passed"] else 1
+
+
+def snapshot(cfg: Config, map_name: str) -> None:
+    """Keep the style review with the history version of this .bsp (and on the website)."""
+    from mapforge.history import snapshot as history_snapshot
+
+    history_snapshot(cfg, map_name)
 
 
 def report(map_name: str, result: dict[str, Any]) -> None:

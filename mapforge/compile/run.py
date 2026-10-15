@@ -19,6 +19,7 @@ from mapforge.compile.log import parse_compile_log
 from mapforge.config import Config, load_config, platform_key
 
 STEPS = ("csg", "bsp", "vis", "rad")
+KEEP_ON_COMPILE = {"style", "style.json"}  # build/<map>/ entries a recompile leaves alone
 WAD_KEY = re.compile(r'("wad"\s+")([^"]*)(")')
 ERROR_LINE = re.compile(r"^\s*Error:", re.MULTILINE)
 
@@ -76,10 +77,15 @@ def compile_map(cfg: Config, map_name: str, profile: str = "fast") -> Path:
     tools, platform_flags = tool_paths(cfg)
 
     # build/<map>/ is owned by the pipeline; start clean so stale .pts/.err can't mislead.
+    # The style review survives: its image hashes are what makes the next review look only at
+    # views that changed (mapforge.style.run), and its views carry the version they came from.
     out_dir = cfg.path("build_dir") / map_name
     if out_dir.exists():
-        shutil.rmtree(out_dir)
-    out_dir.mkdir(parents=True)
+        for child in out_dir.iterdir():
+            if child.name in KEEP_ON_COMPILE:
+                continue
+            shutil.rmtree(child) if child.is_dir() else child.unlink()
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     work_map = out_dir / f"{map_name}.map"
     wads = prepare_map(src, work_map, cfg.wad_dirs + [cfg.compiler_dir])
