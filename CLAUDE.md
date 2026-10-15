@@ -64,6 +64,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf history MAP=<navn> NOTE="…"   # gem/opdatér version i history/<map>/ (sker automatisk efter render og review)
 ./mf style MAP=<navn> [-- --answer]   # stilreview (fase 7): kameraer → kontaktark (kun ændrede; --all) → style_prompt.md → subagent → style.json
 ./mf style MAP=<navn> -- --local [--resume]   # samme ark gennem den lokale model i LM Studio (style.local); noter live på map-siden
+./mf feedback MAP=<navn> [-- --collect|--stop]   # feedback-server (connect localhost:27015; say !fb <tekst>) → noter bliver ønsker med billede
 ./mf textures [-- --sheets]   # tekstur-katalog over egne + spillets WADs → build/textures/catalog.json (+ kontaktark pr. WAD)
 ./mf topology MAP=<navn>    # topologi (rum og forbindelser) → build/<map>/topology.yaml; vises også på websitets Graf-side
 ./mf sketch MAP=<navn> [ID=<n>]  # skitsestreger (path-annotationer) → skrå korridorer + knæ-rum som layout-YAML

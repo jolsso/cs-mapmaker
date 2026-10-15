@@ -78,6 +78,13 @@ tasks:
     cmds:
       - uv run python -m mapforge.decide.run --map {{.MAP}} {{.CLI_ARGS}}
 
+  feedback:
+    desc: In-game feedback server (MAP=<name>; -- --start | --collect | --stop) - notes become the map's wishes
+    requires:
+      vars: [MAP]
+    cmds:
+      - uv run python -m mapforge.feedback --map {{.MAP}} {{.CLI_ARGS}}
+
   style:
     desc: Style review (phase 7) - cameras over every area/door/landmark -> build/<map>/style/ + style_prompt.md (MAP=<name>; -- --answer scores the subagent's answer)
     requires:
