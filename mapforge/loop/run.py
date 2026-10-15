@@ -100,7 +100,14 @@ class Loop:
     def it_dir(self) -> Path:
         return self.root / self.state["iteration"]
 
+    def _closed(self) -> bool:
+        from mapforge import project
+
+        return project.is_closed(self.cfg.path("maps_dir"), self.map)
+
     def init(self, force_sim: bool) -> None:
+        if self._closed():
+            raise RuntimeError(f"{self.map} er afsluttet: genåbn den under Input på map-siden")
         if not self.layout.is_file():
             raise RuntimeError(f"{self.layout} missing: the loop changes a layout spec")
         n = (
@@ -501,6 +508,10 @@ class Loop:
     def run(self) -> int:
         if not self.state:
             raise RuntimeError("no loop state: start with --init")
+        if self._closed():
+            return self.stop(
+                "banen er afsluttet (Input på map-siden) – genåbn den for at fortsætte"
+            )
         if self.state.get("status") == "stopped":
             self.log(f"already stopped: {self.state.get('stop_reason')}")
             return 0

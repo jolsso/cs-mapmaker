@@ -37,6 +37,11 @@ ANN_VERSION = (
     .sha256(Path(__file__).with_name("annotate.js").read_bytes())
     .hexdigest()[:8]
 )
+PROJ_VERSION = (
+    __import__("hashlib")
+    .sha256(Path(__file__).with_name("project.js").read_bytes())
+    .hexdigest()[:8]
+)
 NEW_VERSION = (
     __import__("hashlib").sha256(Path(__file__).with_name("newmap.js").read_bytes()).hexdigest()[:8]
 )
@@ -162,8 +167,18 @@ def loop_mode(cfg: Config, name: str) -> str:
     waits for a person: Input is marked, still) or 'idle' (nothing happens: grey)."""
     from mapforge.runs import runs_root
 
+    if closed(cfg, name):
+        return "idle"
     status = (_load(runs_root(cfg, name) / "loop.json") or {}).get("status")
     return {"running": "running", "stopped": "human"}.get(status or "", "idle")
+
+
+def closed(cfg: Config, name: str) -> dict[str, Any] | None:
+    """The project state when the human closed the map ("afsluttet"), else None."""
+    from mapforge import project
+
+    st = project.load(cfg.path("maps_dir"), name)
+    return st if st["state"] == "closed" else None
 
 
 EDIT_FILES = ("maps/{m}/layout.yaml", "maps/{m}/brief.json", "maps/{m}/annotations.json",
@@ -193,6 +208,11 @@ def current_phase(cfg: Config, name: str, st: dict[str, Any]) -> tuple[str | Non
     (runs/<map>/loop.json), else from the stage of the build."""
     from mapforge.runs import runs_root
 
+    done = closed(cfg, name)
+    if done:
+        return None, f"Afsluttet {done.get('changed') or ''} – genåbn under Input".replace(
+            "  ", " "
+        )
     loop = _load(runs_root(cfg, name) / "loop.json") or {}
     if loop.get("status") == "running":
         step = loop.get("step", "")
@@ -526,13 +546,30 @@ def brief_grid(out: Path) -> None:
     im.save(out / "img" / "brief_grid.png")
 
 
-def annotate_section(cfg: Config, name: str) -> str:
-    """Draw wishes on the map (point / area / line + text) for the loop's Decide step; a brief
-    without geometry yet gets the blank grid."""
-    from mapforge.live.collector import BRIEF_CANVAS
+def project_section(name: str) -> str:
+    """Input: close ("afslut") or reopen the map (project.js, /api/project/<map>)."""
+    return (
+        "<section id='project' class='panel'><h2><span class='no'>1</span>Input – banen</h2>"
+        "<p class='projnote muted'>Afslut banen, når du er færdig med den: så kan der ikke tegnes nye "
+        "ønsker, og loopet kører ikke. Du kan altid genåbne den.</p>"
+        "<div class='phases'><button class='projtoggle' disabled>…</button></div>"
+        "<p class='projmsg muted small'></p>"
+        f"<script>const PROJ = {json.dumps({'map': name})};</script>"
+        f"<script src='../../project.js?v={PROJ_VERSION}'></script></section>"
+    )
 
+
+def annotate_section(cfg: Config, name: str) -> str:
+    """Input on an own map: draw wishes on the map (point / area / line + text) for the loop's
+    Decide step – a brief without geometry yet gets the blank grid – and close/reopen the map."""
     if not (cfg.path("maps_dir") / name).is_dir():
         return ""
+    return _wishes_section(cfg, name) + project_section(name)
+
+
+def _wishes_section(cfg: Config, name: str) -> str:
+    from mapforge.live.collector import BRIEF_CANVAS
+
     view = topdown_view(cfg, name)
     if view:
         ann = {"map": name, "img": "img/topdown.png", "rect": view["world_rect"],
@@ -954,8 +991,10 @@ def build_site(cfg: Config) -> Path:
             mini.append(f"<span>versioner <b>{n_versions}</b></span>")
         badge = "<span class='chip run badge'>referencemap</span>" if st["source"] == "reference" else (
             "<span class='chip ok badge'>eget map</span>")  # fmt: skip
+        if closed(cfg, m):
+            badge = "<span class='chip badge'>afsluttet</span>"
         return (
-            f"<a class='pcard' href='maps/{m}/index.html'><div class='img'{bg}>{badge}</div><div class='body'>"
+            f"<a class='pcard{' closed' if closed(cfg, m) else ''}' data-map='{e(m)}' href='maps/{m}/index.html'><div class='img'{bg}>{badge}</div><div class='body'>"
             f"<div style='display:flex;justify-content:space-between;align-items:center;gap:10px'>"
             f"<div><div class='name'>{e(m)}</div><div class='muted small'>næste: {e(st['next'] or '-')}</div></div>"
             f"{charts.ring(done / len(GATED), f'{done} af {len(GATED)} faser bestået')}</div>"
@@ -966,7 +1005,7 @@ def build_site(cfg: Config) -> Path:
 
     own = sorted(
         (m for m in maps if map_status(cfg, m)["source"] != "reference"),
-        key=lambda m: (-last_edit(cfg, m), m),
+        key=lambda m: (bool(closed(cfg, m)), -last_edit(cfg, m), m),  # closed ones last
     )
     refs = sorted((m for m in maps if m not in own), key=lambda m: (-progress(m), m))
     rows = []
@@ -996,6 +1035,7 @@ def build_site(cfg: Config) -> Path:
     shutil.copy2(Path(__file__).with_name("live.js"), out / "live.js")
     shutil.copy2(Path(__file__).with_name("annotate.js"), out / "annotate.js")
     shutil.copy2(Path(__file__).with_name("newmap.js"), out / "newmap.js")
+    shutil.copy2(Path(__file__).with_name("project.js"), out / "project.js")
     brief_grid(out)
     (out / "new.html").write_text(_page("MapForge – nyt map", new_page(), 0, "nyt map", maps),
                                   encoding="utf-8")  # fmt: skip

@@ -23,6 +23,13 @@
         cards.querySelector(".newcard")?.after(a);
       }
     }).catch(() => {});
+    // closed / reopened since the site was built ("Afslut bane" under Input)
+    fetch(API.replace("/api/maps", "/api/project")).then(r => r.ok ? r.json() : {}).then(states => {
+      for (const card of cards.querySelectorAll(".pcard[data-map]")) {
+        const st = states[card.dataset.map];
+        if (st) card.classList.toggle("closed", st.state === "closed");
+      }
+    }).catch(() => {});
   }
 
   const form = document.getElementById("newmap");

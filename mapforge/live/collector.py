@@ -8,6 +8,7 @@ state per run and streams it to browsers. Standard library only; nothing is writ
   HTTP :8090   out  GET /events (text/event-stream, ~4 updates/s), GET /state (JSON)
                    GET/POST/DELETE /api/annotations/<map>: the human's wishes drawn on the map
                    GET/POST /api/maps: new map projects (brief.json: name + description)
+                   GET /api/project[/<map>] · POST /api/project/<map> {state: open|closed}
                    page (maps/<map>/annotations.json, mapforge.annotations); writes only from
                    the dashboard's origin (MAPFORGE_SITE_ORIGINS)
 
@@ -246,6 +247,46 @@ async def maps_api(
         _respond(writer, 400, {"error": str(exc)}, allow)
 
 
+async def project_api(
+    method: str, path: str, headers: dict[str, str], body: bytes, writer: asyncio.StreamWriter
+) -> None:
+    """GET /api/project (all maps) or /api/project/<map> · POST /api/project/<map> {state}:
+    close ("afslut") or reopen a map (dashboard origin only)."""
+    from mapforge import project
+
+    origin = headers.get("origin", "")
+    allow = origin if origin in SITE_ORIGINS else "null"
+    parts = [p for p in path.split("?")[0].split("/") if p][2:]  # after /api/project
+    if method == "OPTIONS":
+        writer.write(
+            f"HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: {allow}\r\nVary: Origin\r\n"
+            "Access-Control-Allow-Methods: GET, POST\r\nAccess-Control-Allow-Headers: Content-Type\r\n"
+            "Content-Length: 0\r\n\r\n".encode()
+        )
+        return
+    if method == "GET" and not parts:
+        _respond(writer, 200, project.load_all(MAPS_DIR), allow)
+        return
+    if not parts or not MAP_NAME.match(parts[0]) or not (MAPS_DIR / parts[0]).is_dir():
+        _respond(writer, 404, {"error": "unknown map"}, allow)
+        return
+    if method == "GET":
+        _respond(writer, 200, project.load(MAPS_DIR, parts[0]), allow)
+        return
+    if origin not in SITE_ORIGINS:
+        _respond(writer, 403, {"error": "writes only from the local dashboard"}, allow)
+        return
+    try:
+        if method != "POST" or len(parts) != 1:
+            raise ValueError("unsupported")
+        if headers.get("content-type", "").split(";")[0].strip() != "application/json":
+            raise ValueError("Content-Type must be application/json")
+        req = json.loads(body.decode("utf-8"))
+        _respond(writer, 200, project.set_state(MAPS_DIR, parts[0], str(req.get("state"))), allow)
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        _respond(writer, 400, {"error": str(exc)}, allow)
+
+
 async def http(state: State, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
     try:
         line = (await reader.readline()).decode("latin-1")
@@ -257,10 +298,12 @@ async def http(state: State, reader: asyncio.StreamReader, writer: asyncio.Strea
             k, _, v = h.decode("latin-1").partition(":")
             headers[k.strip().lower()] = v.strip()
         method, path = ([*line.split(" "), "", ""])[:2]
-        if path.startswith("/api/annotations") or path.split("?")[0].rstrip("/") == "/api/maps":
+        bare = path.split("?")[0].rstrip("/")
+        if path.startswith(("/api/annotations", "/api/project")) or bare == "/api/maps":
             length = min(int(headers.get("content-length", "0") or 0), 200_000)
             body = await reader.readexactly(length) if length else b""
-            api = annotations_api if path.startswith("/api/annotations") else maps_api
+            api = (annotations_api if path.startswith("/api/annotations")
+                   else project_api if path.startswith("/api/project") else maps_api)  # fmt: skip
             await api(method, path, headers, body, writer)
             await writer.drain()
             return

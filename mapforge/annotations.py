@@ -64,6 +64,10 @@ def validate(item: dict[str, Any]) -> dict[str, Any]:
 
 
 def add(maps_dir: Path, map_name: str, item: dict[str, Any]) -> dict[str, Any]:
+    from mapforge import project
+
+    if project.is_closed(maps_dir, map_name):
+        raise ValueError("banen er afsluttet – genåbn den under Input for at tilføje ønsker")
     items = load(maps_dir, map_name)
     clean = validate(item)
     clean.update(

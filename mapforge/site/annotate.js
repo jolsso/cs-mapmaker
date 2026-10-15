@@ -130,6 +130,7 @@
     }
   });
   root.querySelector(".anncancel").addEventListener("click", () => { draft = null; textEl.value = ""; draw(); });
+
   load();
   setInterval(load, 15000);  // statuses change when the loop applies a plan
 })();

@@ -89,6 +89,9 @@ pre code { border: 0; background: none; padding: 0; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
 .pcard { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
   box-shadow: var(--shadow); display: grid; grid-template-rows: auto 1fr; transition: transform .15s, border-color .15s; color: var(--ink); }
+.pcard.closed { opacity: .55; filter: grayscale(.8); }
+.pcard.closed:hover { opacity: .85; }
+#annotate.closed .anncanvas { pointer-events: none; opacity: .5; filter: grayscale(.8); }
 .pcard:hover { transform: translateY(-2px); border-color: var(--accent); text-decoration: none; }
 .pcard .img { aspect-ratio: 16 / 10; background: #07090b center / contain no-repeat; position: relative; border-bottom: 1px solid var(--line); }
 .pcard .img .badge { position: absolute; left: 10px; top: 10px; }
