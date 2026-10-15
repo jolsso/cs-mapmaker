@@ -193,6 +193,7 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [ ] `brief.json` v2 (skema i koden, bagudkompatibel med v1 fra dashboardet)
 - [ ] `maps/<map>/brief/images.json` + upload-API med tag (`mood|landmark|material|layout`) og licens (`own|cc0|inspiration`); `inspiration` gitignored, EXIF strippes
 - [ ] Interpreter-agent (prompt + skema → `intent.json`, `--answer` validerer; `must_have` dækket eller begrundet afvist)
+- [ ] Brief v2 spørger konceptuelt om det, der påvirker resten af pipelinen markant (2026-10-15): **rum og højde** (flad eller flere niveauer, mest inde eller ude, trangt eller åbent, stablede sites), **spillestil** (lange sigtelinjer eller nærkamp, åbne eller fyldte sites) og **identitet** (tema og landmarks med pladsbehov, fx "en kran i gården"). Lys-stemning, lyd og props spørges ikke her – de afgøres sent i art pass og påvirker intet før den
 - [ ] Dashboard: guide-trin 1–3 + "Sådan har jeg forstået dig" (intent kan rettes)
 
 **Accept:** Tre forskellige briefs (én kun tekst, én med billeder, én med et `layout`-billede) giver skema-gyldige `intent.json`, og mennesket godkender mindst to af tre uden rettelser.
@@ -200,6 +201,7 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 ### 8b – Topologi og graf-niveau-evaluator
 - [x] Topologi-udtræk fra ethvert layout: `mapforge/topology.py` (`./mf topology MAP=…` → `build/<map>/topology.yaml`), samme tal som `layout_graph()` på alle egne maps (`tests/test_topology.py`) (2026-10-15)
 - [x] Topologi-siden på det lokale website (`graph.html`, "Graf" i topbaren): rum ↔ graf, inspektion som `topology.yaml`, `remove_edge` med reglerne genberegnet, korteste veje, niveau-fokus; link fra hver map-side (2026-10-15)
+- [ ] Graf-attributter i lag ud over topologien (L0), udtrukket automatisk fra `layout.yaml`, så grafen altid er i sync (2026-10-15): **L1 rum og højde** (gulv-, loft- og bygningshøjde, ude/inde/tag, størrelse, forbindelsers længde/bredde), **L2 spil-geometri som opsummering** (cover-tæthed og -højder, længste sigtelinje, hævede positioner/boost-spots – ikke de enkelte kasser), **L3 identitet** (zone/tema og landmarks med pladsbehov). Kun det, man kan spørge brugeren om tidligt, og som styrer Fit/evaluator; lys-stemning, lyd og prop-detaljer bliver i ART_DIRECTION.md. Bliver input til Fit i 8c
 - [ ] Invariant-tjek (inkl. planaritet pr. niveau) og operatorerne (`split_edge`, `merge_nodes`, `add_edge`/`remove_edge`, `reroute`, `set_kind`, `set_level`, `stretch`, `graft`) med tests
 - [ ] WL-hash (dubletter) og rolle-bevidst graf-edit-distance
 - [ ] Round-trip-test på alle egne maps: layout → topologi → samme nøgletal som i dag
