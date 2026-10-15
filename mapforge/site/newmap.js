@@ -144,10 +144,10 @@
         ${li("Tempo", esc(label("pace", it.pace)))}${li("Niveauer", esc(label("levels", sp.levels)))}${li("Inde/ude", esc(label("inside", sp.inside)))}
         ${li("Trangt/åbent", esc(label("density", sp.density)))}${li("Stablede sites", sp.stacked_sites ? "ja" : "nej")}
         ${li("Sigtelinjer", `lange: ${esc(label("amount", sl.long))}, nærkamp: ${esc(label("amount", sl.cqb))}`)}${li("Sites", esc(label("site_cover", ps.site_cover)))}
-        ${li("Site A", `${esc(it.sites?.A?.character)} <span class="muted">(${it.sites?.A?.entrances} indgange${it.sites?.A?.vertical ? ", vertikal" : ""})</span>`)}
-        ${li("Site B", `${esc(it.sites?.B?.character)} <span class="muted">(${it.sites?.B?.entrances} indgange${it.sites?.B?.vertical ? ", vertikal" : ""})</span>`)}
+        ${li("Site A", `${esc(it.sites?.A?.character)} <span class="muted">(${esc(it.sites?.A?.entrances)} indgange${it.sites?.A?.vertical ? ", vertikal" : ""})</span>`)}
+        ${li("Site B", `${esc(it.sites?.B?.character)} <span class="muted">(${esc(it.sites?.B?.entrances)} indgange${it.sites?.B?.vertical ? ", vertikal" : ""})</span>`)}
         ${li("Mid", esc(it.mid))}
-        ${li("Mål", `T → site ${tg.t_to_site_s?.[0]}–${tg.t_to_site_s?.[1]} s, CT før T ≥ ${tg.ct_lead_s} s, længste sigtelinje ${tg.longest_sightline} units`)}
+        ${li("Mål", `T → site ${esc(tg.t_to_site_s?.[0])}–${esc(tg.t_to_site_s?.[1])} s, CT før T ≥ ${esc(tg.ct_lead_s)} s, længste sigtelinje ${esc(tg.longest_sightline)} units`)}
       </ul></div><div><h3>Identitet</h3><ul>${li("Tema", esc(it.theme?.setting))}${li("Palet", esc((it.theme?.palette || []).join(", ")))}
         ${li("Materialer", esc((it.theme?.materials || []).join(", ")))}</ul>
         <h3>Landmærker</h3><ul>${lm || "<li class='muted'>ingen</li>"}</ul></div></div>
