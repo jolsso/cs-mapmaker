@@ -387,14 +387,14 @@ def test_cylinders_and_presets_are_convex_and_on_the_grid():
     by = {c.name: c for c in lay.cover}
     assert by["stack"].size == (128, 64, 128) and by["step"].size == (64, 64, 16)
     stack = cover_solids(by["stack"], 0)
-    assert len(stack) == 3 and stack[2][1][2] == 64 and stack[2][2][2] == 128  # crate on top
+    assert len(stack) == 3 and stack[2].lo[2] == 64 and stack[2].hi[2] == 128  # crate on top
     oil = cover_solids(by["oil"], 0)
-    assert len(oil) == 3 and all(s == "cylinder" for s, _, _ in oil)
+    assert len(oil) == 3 and all(s.shape == "cylinder" for s in oil)
     for c in lay.cover:  # every solid stays inside the footprint
         (px, py), (w, d, _) = c.pos, c.size
-        for _, lo, hi in cover_solids(c, 0):
-            assert px - w // 2 <= lo[0] and hi[0] <= px + w // 2
-            assert py - d // 2 <= lo[1] and hi[1] <= py + d // 2
+        for sol in cover_solids(c, 0):
+            assert px - w // 2 <= sol.lo[0] and sol.hi[0] <= px + w // 2
+            assert py - d // 2 <= sol.lo[1] and sol.hi[1] <= py + d // 2
     g = generate(lay)
     for b in g.mapfile.brushes():
         geo = brush_geometry(b)
@@ -410,7 +410,7 @@ def test_cylinders_and_presets_are_convex_and_on_the_grid():
     [
         ({"preset": "boxes"}, "preset must be one of"),
         ({"preset": "barrels", "shape": "cylinder"}, "drop shape"),
-        ({"preset": "barrels", "size": [48, 48, 48]}, ">= 64"),
+        ({"preset": "barrels", "size": [48, 48, 48]}, "at least"),
         ({"shape": "cylinder", "size": [24, 24, 64]}, ">= 32"),
         ({}, "size is required"),
     ],
@@ -483,3 +483,39 @@ def test_lift_and_ladder_exclude_each_other():
     data["hatches"][0]["lift"] = "auto"
     with pytest.raises(SpecError, match="exclude each other"):
         parse_layout(data)
+
+
+@pytest.mark.parametrize("name", ["container", "rail_wagon", "ladle", "forklift", "ingot_stack",
+                                  "pipe_run", "crate_stack", "barrels", "pallets"])  # fmt: skip
+@pytest.mark.parametrize("turn", [False, True])
+def test_every_prop_is_valid_inside_its_footprint_both_ways(name, turn):
+    from mapforge.generator.build import cover_solids
+    from mapforge.generator.props import PROPS
+
+    w, d, h = PROPS[name].size
+    size = [d, w, h] if turn else [w, d, h]
+    item = {"name": "p", "area": "a_site", "pos": [0, 400], "preset": name, "size": size}
+    if name == "pipe_run":
+        item["z"] = 160  # along the wall, above heads
+    lay = feat(cover=[item])
+    g = generate(lay)
+    c = lay.cover[0]
+    for sol in cover_solids(c, lay.areas["a_site"].floor):
+        assert -size[0] // 2 <= sol.lo[0] < sol.hi[0] <= size[0] // 2
+        assert 400 - size[1] // 2 <= sol.lo[1] < sol.hi[1] <= 400 + size[1] // 2
+    for b in g.mapfile.brushes():
+        geo = brush_geometry(b)
+        assert not geo.unbounded and all(len(v) >= 3 for v in geo.face_vertices)
+        v = geo.vertices
+        assert not np.any(np.abs(v - np.round(v / 8) * 8) > 1e-3), "off the 8 grid"
+
+
+def test_rail_wagon_rails_are_a_step_and_the_props_bring_their_own_textures():
+    from mapforge.generator.build import cover_solids
+
+    lay = feat(cover=[{"name": "wagon", "area": "a_site", "pos": [0, 400], "preset": "rail_wagon"}])
+    parts = cover_solids(lay.cover[0], 0)
+    rails = [p for p in parts if p.hi[2] - p.lo[2] == 8]
+    assert len(rails) == 2  # 8 high: walk over them (max step 18)
+    used = {f.texture for b in generate(lay).mapfile.brushes() for f in b.faces}
+    assert {"TSIBEAM", "WHEELSIDE01", "TRAINSIDE02-1", "TRAINTOP01"} <= used

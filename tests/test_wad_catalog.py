@@ -77,9 +77,14 @@ def test_a_map_with_game_textures_compiles_and_references_the_wad(tmp_path):
     cfg = Config(root=base.root, data=data)
     lay = copy.deepcopy(FEAT)
     lay["zones"]["a"].update(floor="TSFLRGRT", wall="TSHULL1")  # oil rig textures (tswad.wad)
+    lay["cover"] = [  # industrial props: their textures come from tswad.wad and cs_bdog.wad
+        {"name": "wagon", "area": "a_site", "pos": [0, 400], "preset": "rail_wagon"},
+        {"name": "box", "area": "b_site", "pos": [0, -400], "preset": "container"},
+        {"name": "pipe", "area": "a_site", "pos": [0, 600], "preset": "pipe_run", "z": 192},
+    ]
     g = generate(parse_layout(lay))
     assert assign_wads(g.mapfile, cfg) == []
-    assert g.mapfile.worldspawn.properties["wad"] == "mapforge_dev.wad;tswad.wad"
+    assert g.mapfile.worldspawn.properties["wad"] == "mapforge_dev.wad;cs_bdog.wad;tswad.wad"
     write_map(g.mapfile, tmp_path / "maps" / "de_gen_feat" / "src" / "de_gen_feat.map")
     make_dev_wad()
     bsp = read_bsp(compile_map(cfg, "de_gen_feat"))

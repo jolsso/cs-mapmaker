@@ -69,18 +69,35 @@ def texture_index(dirs: Iterable[Path]) -> dict[str, str]:
 
 
 def wads_for(textures: Iterable[str], dirs: Iterable[Path]) -> tuple[list[str], list[str]]:
-    """(WAD file names providing the textures, in dirs order; texture names found nowhere)."""
+    """(WAD file names providing the textures, in dirs order; texture names found nowhere).
+
+    Our own WADs always win. Among the game's WADs, a texture found in several is taken from
+    one the map needs anyway, so the map references as few WADs as possible."""
     dirs = list(dirs)
-    index = texture_index(dirs)
-    order = {w.name: i for i, w in enumerate(wad_files(dirs))}
-    used, missing = set(), []
-    for t in sorted({t.upper() for t in textures}):
-        if t in NO_WAD:
-            continue
-        if t in index:
-            used.add(index[t])
+    files = wad_files(dirs)
+    order = {w.name: i for i, w in enumerate(files)}
+    own_dir = dirs[0] if dirs else None
+    holders: dict[str, list[str]] = {}
+    own: dict[str, str] = {}
+    for wad in files:
+        for name, _, _ in _entries(wad):
+            if wad.name not in holders.setdefault(name, []):
+                holders[name].append(wad.name)
+            if own_dir is not None and wad.parent == own_dir:
+                own.setdefault(name, wad.name)
+    used: set[str] = set()
+    missing, shared = [], []
+    for t in sorted({t.upper() for t in textures} - NO_WAD):
+        if t in own:
+            used.add(own[t])
+        elif len(holders.get(t, [])) == 1:
+            used.add(holders[t][0])
+        elif t in holders:
+            shared.append(t)
         else:
             missing.append(t)
+    for t in shared:  # prefer a WAD that is already in, else the first in search order
+        used.add(next((w for w in holders[t] if w in used), holders[t][0]))
     return sorted(used, key=order.__getitem__), missing
 
 

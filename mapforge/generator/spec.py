@@ -9,6 +9,9 @@ from typing import Any
 
 import yaml
 
+from mapforge.generator.props import PROPS
+from mapforge.generator.props import check as check_prop
+
 
 class SpecError(ValueError):
     pass
@@ -155,12 +158,12 @@ class Cover:
     texture: str | None = None  # default: textures.cover (or the area zone's cover)
     shape: str = "box"  # box | octagon (chamfered) | cylinder (faceted: barrels, round pillars)
     breakable: str | None = None  # wood | metal | glass | concrete: a func_breakable
-    preset: str | None = None  # crate_stack | barrels | pallets: several solids in the footprint
+    preset: str | None = None  # a preset or themed prop (mapforge.generator.props.PROPS)
 
 
 SHAPES = ("box", "octagon", "cylinder")
-# Default footprint [w, d, h] of each preset (`size` may override it).
-PRESETS = {"crate_stack": (128, 64, 128), "barrels": (96, 96, 48), "pallets": (64, 64, 16)}
+# Default footprint [w, d, h] of each preset / themed prop (`size` may override it).
+PRESETS = {name: p.size for name, p in PROPS.items()}
 MATERIALS = {"glass": 0, "wood": 1, "metal": 2, "concrete": 4}  # func_breakable "material"
 
 
@@ -622,12 +625,8 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             raise SpecError(f"cover {c.name}: shape must be one of {SHAPES}")
         if c.preset and c.shape != "box":
             raise SpecError(f"cover {c.name}: a preset sets its own shapes (drop shape)")
-        if c.preset == "crate_stack" and (max(c.size[:2]) % 32 or c.size[2] % 16):
-            raise SpecError(f"cover {c.name}: crate_stack needs a long side / 32 and height / 16")
-        if c.preset == "barrels" and min(c.size[:2]) % 16:
-            raise SpecError(f"cover {c.name}: barrels need a short side divisible by 16")
-        if c.preset == "barrels" and min(c.size[:2]) < 64:
-            raise SpecError(f"cover {c.name}: barrels need >= 64 units across")
+        if c.preset and (why := check_prop(c.preset, c.size)):
+            raise SpecError(f"cover {c.name}: {why}")
         if c.shape == "cylinder" and min(c.size[:2]) < 32:
             raise SpecError(f"cover {c.name}: a cylinder needs >= 32 units across")
         if c.breakable is not None and c.breakable not in MATERIALS:

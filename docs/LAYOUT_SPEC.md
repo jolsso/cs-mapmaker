@@ -166,6 +166,21 @@ hatches:
 - `lift` på en lem: en `func_plat` fylder hullet i det øverste gulv (tegnet i topposition, `height` = forskellen mellem gulvene) og kører ned til det nederste gulv. `auto`: venter nede og kører op, når man træder på den. `button`: starter oppe; en `func_button` på en sokkel (16×16×40) ved siden af lemmen på hver etage sender den op/ned (soklen placeres på første ledige side +x, -x, +y, -y). Min. 64 på tværs, højst 512 i højden, udelukker `ladder`.
 - **Bots kan ikke bruge elevatoren** (verificeret 2026-10-15 i YaPB's kilde: kræver `NodeFlag::Lift`-noder, som auto-analysen aldrig laver), og validatorens gangbarhedsgraf ignorerer `func_plat`. Elevatoren er derfor en ekstra rute for mennesker; etagen skal kunne nås ad anden vej (stige, trappe, rampe). Den er ikke i værktøjskassen.
 
+### Tema-props (2026-10-15): industri
+```yaml
+cover:
+  - {name: a_wagon, area: a_long, pos: [x, y], preset: rail_wagon}        # 384x128x144, som toget på de_train
+  - {name: b_box, area: b_site, pos: [x, y], preset: container}           # 256x112x128
+  - {name: ovn, area: a_site, pos: [x, y], preset: ladle}                 # 128x128x96 støbeske (cylinder)
+  - {name: truck, area: mid, pos: [x, y], preset: forklift}               # 128x64x128, mast i den ene ende
+  - {name: ingots, area: a_site, pos: [x, y], preset: ingot_stack}        # 128x64x48, to lag
+  - {name: rør, area: b_site, pos: [x, y], preset: pipe_run, z: 160}      # 256x32x32 vandret rør (op ad en væg)
+```
+- Alle presets og props står i `mapforge/generator/props.py` (`PROPS`: standardmål, tema, mindstemål). Orienteringen følger fodaftrykkets lange side; `size` drejer propen (fx `[128, 384, 144]` for en vogn langs y).
+- Tema-props har egne teksturer fra spillets standard-WADs (`tswad.wad`, `cs_bdog.wad`), som refereres, aldrig embeddes; generatoren skriver selv WAD'erne i `wad`-nøglen. `texture` på cover-elementet overstyrer propens teksturer.
+- `rail_wagon`: to skinner (8 høje – et trin, ingen væg), bogier i enderne, et lukket undervogn imellem (intet hul at sidde fast i) og vognkassen ovenpå.
+- Props kan ændre spillet, og efter Gate B er de stadig frie (kun layoutet er låst, FITNESS.md). Værktøjskassen: `add_cover` med `preset`.
+
 ### Vinkler og niveauer (2026-10-14): skrå rum i vilkårlig vinkel, broer, overgange
 ```yaml
 areas:

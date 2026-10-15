@@ -94,7 +94,7 @@ allowed_changes:
     max_abs_delta: 256
   add_cover:
     description: Add a box/wall as cover inside a zone; with z a platform, bridge or a crate stacked on another (boost spot)
-    params: [zone, position]         # position [x, y]; size [w, d, h] (optional with a preset); optional z (bottom above the floor), texture, shape (box|octagon|cylinder), breakable (wood|metal|glass|concrete), preset (crate_stack 128x64x128 boost spot | barrels 96x96x48 | pallets 64x64x16 step; size optional with a preset)
+    params: [zone, position]         # position [x, y]; size [w, d, h] (optional with a preset); optional z (bottom above the floor), texture, shape (box|octagon|cylinder), breakable (wood|metal|glass|concrete), preset (generic: crate_stack 128x64x128 boost spot | barrels 96x96x48 | pallets 64x64x16 step; theme industrial: container 256x112x128 | rail_wagon 384x128x144 (like de_train's train) | ladle 128x128x96 | forklift 128x64x128 | ingot_stack 128x64x48 | pipe_run 256x32x32 (with z along a wall); size optional with a preset; props stay free after Gate B)
     after_gate_b: true
   remove_cover:
     description: Remove a piece of cover

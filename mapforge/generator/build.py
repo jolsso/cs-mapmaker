@@ -19,6 +19,8 @@ from typing import Any
 
 import numpy as np
 
+from mapforge.generator.props import Solid
+from mapforge.generator.props import solids as prop_solids
 from mapforge.generator.spec import MATERIALS, Area, Bridge, Cover, Door, Layout, SpecError
 from mapforge.mapfile.parser import Brush, MapFile
 from mapforge.mapfile.writer import box_brush, entity, polyhedron_brush, prism_brush
@@ -110,34 +112,15 @@ def _hull(pts: list[tuple[int, int]]) -> list[tuple[int, int]]:
     return half(pts) + half(pts[::-1])
 
 
-def cover_solids(c: Cover, floor: int) -> list[tuple[str, tuple, tuple]]:
-    """The solids of a cover item as (shape, lo, hi): one for a plain cover, several for a
-    preset (all inside its footprint, so spawns and the walk check treat it as one box)."""
+def cover_solids(c: Cover, floor: int) -> list[Solid]:
+    """The solids of a cover item: one for a plain cover, several for a preset or themed prop
+    (all inside its footprint, so spawns and the walk check treat it as one box)."""
     (px, py), (w, d, h) = c.pos, c.size
     z0 = floor + c.z
     x0, y0, x1, y1 = px - w // 2, py - d // 2, px + w // 2, py + d // 2
     if c.preset is None:
-        return [(c.shape, (x0, y0, z0), (x1, y1, z0 + h))]
-    if c.preset == "pallets":  # a low stack to step on (<= 18) or crouch behind
-        return [("box", (x0, y0, z0), (x1, y1, z0 + h))]
-    if c.preset == "crate_stack":  # two crates side by side, a third on one of them (boost)
-        half = h // 2
-        if w >= d:
-            m = x0 + w // 2
-            parts = [((x0, y0), (m, y1)), ((m, y0), (x1, y1))]
-        else:
-            m = y0 + d // 2
-            parts = [((x0, y0), (x1, m)), ((x0, m), (x1, y1))]
-        out = [("box", (*lo, z0), (*hi, z0 + half)) for lo, hi in parts]
-        lo, hi = parts[0]
-        return out + [("box", (*lo, z0 + half), (*hi, z0 + h))]
-    # barrels: two in a row along the long side, a third in front of the gap between them
-    dia = min(w, d) // 2
-    if w >= d:
-        cells = [(x0, y0), (x0 + dia, y0), (x0 + dia // 2 // 8 * 8, y0 + dia)]
-    else:
-        cells = [(x0, y0), (x0, y0 + dia), (x0 + dia, y0 + dia // 2 // 8 * 8)]
-    return [("cylinder", (bx, by, z0), (bx + dia, by + dia, z0 + h)) for bx, by in cells]
+        return [Solid(c.shape, (x0, y0, z0), (x1, y1, z0 + h))]
+    return prop_solids(c.preset, (x0, y0), (x1, y1), z0, h)
 
 
 ARCH_SPRING = 80  # lowest springing line: a standing player (72) fits the whole width
@@ -187,6 +170,14 @@ def _extrude_uz(poly: list[tuple[int, int]], ax: int, t0: int, t1: int, tex: str
     n = len(poly)
     sides = [[s0[i], s0[(i + 1) % n], s1[(i + 1) % n], s1[i]] for i in range(n)]
     return polyhedron_brush([s0, s1, *sides], tex)
+
+
+def _pipe(lo: tuple, hi: tuple, tex) -> Brush:
+    """A horizontal octagonal prism along the box's long side."""
+    ax = 1 if (hi[0] - lo[0]) >= (hi[1] - lo[1]) else 0  # the cross-section's u axis
+    profile = _octagon((lo[ax], lo[2]), (hi[ax], hi[2]))
+    side = tex if isinstance(tex, str) else tex.get("side", next(iter(tex.values())))
+    return _extrude_uz(profile, ax, lo[1 - ax], hi[1 - ax], side)
 
 
 def door_box(door: Door, areas: dict[str, Area], wall: int) -> Box:
@@ -617,13 +608,17 @@ def generate(layout: Layout) -> Generated:
     for c in layout.cover:
         a = areas[c.area]
         ctex = c.texture or tex_of(a)["cover"]
-        for i, (shape, c_lo, c_hi) in enumerate(cover_solids(c, a.floor)):
+        for i, sol in enumerate(cover_solids(c, a.floor)):
+            shape, c_lo, c_hi = sol.shape, sol.lo, sol.hi
+            stex = c.texture or sol.tex or ctex  # an explicit texture beats the prop's own
             if shape == "octagon":
-                brush = prism_brush(_octagon(c_lo, c_hi), c_lo[2], c_hi[2], ctex)
+                brush = prism_brush(_octagon(c_lo, c_hi), c_lo[2], c_hi[2], stex)
             elif shape == "cylinder":
-                brush = prism_brush(_cylinder(c_lo, c_hi), c_lo[2], c_hi[2], ctex)
+                brush = prism_brush(_cylinder(c_lo, c_hi), c_lo[2], c_hi[2], stex)
+            elif shape == "pipe":
+                brush = _pipe(c_lo, c_hi, stex)
             else:
-                brush = box_brush(c_lo, c_hi, ctex)
+                brush = box_brush(c_lo, c_hi, stex)
             if c.breakable:
                 mat = MATERIALS[c.breakable]
                 tname = f"break_{c.name}" + (f"_{i + 1}" if c.preset else "")
