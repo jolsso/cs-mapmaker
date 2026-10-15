@@ -19,7 +19,7 @@ from typing import Any
 
 import numpy as np
 
-from mapforge.generator.spec import MATERIALS, Area, Bridge, Door, Layout, SpecError
+from mapforge.generator.spec import MATERIALS, Area, Bridge, Cover, Door, Layout, SpecError
 from mapforge.mapfile.parser import Brush, MapFile
 from mapforge.mapfile.writer import box_brush, entity, polyhedron_brush, prism_brush
 
@@ -68,6 +68,76 @@ def _octagon(lo: tuple, hi: tuple, grid: int = 8) -> list[tuple[int, int]]:
     c = max(grid, min(x1 - x0, y1 - y0) // 4 // grid * grid)
     return [(x0 + c, y0), (x1 - c, y0), (x1, y0 + c), (x1, y1 - c), (x1 - c, y1), (x0 + c, y1),
             (x0, y1 - c), (x0, y0 + c)]  # fmt: skip
+
+
+def _cylinder(lo: tuple, hi: tuple, grid: int = 8) -> list[tuple[int, int]]:
+    """A box's footprint as a faceted ellipse: 8, 12 or 16 sides by size, vertices snapped to
+    the grid (inside the box) and reduced to their convex hull, so the prism stays convex."""
+    (x0, y0), (x1, y1) = lo[:2], hi[:2]
+    across = min(x1 - x0, y1 - y0)
+    n = 16 if across >= 128 else 12 if across >= 64 else 8
+    cx, cy, rx, ry = (x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2
+
+    def snap(v: float, a: int, b: int) -> int:
+        return min(b, max(a, round(v / grid) * grid))
+
+    def facets(phase: float) -> list[tuple[int, int]]:
+        pts = {
+            (snap(cx + rx * math.cos(t), x0, x1), snap(cy + ry * math.sin(t), y0, y1))
+            for t in (2 * math.pi * (i + phase) / n for i in range(n))
+        }
+        return _hull(sorted(pts))
+
+    # Snapping can make neighbours collinear; keep the rotation that leaves the most sides
+    # (ties: flat sides on the axes).
+    return max((facets(0.5), facets(0.0)), key=len)
+
+
+def _hull(pts: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """Convex hull (monotone chain, counter-clockwise, no collinear points) of sorted points."""
+
+    def turn(o, a, b) -> int:
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+    def half(seq):
+        out: list[tuple[int, int]] = []
+        for p in seq:
+            while len(out) >= 2 and turn(out[-2], out[-1], p) <= 0:
+                out.pop()
+            out.append(p)
+        return out[:-1]
+
+    return half(pts) + half(pts[::-1])
+
+
+def cover_solids(c: Cover, floor: int) -> list[tuple[str, tuple, tuple]]:
+    """The solids of a cover item as (shape, lo, hi): one for a plain cover, several for a
+    preset (all inside its footprint, so spawns and the walk check treat it as one box)."""
+    (px, py), (w, d, h) = c.pos, c.size
+    z0 = floor + c.z
+    x0, y0, x1, y1 = px - w // 2, py - d // 2, px + w // 2, py + d // 2
+    if c.preset is None:
+        return [(c.shape, (x0, y0, z0), (x1, y1, z0 + h))]
+    if c.preset == "pallets":  # a low stack to step on (<= 18) or crouch behind
+        return [("box", (x0, y0, z0), (x1, y1, z0 + h))]
+    if c.preset == "crate_stack":  # two crates side by side, a third on one of them (boost)
+        half = h // 2
+        if w >= d:
+            m = x0 + w // 2
+            parts = [((x0, y0), (m, y1)), ((m, y0), (x1, y1))]
+        else:
+            m = y0 + d // 2
+            parts = [((x0, y0), (x1, m)), ((x0, m), (x1, y1))]
+        out = [("box", (*lo, z0), (*hi, z0 + half)) for lo, hi in parts]
+        lo, hi = parts[0]
+        return out + [("box", (*lo, z0 + half), (*hi, z0 + h))]
+    # barrels: two in a row along the long side, a third in front of the gap between them
+    dia = min(w, d) // 2
+    if w >= d:
+        cells = [(x0, y0), (x0 + dia, y0), (x0 + dia // 2 // 8 * 8, y0 + dia)]
+    else:
+        cells = [(x0, y0), (x0, y0 + dia), (x0 + dia, y0 + dia // 2 // 8 * 8)]
+    return [("cylinder", (bx, by, z0), (bx + dia, by + dia, z0 + h)) for bx, by in cells]
 
 
 def door_box(door: Door, areas: dict[str, Area], wall: int) -> Box:
@@ -457,22 +527,23 @@ def generate(layout: Layout) -> Generated:
     ents = [world]
     for c in layout.cover:
         a = areas[c.area]
-        (px, py), (w, d, h) = c.pos, c.size
-        z0 = a.floor + c.z
-        c_lo, c_hi = (px - w // 2, py - d // 2, z0), (px + w // 2, py + d // 2, z0 + h)
         ctex = c.texture or tex_of(a)["cover"]
-        if c.shape == "octagon":
-            brush = prism_brush(_octagon(c_lo, c_hi), c_lo[2], c_hi[2], ctex)
-        else:
-            brush = box_brush(c_lo, c_hi, ctex)
-        if c.breakable:
-            mat = MATERIALS[c.breakable]
-            ents.append(entity({"classname": "func_breakable", "material": str(mat),
-                                "health": "20" if c.breakable == "glass" else "80",
-                                "targetname": f"break_{c.name}"}, [brush]))  # fmt: skip
-            breakables.append(brush)
-            continue
-        inner.append((brush, c.z + h))
+        for i, (shape, c_lo, c_hi) in enumerate(cover_solids(c, a.floor)):
+            if shape == "octagon":
+                brush = prism_brush(_octagon(c_lo, c_hi), c_lo[2], c_hi[2], ctex)
+            elif shape == "cylinder":
+                brush = prism_brush(_cylinder(c_lo, c_hi), c_lo[2], c_hi[2], ctex)
+            else:
+                brush = box_brush(c_lo, c_hi, ctex)
+            if c.breakable:
+                mat = MATERIALS[c.breakable]
+                tname = f"break_{c.name}" + (f"_{i + 1}" if c.preset else "")
+                ents.append(entity({"classname": "func_breakable", "material": str(mat),
+                                    "health": "20" if c.breakable == "glass" else "80",
+                                    "targetname": tname}, [brush]))  # fmt: skip
+                breakables.append(brush)
+                continue
+            inner.append((brush, c_hi[2] - a.floor))
     detail = [b for b, top in inner if layout.detail and top <= DETAIL_MAX_H]
     world.brushes += walls + [b for b, top in inner if not (layout.detail and top <= DETAIL_MAX_H)]
     if detail:

@@ -164,14 +164,19 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
     if t == "add_cover":
         area = _area(lay, str(p["zone"]), "area")
         pos = _vec(p["position"], 2, 8, "position")
-        size = _vec(p["size"], 3, 8, "size")
+        preset = p.get("preset")
+        size = _vec(p["size"], 3, 8, "size") if p.get("size") or not preset else None
         names = {c["name"] for c in lay.get("cover", [])}
         base = str(p.get("name") or f"{area['name']}_cover")
         name, n = base, 2
         while name in names:
             name, n = f"{base}_{n}", n + 1
         lay.setdefault("cover", CommentedSeq())
-        item = {"name": name, "area": area["name"], "pos": _flow(pos), "size": _flow(size)}
+        item = {"name": name, "area": area["name"], "pos": _flow(pos)}
+        if size:
+            item["size"] = _flow(size)
+        if preset:
+            item["preset"] = str(preset)  # crate_stack | barrels | pallets
         if p.get("z"):
             item["z"] = _vec(p["z"], 1, 8, "z")[0]  # raised: platform, bridge, stacked crate
         if p.get("texture"):
@@ -182,7 +187,8 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
             item["breakable"] = str(p["breakable"])
         lay["cover"].append(_flow_map(item))
         z = f" raised {item['z']}" if "z" in item else ""
-        return f"cover {name} {size} at {pos}{z} in {area['name']}"
+        what = f"{preset} {size or ''}".strip() if preset else str(size)
+        return f"cover {name} {what} at {pos}{z} in {area['name']}"
     if t == "remove_cover":
         cover = _find(lay.get("cover", []), str(p["target"]), "cover")
         if cover.get("protected") or cover["name"] in soul_elements(lay):

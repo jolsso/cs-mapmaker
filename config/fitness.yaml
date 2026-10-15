@@ -86,7 +86,7 @@ allowed_changes:
     max_abs_delta: 256
   add_cover:
     description: Add a box/wall as cover inside a zone; with z a platform, bridge or a crate stacked on another (boost spot)
-    params: [zone, position, size]   # position [x, y], size [w, d, h]; optional z (bottom above the floor), texture, shape (box|octagon), breakable (wood|metal|glass|concrete)
+    params: [zone, position, size]   # position [x, y], size [w, d, h]; optional z (bottom above the floor), texture, shape (box|octagon|cylinder), breakable (wood|metal|glass|concrete), preset (crate_stack 128x64x128 boost spot | barrels 96x96x48 | pallets 64x64x16 step; size optional with a preset)
   remove_cover:
     description: Remove a piece of cover
     params: [target]

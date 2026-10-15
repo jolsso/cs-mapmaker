@@ -152,11 +152,14 @@ class Cover:
     size: tuple[int, int, int]
     z: int = 0  # bottom above the area floor
     texture: str | None = None  # default: textures.cover (or the area zone's cover)
-    shape: str = "box"  # box | octagon (round-ish pillars, chamfered crates)
+    shape: str = "box"  # box | octagon (chamfered) | cylinder (faceted: barrels, round pillars)
     breakable: str | None = None  # wood | metal | glass | concrete: a func_breakable
+    preset: str | None = None  # crate_stack | barrels | pallets: several solids in the footprint
 
 
-SHAPES = ("box", "octagon")
+SHAPES = ("box", "octagon", "cylinder")
+# Default footprint [w, d, h] of each preset (`size` may override it).
+PRESETS = {"crate_stack": (128, 64, 128), "barrels": (96, 96, 48), "pallets": (64, 64, 16)}
 MATERIALS = {"glass": 0, "wood": 1, "metal": 2, "concrete": 4}  # func_breakable "material"
 
 
@@ -588,22 +591,40 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         if st.rise % st.step:
             raise SpecError(f"stairs {st.name}: rise must be a multiple of step")
         stairs.append(st)
-    cover = [
-        Cover(
-            name=c["name"],
-            area=need(c["area"], c["name"]),
-            pos=_ints(c["pos"], 2, f"cover {c['name']}.pos"),
-            size=_ints(c["size"], 3, f"cover {c['name']}.size"),
-            z=int(c.get("z", 0)),
-            texture=c.get("texture"),
-            shape=str(c.get("shape", "box")),
-            breakable=c.get("breakable"),
+    cover = []
+    for c in data.get("cover", []):
+        preset = c.get("preset")
+        if preset is not None and preset not in PRESETS:
+            raise SpecError(f"cover {c['name']}: preset must be one of {sorted(PRESETS)}")
+        if "size" not in c and preset is None:
+            raise SpecError(f"cover {c['name']}: size is required (or a preset)")
+        size = c["size"] if "size" in c else PRESETS[preset]
+        cover.append(
+            Cover(
+                name=c["name"],
+                area=need(c["area"], c["name"]),
+                pos=_ints(c["pos"], 2, f"cover {c['name']}.pos"),
+                size=_ints(size, 3, f"cover {c['name']}.size"),
+                z=int(c.get("z", 0)),
+                texture=c.get("texture"),
+                shape=str(c.get("shape", "box")),
+                breakable=c.get("breakable"),
+                preset=preset,
+            )
         )
-        for c in data.get("cover", [])
-    ]
     for c in cover:
         if c.shape not in SHAPES:
             raise SpecError(f"cover {c.name}: shape must be one of {SHAPES}")
+        if c.preset and c.shape != "box":
+            raise SpecError(f"cover {c.name}: a preset sets its own shapes (drop shape)")
+        if c.preset == "crate_stack" and (max(c.size[:2]) % 32 or c.size[2] % 16):
+            raise SpecError(f"cover {c.name}: crate_stack needs a long side / 32 and height / 16")
+        if c.preset == "barrels" and min(c.size[:2]) % 16:
+            raise SpecError(f"cover {c.name}: barrels need a short side divisible by 16")
+        if c.preset == "barrels" and min(c.size[:2]) < 64:
+            raise SpecError(f"cover {c.name}: barrels need >= 64 units across")
+        if c.shape == "cylinder" and min(c.size[:2]) < 32:
+            raise SpecError(f"cover {c.name}: a cylinder needs >= 32 units across")
         if c.breakable is not None and c.breakable not in MATERIALS:
             raise SpecError(f"cover {c.name}: breakable must be one of {sorted(MATERIALS)}")
         if c.shape == "octagon" and min(c.size[:2]) < 32:

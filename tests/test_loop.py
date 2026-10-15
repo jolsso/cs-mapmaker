@@ -84,6 +84,21 @@ def test_apply_shapes_breakables_water_and_hatch_checks():
     assert data["water"][0]["depth"] == 24
 
 
+def test_apply_cover_presets_need_no_size():
+    changes = [
+        {"type": "add_cover", "params": {"zone": "mid", "position": [128, 128],
+                                         "preset": "barrels", "name": "oil"}},
+        {"type": "add_cover", "params": {"zone": "mid_top", "position": [0, 656],
+                                         "size": [64, 64, 96], "shape": "cylinder"}},
+    ]  # fmt: skip
+    new, applied, failed = apply_plan(LAYOUT, changes)
+    assert not failed and "barrels" in applied[0]["effect"]
+    data = yaml.safe_load(new)
+    oil = next(c for c in data["cover"] if c["name"] == "oil")
+    assert oil["preset"] == "barrels" and "size" not in oil
+    assert any(c.get("shape") == "cylinder" for c in data["cover"])
+
+
 def test_policy_counts_windows_per_iteration_and_uses_per_map_locks():
     from mapforge.decide.policy import check_plan, load_fitness, locked_for
 

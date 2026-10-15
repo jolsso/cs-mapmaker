@@ -360,3 +360,61 @@ def test_stacked_map_compiles_with_texlights(tmp_path):
     assert {"func_ladder", "func_breakable", "env_sound"} <= {
         e.get("classname") for e in bsp.entities
     }
+
+
+ROUND_AND_PRESETS = [
+    {"name": "drum", "area": "a_site", "pos": [-256, 400], "size": [96, 96, 128],
+     "shape": "cylinder"},
+    {"name": "post", "area": "a_site", "pos": [0, 400], "size": [32, 32, 128], "shape": "cylinder"},
+    {"name": "stack", "area": "a_site", "pos": [256, 400], "preset": "crate_stack"},
+    {"name": "oil", "area": "b_site", "pos": [-256, -400], "preset": "barrels",
+     "breakable": "metal"},
+    {"name": "tall_oil", "area": "b_site", "pos": [0, -400], "size": [64, 128, 48],
+     "preset": "barrels"},
+    {"name": "step", "area": "b_site", "pos": [256, -400], "preset": "pallets"},
+]  # fmt: skip
+
+
+def test_cylinders_and_presets_are_convex_and_on_the_grid():
+    from mapforge.generator.build import _cylinder, cover_solids
+
+    for lo, hi, sides in (((0, 0), (32, 32), 8), ((0, 0), (96, 96), 12), ((0, 0), (128, 64), 12),
+                          ((0, 0), (192, 192), 16)):  # fmt: skip
+        poly = _cylinder(lo, hi)
+        assert len(poly) == sides and len(set(poly)) == sides
+        assert all(lo[0] <= x <= hi[0] and lo[1] <= y <= hi[1] for x, y in poly)
+    lay = feat(cover=ROUND_AND_PRESETS)
+    by = {c.name: c for c in lay.cover}
+    assert by["stack"].size == (128, 64, 128) and by["step"].size == (64, 64, 16)
+    stack = cover_solids(by["stack"], 0)
+    assert len(stack) == 3 and stack[2][1][2] == 64 and stack[2][2][2] == 128  # crate on top
+    oil = cover_solids(by["oil"], 0)
+    assert len(oil) == 3 and all(s == "cylinder" for s, _, _ in oil)
+    for c in lay.cover:  # every solid stays inside the footprint
+        (px, py), (w, d, _) = c.pos, c.size
+        for _, lo, hi in cover_solids(c, 0):
+            assert px - w // 2 <= lo[0] and hi[0] <= px + w // 2
+            assert py - d // 2 <= lo[1] and hi[1] <= py + d // 2
+    g = generate(lay)
+    for b in g.mapfile.brushes():
+        geo = brush_geometry(b)
+        assert not geo.unbounded and all(len(v) >= 3 for v in geo.face_vertices)
+        v = geo.vertices
+        assert not np.any(np.abs(v - np.round(v / 8) * 8) > 1e-3), "off the 8 grid"
+    names = {e.properties.get("targetname") for e in g.mapfile.entities}
+    assert {"break_oil_1", "break_oil_2", "break_oil_3"} <= names
+
+
+@pytest.mark.parametrize(
+    "item, msg",
+    [
+        ({"preset": "boxes"}, "preset must be one of"),
+        ({"preset": "barrels", "shape": "cylinder"}, "drop shape"),
+        ({"preset": "barrels", "size": [48, 48, 48]}, ">= 64"),
+        ({"shape": "cylinder", "size": [24, 24, 64]}, ">= 32"),
+        ({}, "size is required"),
+    ],
+)
+def test_bad_round_cover_and_presets(item, msg):
+    with pytest.raises(SpecError, match=msg):
+        feat(cover=[{"name": "x", "area": "a_site", "pos": [0, 400], **item}])

@@ -140,6 +140,18 @@ diagonals:                    # makro: en 45°-korridor af mindst `width` i et k
   - {name: diag, rect: [512, 272, 1024, 784], width: 192, dir: ne, height: 192}   # ne: SV→NØ, nw: SØ→NV
 ```
 
+### Pakke 3 (2026-10-15): runde former og kasse-presets
+```yaml
+cover:
+  - {name: drum, area: hall, pos: [x, y], size: [96, 96, 128], shape: cylinder}   # facetteret: 8/12/16 sider efter størrelse
+  - {name: b_stack, area: b_site, pos: [x, y], preset: crate_stack}   # 128x64x128: to kasser + én ovenpå (boost)
+  - {name: oil, area: mid, pos: [x, y], preset: barrels, breakable: metal}   # 96x96x48: tre tønder (hver sin func_breakable)
+  - {name: step, area: a_site, pos: [x, y], preset: pallets}   # 64x64x16: lavt trin (<= 18, kan gås op på)
+```
+- `cylinder`: hjørnerne snappes til 8-gitteret og reduceres til deres konvekse hylster; min. 32 på tværs. Under 64 bliver det en ottekant, 64–127 tolv sider, ≥ 128 seksten.
+- `preset`: `size` er valgfri (standardmål ovenfor) og angiver fodaftrykket; alle dele ligger inden for det, så spawns og værktøjskassen behandler presettet som én kasse. `crate_stack` lægges langs den lange side (lang side delelig med 32, højde med 16); `barrels` kræver mindst 64 på tværs (kort side delelig med 16). `shape` kan ikke kombineres med et preset. `breakable` gælder hver del (`break_<navn>_<n>`).
+- Værktøjskassen: `add_cover` med `shape: cylinder` eller `preset` (uden `size`).
+
 ### Vinkler og niveauer (2026-10-14): skrå rum i vilkårlig vinkel, broer, overgange
 ```yaml
 areas:

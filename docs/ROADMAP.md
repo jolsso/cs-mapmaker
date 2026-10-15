@@ -148,7 +148,8 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [x] Loop-robusthed (2026-10-14): budget tæller kun aktiv køretid, en afbrudt simulering genoptages (færdige batches/servere beholdes, runder reddes fra efterladte containere), Docker tjekkes før start
 - [x] Skitsestreger → skrå korridorer (`./mf sketch`, 2026-10-14)
 - [x] Knæk på skrå korridorer (`via:`, værktøjskassen `bend_corridor`, 2026-10-14): fundet af loopet på de_viaduct01 – en skrå korridor er stadig en lige sigtelinje langs sin egen akse. Fra 2026-10-15 må en skrå irregularity få knæk ind og ud igen; landmarks og chokes er stadig låst
-- [ ] Pakke 3 (lagt i roadmappen 2026-10-15): flere kassetyper (paller, stablede sæt med boost-trin) som cover-presets; runde former som facetterede prismer (tønder/cylindre som cover, runde søjler) og buer i døråbninger (`arch` på en dør); værktøjskassen: `add_cover` med de nye presets/former
+- [x] Pakke 3, cover (2026-10-15): `shape: cylinder` (facetteret prisme, 8/12/16 sider på 8-gitteret: tønder, runde søjler) og presets `crate_stack` (boost), `barrels`, `pallets` (trin); værktøjskassen: `add_cover` med `preset` (uden `size`) eller `shape: cylinder`
+- [ ] Pakke 3, buer i døråbninger (`arch` på en dør)
 - [ ] Bevægelige elementer (pakke 3): elevator (`func_plat`/`func_train`) og knapper (`func_button`) ⚠️ VERIFICÉR at YaPB's graf kan bruge elevatorer, før de tilbydes i værktøjskassen
 
 **Accept:** et genereret map med de nye features compiler, validerer uden fejl, simuleres (YaPB når begge sites) og forbedres af loopet uden manuelle trin.
