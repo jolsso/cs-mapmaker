@@ -99,8 +99,8 @@ def soul_elements(lay: Any, fields: Any = SOUL_FIELDS) -> set[str]:
 
 
 def _guard_area(area: Any, lay: Any = None, bend: bool = False) -> None:
-    """`bend`: a new bend in an irregularity keeps it irregular (more so), so only landmarks and
-    chokes stay locked against it; straightening one is still refused."""
+    """`bend`: bending an angled irregularity, or taking its bends out again, leaves it an
+    angled corridor (the irregularity), so only landmarks and chokes stay locked against it."""
     if area.get("role") in LOCKED_ROLES or area.get("protected"):
         raise ValueError(f"area {area['name']!r} is locked (role {area.get('role')}, FITNESS)")
     if lay is None:
@@ -315,7 +315,7 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         if pts and not isinstance(pts[0], (list, tuple)):
             pts = [pts]  # one bend given as [x, y]
         via = [_vec(v, 2, grid, "via") for v in pts or []]
-        _guard_area(area, lay, bend=bool(via))
+        _guard_area(area, lay, bend=True)
         if via:
             area["via"] = _flow([_flow(v) for v in via])
             return f"corridor {area['name']} bent through {via}"

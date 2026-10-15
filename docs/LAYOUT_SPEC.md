@@ -197,7 +197,7 @@ style_rules:                     # regler art pass (fase 7) bindes af, fx Johnst
   - "trim aldrig på gulv/loft, højst to gange pr. væg"
 ```
 
-Navne i `landmarks[].element`, `irregularities[].element` og `chokes[].door` er låst: `apply.py` afviser at flytte, fjerne eller ændre dem (som `protected`). Én undtagelse: et nyt knæk (`bend_corridor` med `via`) på en korridor, der *kun* er en irregularity, er tilladt – den bliver mere irregulær, ikke mindre. At rette den ud (tom `via`) er stadig låst (besluttet 2026-10-15).
+Navne i `landmarks[].element`, `irregularities[].element` og `chokes[].door` er låst: `apply.py` afviser at flytte, fjerne eller ændre dem (som `protected`). Én undtagelse: `bend_corridor` (knæk ind eller ud igen) på en skrå korridor, der *kun* er en irregularity, er tilladt – den forbliver en skrå korridor (besluttet 2026-10-15).
 
 ## Beskyttede elementer
 `protected: true` på et område, en dør eller et cover betyder, at loopet aldrig flytter, ændrer størrelse på eller fjerner det (låst topologi, fx chokepoint-dørene i de_forge01). Områder med `role: site`, `t_spawn` eller `ct_spawn` er altid låste (site-placeringer, FITNESS).

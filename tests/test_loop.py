@@ -273,7 +273,7 @@ def test_stop_says_why_proposed_changes_did_not_apply(tmp_path, monkeypatch):
     assert "kunne anvendes" in reason and "irregularity" in reason
 
 
-def test_bend_is_allowed_on_an_irregularity_but_not_a_straightening():
+def test_an_irregular_corridor_may_be_bent_and_straightened_a_landmark_not():
     from test_generator_angled import ANGLED
 
     lay = {**ANGLED, "irregularities": [{"element": "t_long", "purpose": "skrå korridor"}]}
@@ -287,8 +287,8 @@ def test_bend_is_allowed_on_an_irregularity_but_not_a_straightening():
     new, applied, failed = apply_plan(yaml.safe_dump(lay, sort_keys=False), [bend])
     assert not failed and yaml.safe_load(new)["corridors"][0]["via"] == [[-1088, 576]]
     straighten = {"type": "bend_corridor", "params": {"target": "t_long", "via": []}}
-    _, applied, failed = apply_plan(new, [straighten])
-    assert not applied and "irregularity" in failed[0]["reason"]
+    new, applied, failed = apply_plan(new, [straighten])
+    assert applied and "via" not in yaml.safe_load(new)["corridors"][0]
     lay["landmarks"] = [{"name": "Langbanen", "element": "t_long"}]
     _, applied, failed = apply_plan(yaml.safe_dump(lay, sort_keys=False), [bend])
     assert not applied and "landmark" in failed[0]["reason"]

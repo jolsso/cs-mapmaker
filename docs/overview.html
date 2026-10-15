@@ -573,7 +573,7 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
           <li>Testmap til vinkler og niveauer, itereret af loopet (de_viaduct01: kanal med bro, femkantet A-plads, skrå korridorer)</li>
           <li class="ok">Loop-robusthed: budget tæller kun aktiv køretid, afbrudt simulering genoptages, Docker tjekkes før start</li>
           <li class="ok">Skitsestreger bliver til skrå korridorer med knæ-rum (<code>./mf sketch</code>)</li>
-          <li class="ok">Knæk på skrå korridorer (<code>via:</code>, <code>bend_corridor</code>): bryder lange sigtelinjer; må også lægges på en låst irregularity (ikke rette den ud)</li>
+          <li class="ok">Knæk på skrå korridorer (<code>via:</code>, <code>bend_corridor</code>): bryder lange sigtelinjer; må også lægges på (og fjernes fra) en skrå irregularity</li>
         </ul>
         <p class="accept"><b>Accept:</b> et genereret map med de nye features compiler, validerer, simuleres og forbedres af loopet uden manuelle trin.</p>
       </div>

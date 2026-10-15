@@ -146,7 +146,7 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [ ] Testmap til vinkler og niveauer, itereret af loopet (feature-forbedringer undervejs): `de_viaduct01` (2026-10-14) – validering 0/0, review bestået, første måling score 0,016
 - [x] Loop-robusthed (2026-10-14): budget tæller kun aktiv køretid, en afbrudt simulering genoptages (færdige batches/servere beholdes, runder reddes fra efterladte containere), Docker tjekkes før start
 - [x] Skitsestreger → skrå korridorer (`./mf sketch`, 2026-10-14)
-- [x] Knæk på skrå korridorer (`via:`, værktøjskassen `bend_corridor`, 2026-10-14): fundet af loopet på de_viaduct01 – en skrå korridor er stadig en lige sigtelinje langs sin egen akse. Fra 2026-10-15 må en irregularity få et knæk (ikke rettes ud); landmarks og chokes er stadig låst
+- [x] Knæk på skrå korridorer (`via:`, værktøjskassen `bend_corridor`, 2026-10-14): fundet af loopet på de_viaduct01 – en skrå korridor er stadig en lige sigtelinje langs sin egen akse. Fra 2026-10-15 må en skrå irregularity få knæk ind og ud igen; landmarks og chokes er stadig låst
 
 **Accept:** et genereret map med de nye features compiler, validerer uden fejl, simuleres (YaPB når begge sites) og forbedres af loopet uden manuelle trin.
 
