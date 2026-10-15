@@ -161,6 +161,9 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 **Mål:** Lys og visuel identitet.
 
 - [x] ART_DIRECTION.md udfyldt for mappet (2026-10-15): `maps/de_forge01/ART_DIRECTION.md`. Tema: industri (et stålværk under nedlukning; A = støbepladsen, varm/orange; B = pumpehallen, kold/teal), låst i `config/fitness.yaml`; callouts knyttet til eksisterende cover, da geometrien er frosset
+- [x] Gate B låser layoutet, ikke props (2026-10-15, menneskets afklaring): områder, døre/forbindelser, ruter, sites, spawns og niveauer er frosset; cover/props (også store med gameplay-betydning, som toget på de_train) og lys er frie inden for temaet og måles af loopet. `after_gate_b: true` i `config/fitness.yaml`, håndhævet i `mapforge/decide/policy.py`; FITNESS.md opdateret
+- [ ] Prop-bibliotek til temaet industri, store og små (container, slaggevogn på skinner, støbeske, gaffeltruck, rørføring, ingot-stak …) som cover-presets med tema-tag; værktøjskassen `add_cover preset=…`
+- [ ] Dressing på de_forge01 efter Gate B: props og lys efter ART_DIRECTION.md gennem loopet (simulering måler effekten), layoutet uændret
 - [ ] Regelbaseret lysplacering + `lights.rad` texlights + zonefarver
 - [ ] Tekstur-pipeline: billede → kvantisering → WAD3 (kun fri licens)
 - [ ] Claude-review af klient-screenshots mod stilguide

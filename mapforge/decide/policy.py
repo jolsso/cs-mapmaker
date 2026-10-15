@@ -133,8 +133,10 @@ def check_plan(
             missing = [p for p in spec.get("params", []) if p not in params]
             if missing:
                 reason = f"missing params {missing}"
-            elif frozen and ctype != "lighting":
-                reason = "geometry is frozen (after Gate B)"
+            elif frozen and not spec.get("after_gate_b"):
+                # Gate B freezes the layout (areas, doors, routes, spawns, levels); cover,
+                # props and lighting stay free inside the theme
+                reason = "the layout is frozen (after Gate B): only cover/props and lighting"
             elif spec.get("from_phase") and phase < spec["from_phase"]:
                 reason = f"{ctype} only from phase {spec['from_phase']}"
             elif spec.get("before_gate_b_only") and frozen:

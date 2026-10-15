@@ -58,8 +58,10 @@ locked:
   topology: ""           # fx "3 lanes, mid forbinder, sites i hver ende"
   site_locations: []     # grove koordinater/zoner
   landmarks: []          # navngivne landmarks der skal bestå
-  geometry_frozen: false # true efter Gate B
+  geometry_frozen: false # true efter Gate B: layoutet er låst, props/cover og lys er stadig frie
 ```
+
+**Hvad Gate B låser (afklaret 2026-10-15 med mennesket):** det overordnede layout – områder, døre og forbindelser, ruter, sites, spawns, niveauer, ramper, trapper, broer og stiger. **Props og cover er ikke låst**, heller ikke store props med betydning for spillet (som toget på de_train eller bilen på de_dust2). De må tilføjes, fjernes og gøres knusbare inden for temaet, og loopet måler effekten med simulering som før. Navngivne landmarks i `landmarks` er stadig låste. I `config/fitness.yaml` er de tilladte typer efter Gate B markeret `after_gate_b: true` (`add_cover`, `remove_cover`, `set_breakable`, `lighting`).
 
 ## Tilladte ændringer (loopets værktøjskasse)
 Låste beslutninger er pr. map: `locked_maps.<map>` i `config/fitness.yaml` gælder for det map, ellers `locked` (godkendt for de_forge01 ved Gate A).
@@ -67,7 +69,7 @@ Låste beslutninger er pr. map: `locked_maps.<map>` i `config/fitness.yaml` gæl
 Maskinlæsbart i `config/fitness.yaml` → `allowed_changes` (typer, påkrævede parametre, grænser). En plan med andre typer, for store ændringer eller ændringer der nævner låste landmarks/sites afvises af `mapforge/decide/policy.py`. Kræver en rettelse noget uden for værktøjskassen, skal planen eskalere (`escalate: true`).
 
 - Flytte/forlænge/forkorte korridorer inden for ±256 units
-- Tilføje/fjerne cover (kasser, vægge) inden for en zone
+- Tilføje/fjerne cover og props (kasser, vægge, presets) inden for en zone – også efter Gate B
 - Justere døråbninger og bredder
 - Flytte spawns inden for spawn-zone
 - Tilføje/fjerne en sekundær forbindelse (kun før Gate B, max 1 pr. iteration)

@@ -57,8 +57,12 @@ def test_locked_landmarks_and_frozen_geometry():
     v = check_plan(plan(ch("remove_cover", target="crates next to The Well")), f)
     assert "locked decision" in v.rejected[0]["reason"]
     f["locked"]["geometry_frozen"] = True
-    v = check_plan(plan(ch("add_cover", zone="A", position=[0, 0], size=[8, 8, 8])), f)
-    assert "frozen" in v.rejected[0]["reason"]
+    v = check_plan(plan(ch("move_corridor", target="mid", delta=[16, 0])), f)
+    assert "layout is frozen" in v.rejected[0]["reason"]  # Gate B freezes the layout ...
+    props = plan(ch("add_cover", zone="A", position=[0, 0], preset="crate_stack"),
+                 ch("remove_cover", target="old crate"),
+                 ch("set_breakable", target="crate", material="wood"))  # fmt: skip
+    assert check_plan(props, f).ok and len(check_plan(props, f).accepted) == 3  # ... not props
     v = check_plan(plan(ch("lighting", target="tunnel")), f, phase=7)
     assert v.ok  # lighting is still allowed after Gate B, in the art pass
 
