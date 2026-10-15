@@ -281,7 +281,18 @@ button.on, button.primary { background: var(--accent-soft); border-color: var(--
 .pcard .img.brief { background: repeating-linear-gradient(0deg, transparent 0 31px, #1c2228 31px 32px), repeating-linear-gradient(90deg, transparent 0 31px, #1c2228 31px 32px), #0c0f12; }
 #newmap { display: grid; gap: 12px; }
 #newmap label { display: grid; gap: 6px; font-weight: 600; }
-#newmap input, #newmap textarea { font: inherit; color: inherit; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+#newmap input, #newmap textarea, #newmap select, #intent textarea, .imglist select, .imglist input { font: inherit; color: inherit; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+#newmap h3 { margin: 6px 0 0; font-size: 15px; color: var(--muted); }
+.formrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+#newmap label.radio { display: flex; gap: 8px; align-items: center; font-weight: 400; }
+.imglist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.imglist li { display: grid; grid-template-columns: 1fr auto auto 1.2fr; gap: 8px; align-items: center; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+@media (max-width: 640px) { .imglist li { grid-template-columns: 1fr; } }
+#intent .lead { font-size: 17px; }
+#intent .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+#intent ul { margin: 4px 0 10px; padding-left: 18px; }
+#intent li.bad { color: var(--bad); } #intent li.ok::marker { color: var(--ok); }
+#intent textarea { width: 100%; font-family: Cascadia Mono, Consolas, monospace; font-size: 13px; }
 .card.brief { white-space: pre-wrap; }
 
 /* style review section (mapforge/style/publish.py, style.js) */
@@ -323,3 +334,5 @@ button.on, button.primary { background: var(--accent-soft); border-color: var(--
 .lightbox[hidden] { display: none; }
 body.lb-open { overflow: hidden; }
 .scard a[data-lb] { cursor: zoom-in; }
+
+[hidden] { display: none !important; }   /* a display rule (flex, grid) must not override hidden */

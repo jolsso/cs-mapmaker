@@ -621,37 +621,185 @@ def _wishes_section(cfg: Config, name: str) -> str:
     )  # fmt: skip
 
 
+CHOICE_DA = {  # dashboard labels for brief v2's choices (mapforge.brief.ENUMS)
+    "archetype": {"three_lane": "tre baner (dust2, mirage)", "asymmetric": "asymmetrisk",
+                  "stacked": "stablet (nuke, vertigo)"},
+    "size": {"small": "lille", "medium": "mellem", "large": "stor"},
+    "pace": {"fast": "hurtigt (tidlig kontakt, korte rotationer)", "medium": "mellem",
+             "slow": "langsomt og taktisk"},
+    "levels": {"flat": "fladt", "some": "lidt højde (trapper, platforme)",
+               "stacked": "stablede etager"},
+    "inside": {"mostly_outside": "mest ude", "mixed": "blandet", "mostly_inside": "mest inde"},
+    "density": {"tight": "trangt (gange, rum)", "mixed": "blandet", "open": "åbent (gårde)"},
+    "site_cover": {"open": "åbne sites (svære at holde)", "mixed": "blandet",
+                   "cluttered": "fyldte sites (mange vinkler)"},
+    "amount": {"few": "få", "some": "nogle", "many": "mange"},
+    "tag": {"mood": "stemning", "landmark": "landmærke", "material": "materiale",
+            "layout": "plantegning/skitse"},
+    "license": {"own": "mit eget", "cc0": "CC0 / fri", "inspiration": "inspiration (kun lokalt)"},
+}  # fmt: skip
+
+
+def _select(name: str, choices: dict[str, str], blank: str = "lad Claude vælge") -> str:
+    opts = f"<option value=''>– {blank} –</option>" if blank else ""
+    opts += "".join(f"<option value='{k}'>{e(v)}</option>" for k, v in choices.items())
+    return f"<select name='{name}'>{opts}</select>"
+
+
+def _lab(title: str, field: str) -> str:
+    return f"<label>{title} {field}</label>"
+
+
+def _row(*cells: str) -> str:
+    return f"<div class='formrow'>{''.join(cells)}</div>"
+
+
 def new_page() -> str:
-    """Start a map: name + description (POST /api/maps), then sketch on a blank grid."""
+    """Start a map (phase 8a guide): mode, description with the conceptual questions (brief v2),
+    images with tag and licence (POST /api/maps + /images), then a sketch on a blank grid, and
+    "how I understood you" (the Interpreter's intent.json: read, correct, confirm)."""
     from mapforge.live.collector import BRIEF_CANVAS
 
     new = {"img": "img/brief_grid.png", "rect": BRIEF_CANVAS, "size": [GRID_PX, GRID_PX],
-           "annotate": f"annotate.js?v={ANN_VERSION}"}  # fmt: skip
+           "annotate": f"annotate.js?v={ANN_VERSION}", "choices": CHOICE_DA}  # fmt: skip
+    c = CHOICE_DA
+    intro = (
+        "<section><span class='eyebrow'>Egne maps</span><h1>Nyt map</h1><p class='muted'>Beskriv "
+        "mappet så meget eller lidt, du vil - kun navn og beskrivelse er påkrævet; resten vælger "
+        "Claude og viser dig under <b>Sådan har jeg forstået dig</b>, før der tegnes et eneste rum. "
+        "Spørgsmålene er dem, der ændrer mappet mest: rum og højde, spillestil og identitet. "
+        "Gemmes i <code>maps/&lt;navn&gt;/brief.json</code>.</p></section>"
+    )
+    mode = "<h2><span class='no'>1</span>Mode</h2>" + _row(
+        "<label class='radio'><input type='radio' name='mode' value='simple' checked> Simpel - "
+        "du beskriver, agenterne tegner skitsen</label>",
+        "<label class='radio'><input type='radio' name='mode' value='advanced'> Avanceret - du "
+        "tegner selv (lag-tegningen kommer i 8c; indtil da tegner du på gitteret)</label>",
+    )
+    desc = (
+        "<h2><span class='no'>2</span>Beskrivelse</h2>"
+        + _row(
+            _lab(
+                "Navn",
+                "<input name='name' required pattern='de_[a-z0-9_]{2,28}' "
+                "placeholder='de_harbour01'>",
+            )
+        )  # fmt: skip
+        + _lab(
+            "Beskrivelse",
+            "<textarea name='description' rows='5' required minlength='10' "
+            "maxlength='4000' placeholder='Fx: Forladt færgehavn om vinteren. A er kajen med en "
+            "kran, B er inde i terminalen.'></textarea>",
+        )  # fmt: skip
+        + _lab(
+            "Idé <span class='muted small'>(hvorfor bomben, hvorfor her)</span>",
+            "<input name='concept' maxlength='1000' placeholder='Fx: Bomben skal ødelægge "
+            "færgelejet, før det sidste skib lægger til'>",
+        )  # fmt: skip
+        + "<h3>Rum og højde</h3>"
+        + _row(
+            _lab("Niveauer", _select("levels", c["levels"])),
+            _lab("Inde/ude", _select("inside", c["inside"])),
+            _lab("Trangt/åbent", _select("density", c["density"])),
+            "<label class='radio'><input type='checkbox' name='stacked_sites'> Det ene site "
+            "over det andet</label>",
+        )  # fmt: skip
+        + "<h3>Spillestil</h3>"
+        + _row(
+            _lab("Lange sigtelinjer", _select("sight_long", c["amount"])),
+            _lab("Nærkamp", _select("sight_cqb", c["amount"])),
+            _lab("Sites", _select("site_cover", c["site_cover"])),
+            _lab("Tempo", _select("pace", c["pace"])),
+        )  # fmt: skip
+        + _row(
+            _lab("Arketype", _select("archetype", c["archetype"])),
+            _lab("Størrelse", _select("size", c["size"])),
+        )  # fmt: skip
+        + _row(
+            _lab(
+                "Site A",
+                "<input name='site_a' maxlength='500' placeholder='Fx: åben kaj, "
+                "lang sigtelinje fra CT'>",
+            ),
+            _lab(
+                "Site B",
+                "<input name='site_b' maxlength='500' placeholder='Fx: to etager "
+                "inde i terminalen, tæt'>",
+            ),
+        )  # fmt: skip
+        + _lab(
+            "Mid",
+            "<input name='mid' maxlength='1000' placeholder='Fx: kontrol over mid "
+            "åbner en tredje vej til B'>",
+        )  # fmt: skip
+        + "<h3>Identitet</h3>"
+        + _lab(
+            "Tema",
+            "<input name='theme' maxlength='1000' placeholder='Fx: industrihavn, "
+            "vinter, 1970erne'>",
+        )  # fmt: skip
+        + _lab(
+            "Landmærker <span class='muted small'>(én pr. linje: navn - note; skriv lille "
+            "eller stor, hvis den kræver lidt eller meget plads)</span>",
+            "<textarea name='landmarks' rows='3' placeholder='kran - kan ses fra A main, stor'>"
+            "</textarea>",
+        )  # fmt: skip
+        + _row(
+            _lab(
+                "Skal have <span class='muted small'>(én pr. linje)</span>",
+                "<textarea name='must_have' rows='3'></textarea>",
+            ),
+            _lab(
+                "Må ikke have <span class='muted small'>(én pr. linje)</span>",
+                "<textarea name='no_go' rows='3'></textarea>",
+            ),
+        )  # fmt: skip
+    )
+    imgs = (
+        "<h2><span class='no'>3</span>Billeder</h2><p class='muted small'>PNG eller JPEG, maks. "
+        "8 MB. Tag fortæller, hvad billedet styrer; <b>inspiration</b> (fx fra nettet) bliver kun "
+        "lokalt og aldrig til teksturer. EXIF (placering, kamera) fjernes.</p>"
+        "<input type='file' name='images' accept='image/png,image/jpeg' multiple>"
+        "<ul class='imglist'></ul>"
+        "<div class='phases'><button class='primary'>Opret, upload og tegn</button></div>"
+        "<p class='annmsg muted small'></p>"
+    )
+    draw = (
+        "<section id='annotate' class='panel' hidden><h2><span class='no'>4</span>Tegn - "
+        "<span class='mapname'></span></h2><p class='muted'>Punkt, område, streg eller kun tekst - "
+        "med et ønske til hver. Et felt er 256 units. Tegningen er vejledende.</p>"
+        "<div class='annwrap'><div><div class='phases tools'><button data-tool='point' "
+        "class='on'>● Punkt</button><button data-tool='rect'>▭ Område</button><button "
+        "data-tool='path'>✎ Streg</button><button data-tool='note'>¶ Kun tekst</button></div>"
+        "<canvas class='anncanvas'></canvas></div><div class='annside'><textarea rows='3' "
+        "maxlength='500' placeholder='Hvad skal der være her?'></textarea><div class='phases'>"
+        "<button class='annsave primary'>Gem ønske</button><button class='anncancel'>Annullér"
+        "</button></div><p class='annmsg muted small'></p><h3>Ønsker</h3><ul class='annlist'></ul>"
+        "</div></div></section>"
+    )
+    intent = (
+        "<section id='intent' class='panel' hidden><h2><span class='no'>5</span>Sådan har jeg "
+        "forstået dig</h2><div class='intentbody'><p class='muted'>Claude læser din brief og dine "
+        "billeder (<code>./mf brief MAP=<span class='mapname'></span></code> i sessionen) - siden "
+        "opdaterer sig selv, når forståelsen er klar.</p></div>"
+        "<details class='intentedit' hidden><summary>Ret direkte (JSON)</summary>"
+        "<textarea rows='18'></textarea></details>"
+        "<div class='phases intentbtns' hidden><button class='intentsave'>Gem rettelser</button>"
+        "<button class='intentok primary'>Bekræft - sådan skal det være</button></div>"
+        "<p class='intentmsg muted small'></p>"
+        "<p><a id='done' class='chip ok'>Til map-siden →</a></p></section>"
+    )
     return (
-        "<section><span class='eyebrow'>Egne maps</span><h1>Nyt map</h1><p class='muted'>Beskriv mappet, "
-        "og tegn bagefter, hvad du forestiller dig: sites, ruter, et landmærke, en stemning. Tegningen er "
-        "vejledende; Claude laver et layout (<code>layout.yaml</code>) ud fra begge dele, og loopet "
-        "itererer derfra. Gemmes i <code>maps/&lt;navn&gt;/brief.json</code> og "
-        "<code>annotations.json</code>.</p></section>"
-        "<form id='newmap' class='panel'><h2><span class='no'>1</span>Beskrivelse</h2>"
-        "<label>Navn <input name='name' required pattern='de_[a-z0-9_]{2,28}' placeholder='de_harbour01'>"
-        "</label><label>Beskrivelse <textarea name='description' rows='6' required minlength='10' "
-        "maxlength='4000' placeholder='Fx: En havn ved nat. A er et lagerhus med en kran, B ligger på "
-        "kajen. Mid er en smal gyde med et vindue ud mod vandet. CT bør kunne rotere på under 12 s.'>"
-        "</textarea></label><div class='phases'><button class='primary'>Opret og tegn</button></div>"
-        "<p class='annmsg muted small'></p></form>"
-        "<section id='annotate' class='panel' hidden><h2><span class='no'>2</span>Tegn – "
-        "<span class='mapname'></span></h2><p class='muted'>Punkt, område, streg eller kun tekst – med et "
-        "ønske til hver. Et felt er 256 units.</p>"
-        "<div class='annwrap'><div><div class='phases tools'><button data-tool='point' class='on'>● Punkt"
-        "</button><button data-tool='rect'>▭ Område</button><button data-tool='path'>✎ Streg</button>"
-        "<button data-tool='note'>¶ Kun tekst</button></div><canvas class='anncanvas'></canvas></div>"
-        "<div class='annside'><textarea rows='3' maxlength='500' placeholder='Hvad skal der være her?'>"
-        "</textarea><div class='phases'><button class='annsave primary'>Gem ønske</button>"
-        "<button class='anncancel'>Annullér</button></div><p class='annmsg muted small'></p>"
-        "<h3>Ønsker</h3><ul class='annlist'></ul>"
-        "<p><a id='done' class='chip ok'>Færdig – til map-siden →</a></p></div></div></section>"
-        f"<script>const NEW = {json.dumps(new)};</script><script src='newmap.js?v={NEW_VERSION}'></script>"
+        intro
+        + "<form id='newmap' class='panel'>"
+        + mode
+        + desc
+        + imgs
+        + "</form>"
+        + draw
+        + intent
+        + f"<script>const NEW = {json.dumps(new)};</script>"
+        + f"<script src='newmap.js?v={NEW_VERSION}'></script>"
     )
 
 
