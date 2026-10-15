@@ -268,29 +268,64 @@ def roof_brushes(ro, a: Area, tex: str, post_tex: str) -> list[Brush]:
     return out
 
 
-def fit_texture(brush: Brush, lo: tuple, hi: tuple) -> Brush:
-    """Shift every face's texture so it starts at the box's corner (texture space): a panel the
-    size of its texture shows exactly one door or window, not a slice of the tiling."""
+PANEL = 8  # a door / window panel's thickness
+FRAME = 16  # width of the flush surround around a door / window
+
+
+def fit_scaled(brush: Brush, lo: tuple, hi: tuple, scale: tuple[float, float]) -> Brush:
+    """Scale every face's texture by `scale` and shift it to start at the box's corner: the
+    panel shows exactly one whole (scaled) door or window."""
     corners = [(x, y, z) for x in (lo[0], hi[0]) for y in (lo[1], hi[1]) for z in (lo[2], hi[2])]
     faces = []
     for f in brush.faces:
         u, v = f.u_axis, f.v_axis
-        su = -min(sum(c[k] * u[k] for k in range(3)) for c in corners)
-        sv = -min(sum(c[k] * v[k] for k in range(3)) for c in corners)
-        faces.append(replace(f, u_axis=(u[0], u[1], u[2], su), v_axis=(v[0], v[1], v[2], sv)))
+        # which texture axis runs along which panel side: keep the door upright (v vertical)
+        su_, sv_ = (scale[0], scale[1]) if abs(v[2]) > 0.5 else (scale[0], scale[0])
+        shift_u = -min(sum(c[k] * u[k] for k in range(3)) for c in corners) / su_
+        shift_v = -min(sum(c[k] * v[k] for k in range(3)) for c in corners) / sv_
+        faces.append(replace(f, u_axis=(u[0], u[1], u[2], shift_u),
+                             v_axis=(v[0], v[1], v[2], shift_v), scale=(su_, sv_)))  # fmt: skip
     return replace(brush, faces=faces)
 
 
-def wall_detail_boxes(layout: Layout, voids: dict[str, Box]) -> list[tuple[Box, str]]:
-    """Locked doors and windows along the walls of the listed areas: every `spacing` along each
-    wall, doors and windows taking turns (textures picked stably), `depth` out of the wall.
-    A panel keeps 16 clear of openings, cover, models and ladders, and fits under the ceiling."""
+def _side_box(ax: int, t0: int, t1: int, a0: int, a1: int, b0: int, b1: int) -> Box:
+    """A box across a wall: t0..t1 through it (axis `ax`), a0..a1 along it, b0..b1 in height."""
+    lo, hi = [0, 0, b0], [0, 0, b1]
+    lo[ax], hi[ax] = min(t0, t1), max(t0, t1)
+    lo[1 - ax], hi[1 - ax] = a0, a1
+    return (tuple(lo), tuple(hi))
+
+
+def fit_each(brush: Brush, lo: tuple, hi: tuple, tsize: tuple[int, int]) -> Brush:
+    """Stretch each face's texture (size `tsize`) to the face: one whole tile per face."""
+    corners = [(x, y, z) for x in (lo[0], hi[0]) for y in (lo[1], hi[1]) for z in (lo[2], hi[2])]
+    faces = []
+    for f in brush.faces:
+        u, v = f.u_axis, f.v_axis
+        pu = [sum(c[k] * u[k] for k in range(3)) for c in corners]
+        pv = [sum(c[k] * v[k] for k in range(3)) for c in corners]
+        su = (max(pu) - min(pu)) / tsize[0] or 1
+        sv = (max(pv) - min(pv)) / tsize[1] or 1
+        faces.append(replace(f, u_axis=(u[0], u[1], u[2], -min(pu) / su),
+                             v_axis=(v[0], v[1], v[2], -min(pv) / sv), scale=(su, sv)))  # fmt: skip
+    return replace(brush, faces=faces)
+
+
+def wall_details(layout: Layout, voids: dict[str, Box]) -> list[dict]:
+    """Locked doors and windows along the walls of the listed areas, recessed into the wall: a
+    notch `recess + PANEL` deep is cut where the wall is solid that deep (plus a wall's thickness
+    behind it, no other room or opening), and the panel fills its back, so the door face sits
+    `recess` behind the wall. Every `door_every`-th slot is a door, the others windows; panels
+    keep 16 clear of openings, cover, models and ladders and fit under the ceiling.
+    -> [{"notch": Box, "panel": Box, "texture", "scale", "frame": [Box]}]"""
     wd = layout.wall_details or {}
     if not wd:
         return []
     doors = [p for p in wd["panels"] if p["kind"] == "door"]
     windows = [p for p in wd["panels"] if p["kind"] == "window"]
-    spacing, depth = wd["spacing"], wd["depth"]
+    spacing, recess, every = wd["spacing"], wd["recess"], wd["door_every"]
+    deep, wall = recess + PANEL, layout.wall
+    rooms = list(voids.values())
     out = []
     for name in wd["areas"]:
         a = layout.areas[name]
@@ -313,31 +348,54 @@ def wall_detail_boxes(layout: Layout, voids: dict[str, Box]) -> list[tuple[Box, 
         sides = [("-x", 0, x0, (y0, y1)), ("+x", 0, x1, (y0, y1)),
                  ("-y", 1, y0, (x0, x1)), ("+y", 1, y1, (x0, x1))]  # fmt: skip
         for side, ax, at, (s0, s1) in sides:
-            inward = 1 if side[0] == "-" else -1
+            out_dir = -1 if side[0] == "-" else 1  # from the room into the wall
             k = 0
             for c in range(s0 + spacing // 2, s1 - spacing // 4, spacing):
-                pool = (doors, windows)[k % 2] or doors or windows
+                pool = doors if (k % every == 0 and doors) or not windows else windows
                 k += 1
                 pick = int(hashlib.sha1(f"{name}{side}{c}".encode()).hexdigest(), 16)
                 p = pool[pick % len(pool)]
                 half = p["w"] // 2
                 c8 = c // 8 * 8
                 u0, u1 = c8 - half, c8 + half
-                if u0 < s0 + 16 or u1 > s1 - 16 or p["z"] + p["h"] + 16 > a.height:
+                z0, z1 = a.floor + p["z"], a.floor + p["z"] + p["h"]
+                if u0 < s0 + 24 or u1 > s1 - 24 or z1 + 16 > a.top:
                     continue
-                t0, t1 = (at, at + depth) if inward > 0 else (at - depth, at)
-                lo = [0, 0, a.floor + p["z"]]
-                hi = [0, 0, a.floor + p["z"] + p["h"]]
-                lo[ax], hi[ax] = t0, t1
-                lo[1 - ax], hi[1 - ax] = u0, u1
-                clear = True
-                for b_lo, b_hi in blockers:  # 16 of room around the panel, in plan
-                    if (b_lo[0] < hi[0] + 16 and lo[0] - 16 < b_hi[0]
-                            and b_lo[1] < hi[1] + 16 and lo[1] - 16 < b_hi[1]):  # fmt: skip
-                        clear = False
-                        break
-                if clear:
-                    out.append(((tuple(lo), tuple(hi)), p["texture"]))
+
+                # a frame is a flush surround set into the wall (FRAME wide, nothing sticks out):
+                # the notch takes it in, the door / window sits `recess` behind it
+                fw = FRAME if wd.get("frame") else 0
+                fb = fw if p["kind"] == "window" else 0  # doors stand on the floor
+                n0, n1, nz0, nz1 = u0 - fw, u1 + fw, z0 - fb, z1 + fw
+                notch = _side_box(ax, at, at + out_dir * deep, n0, n1, nz0, nz1)
+                reach = at + out_dir * (deep + wall)
+                behind = _side_box(ax, at, reach, n0 - 8, n1 + 8, nz0 - 8, nz1 + 8)
+                (b_lo, b_hi) = behind
+                solid = not any(
+                    all(r_lo[i] < b_hi[i] and b_lo[i] < r_hi[i] for i in range(3))
+                    for r_lo, r_hi in rooms
+                    if (r_lo, r_hi) != voids[name]
+                )  # fmt: skip
+                if not solid or nz1 + 16 > a.top:
+                    continue
+                clear = not any(
+                    q_lo[0] < max(notch[1][0], at) + 24 and min(notch[0][0], at) - 24 < q_hi[0]
+                    and q_lo[1] < max(notch[1][1], at) + 24 and min(notch[0][1], at) - 24 < q_hi[1]
+                    for q_lo, q_hi in blockers
+                )  # fmt: skip
+                if not clear:
+                    continue
+                panel = _side_box(ax, at + out_dir * recess, at + out_dir * deep, u0, u1, z0, z1)
+                frame = []
+                if fw:  # jambs, lintel (and under a window) - flush with the wall face
+                    back = at + out_dir * deep
+                    frame = [_side_box(ax, at, back, n0, u0, nz0, nz1),
+                             _side_box(ax, at, back, u1, n1, nz0, nz1),
+                             _side_box(ax, at, back, u0, u1, z1, nz1)]  # fmt: skip
+                    if fb:
+                        frame.append(_side_box(ax, at, back, u0, u1, nz0, z0))
+                out.append({"notch": notch, "panel": panel, "texture": p["texture"],
+                            "scale": p["scale"], "frame": frame})  # fmt: skip
     return out
 
 
@@ -509,7 +567,7 @@ def gable_roofs(sky: Skyline, tex: dict[str, str], grid: int = 8) -> list[Brush]
         z = b["z"]
         tri = [(u0, z), (m, z + rise), (u1, z)]
         brush = _extrude_uz(tri, ax, t0, t1, tex["roof"])
-        out.append(brush)
+        out.append(anchor_texture(brush, dict.fromkeys(range(len(brush.faces)), (x0, y0, z))))
     return out
 
 
@@ -796,12 +854,38 @@ def _ladder_box(layout: Layout, ld) -> Box:
     return ((c - ld.width // 2, ya, z0), (c + ld.width // 2, yb, z1))
 
 
+def anchor_texture(brush: Brush, anchors: dict[int, tuple]) -> Brush:
+    """Shift the textures of the given faces (index -> anchor point) so each starts at its
+    anchor: texture coordinate 0 there, along both axes (a wall's top row at the ceiling line,
+    a floor's slabs from the room's corner, a facade's windows under the roof line)."""
+    faces = list(brush.faces)
+    for i, (ax, ay, az) in anchors.items():
+        f = faces[i]
+        u, v = f.u_axis, f.v_axis
+        su = -(ax * u[0] + ay * u[1] + az * u[2]) / (f.scale[0] or 1)
+        sv = -(ax * v[0] + ay * v[1] + az * v[2]) / (f.scale[1] or 1)
+        faces[i] = replace(f, u_axis=(u[0], u[1], u[2], su), v_axis=(v[0], v[1], v[2], sv))
+    return replace(brush, faces=faces)
+
+
+BOX_SIDES = ("-x", "-y", "-z", "+z", "+y", "+x")  # box_brush's face order
+
+
 def _face_textures(
-    lo: tuple, hi: tuple, voids: list[tuple[Box, Area]], tex_of, outside: dict | None = None
+    lo: tuple,
+    hi: tuple,
+    voids: list[tuple[Box, Area]],
+    tex_of,
+    outside: dict | None = None,
+    anchors: dict[str, tuple] | None = None,
+    block_at=None,
 ) -> dict[str, str]:
     """Per side of a shell box: the texture of the area it faces (largest touching overlap);
     with a skyline, a side that faces no area looks out into the open air: roof on top,
-    facade on the sides (hidden inner faces get them too, which costs nothing)."""
+    facade on the sides (hidden inner faces get them too, which costs nothing). With `anchors`
+    (a dict to fill), a side facing the open air gets the point its texture starts at: the
+    building block's corner and roof line (room faces keep the world grid, so seams continue
+    from one area into the next)."""
     out = {}
     for axis in range(3):
         for sign, coord in ((-1, lo[axis]), (1, hi[axis])):
@@ -820,9 +904,13 @@ def _face_textures(
             key = ("+" if sign > 0 else "-") + side
             if best_a is None and outside:
                 out[key] = outside["roof"] if key == "+z" else outside["facade"]
+                if anchors is not None and block_at is not None:
+                    b = block_at((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2)
+                    anchors[key] = (b[0], b[1], b[4]) if b else (lo[0], lo[1], hi[2])
                 continue
             t = tex_of(best_a)
             out[key] = t["floor"] if key == "+z" else t["ceiling"] if key == "-z" else t["wall"]
+            # room faces stay on the world grid: floors and walls line up across areas
     return out
 
 
@@ -860,6 +948,9 @@ def generate(layout: Layout) -> Generated:
     for h in layout.hatches:
         hx0, hy0, hx1, hy1 = h.rect
         voids[h.name] = ((hx0, hy0, areas[h.lower].top), (hx1, hy1, areas[h.upper].floor))
+    details = wall_details(layout, voids)  # notches for recessed doors/windows (decided first)
+    for k, d in enumerate(details):
+        voids[f"~notch{k}"] = d["notch"]
     lo = np.min([b[0] for b in voids.values()], axis=0) - layout.wall
     hi = np.max([b[1] for b in voids.values()], axis=0) + layout.wall
     roofline = bool(layout.skyline)
@@ -880,6 +971,14 @@ def generate(layout: Layout) -> Generated:
         list(voids.values()), outdoor, shell, owners, over, plan, layout.wall
     )
     door_area = {d.name: areas[d.between[0]] for d in layout.doors}
+    for k, d in enumerate(details):  # a notch's sides look like the wall it is cut into
+        mid = [(d["notch"][0][i] + d["notch"][1][i]) / 2 for i in range(2)]
+        door_area[f"~notch{k}"] = min(
+            areas.values(),
+            key=lambda a: max(
+                a.rect[0] - mid[0], mid[0] - a.rect[2], a.rect[1] - mid[1], mid[1] - a.rect[3], 0
+            ),
+        )
     door_area.update({h.name: areas[h.lower] for h in layout.hatches})
     void_areas = [(b, areas.get(n) or door_area[n]) for n, b in voids.items()]
     sk = layout.skyline or {}
@@ -899,16 +998,30 @@ def generate(layout: Layout) -> Generated:
             "message": layout.name,
         }
     )
+    blocks = sky.blocks if sky is not None else []
+
+    def block_at(x: float, y: float):
+        """(x0, y0, x1, y1, roof z) of the building block over a point, or None."""
+        for b in blocks:
+            x0, y0, x1, y1 = b["box"]
+            if x0 <= x <= x1 and y0 <= y <= y1:
+                return (x0, y0, x1, y1, b["z"])
+        return None
+
     for lab, si, sj, sk in _greedy_boxes(label):
         b_lo = (xs[si.start], ys[sj.start], zs[sk.start])
         b_hi = (xs[si.stop], ys[sj.stop], zs[sk.stop])
+        anchors: dict[str, tuple] = {}
         if lab == SKY:
             t: str | dict[str, str] = tex["sky"]
         elif layout.zones or roofline:
-            t = _face_textures(b_lo, b_hi, void_areas, tex_of, outside)
+            t = _face_textures(b_lo, b_hi, void_areas, tex_of, outside, anchors, block_at)
         else:
             t = surf(None)
-        world.brushes.append(box_brush(b_lo, b_hi, t))
+        brush = box_brush(b_lo, b_hi, t)
+        if anchors:  # textures start at the room's corner / the building's roof line
+            brush = anchor_texture(brush, {BOX_SIDES.index(k): a for k, a in anchors.items()})
+        world.brushes.append(brush)
     if sky is not None:
         world.brushes += gable_roofs(sky, outside)
     if roofline:  # players stay below each yard's open top: no boosting onto the roofs
@@ -951,6 +1064,8 @@ def generate(layout: Layout) -> Generated:
                 brush = _pipe(c_lo, c_hi, stex)
             else:
                 brush = box_brush(c_lo, c_hi, stex)
+                if sol.fit and not c.texture:
+                    brush = fit_each(brush, c_lo, c_hi, sol.fit)
             if c.breakable:
                 mat = MATERIALS[c.breakable]
                 tname = f"break_{c.name}" + (f"_{i + 1}" if c.preset else "")
@@ -1052,8 +1167,10 @@ def generate(layout: Layout) -> Generated:
                             "_light": f"{r} {g} {bl} {sp.brightness}",
                             "_cone": str(sp.cone[0]), "_cone2": str(sp.cone[1])}))  # fmt: skip
 
-    for (p_lo, p_hi), ptex in wall_detail_boxes(layout, voids):  # locked doors and windows
-        frames.append(fit_texture(box_brush(p_lo, p_hi, ptex), p_lo, p_hi))
+    for d in details:  # locked doors and windows: the panel at the back of its notch, a frame
+        (p_lo, p_hi) = d["panel"]
+        frames.append(fit_scaled(box_brush(p_lo, p_hi, d["texture"]), p_lo, p_hi, d["scale"]))
+        frames += [box_brush(f_lo, f_hi, layout.wall_details["frame"]) for f_lo, f_hi in d["frame"]]
     if frames:
         ents.append(entity({"classname": "func_detail", "zhlt_detaillevel": "1"}, frames))
 
@@ -1077,10 +1194,13 @@ def generate(layout: Layout) -> Generated:
     for mo in layout.models:
         a = areas[mo.area]
         z = a.floor + mo.z
+        sprite = mo.model.endswith(".spr")  # steam/smoke: animated, additive (glows, see-through)
         ents.append(entity({"classname": "env_sprite", "targetname": f"mdl_{mo.name}",
                             "model": mo.model, "origin": f"{mo.pos[0]} {mo.pos[1]} {z}",
-                            "angles": f"0 {mo.yaw} 0", "spawnflags": "1", "framerate": "1",
-                            "scale": "1", "rendermode": "0", "renderamt": "255"}))  # fmt: skip
+                            "angles": f"0 {mo.yaw} 0", "spawnflags": "1",
+                            "framerate": "10" if sprite else "1", "scale": f"{mo.scale:g}",
+                            "rendermode": "5" if sprite else "0",
+                            "renderamt": "160" if sprite else "255"}))  # fmt: skip
         if mo.clip:  # from the floor up, also when the model's origin is raised to stand on it
             w, d, h = mo.clip
             lo_c = (mo.pos[0] - w // 2, mo.pos[1] - d // 2, a.floor)

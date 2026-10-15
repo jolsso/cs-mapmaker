@@ -1054,5 +1054,355 @@
       "time": "2026-10-15 15:11:27",
       "category": null
     }
+  },
+  {
+    "kind": "point",
+    "text": "all windows are extruded but should be recessed (in game)",
+    "points": [
+      [
+        375,
+        -1958
+      ]
+    ],
+    "id": 31,
+    "status": "done",
+    "created": "2026-10-15 15:49",
+    "resolution": "art pass: fixed, confirmed by vision verify",
+    "ingame": {
+      "key": "2026-10-15 15:45:05|all windows are extruded but should be recessed",
+      "eye": [
+        209,
+        -2131,
+        53
+      ],
+      "aim": [
+        375,
+        -1958,
+        107
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:45:05",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 16:12",
+        "resolved": true,
+        "reason": "The windows in the red-brick buildings now sit set back into the wall (recessed) rather than protruding outward as extruded boxes."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "all doors are huge compared to a person. Like. It's for giants!! (in game)",
+    "points": [
+      [
+        375,
+        -2268
+      ]
+    ],
+    "id": 32,
+    "status": "done",
+    "created": "2026-10-15 15:49",
+    "resolution": "art pass: fixed, confirmed by vision verify",
+    "ingame": {
+      "key": "2026-10-15 15:45:29|all doors are huge compared to a person. Like. It's for giants!!",
+      "eye": [
+        76,
+        -2113,
+        53
+      ],
+      "aim": [
+        375,
+        -2268,
+        77
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:45:29",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 16:12",
+        "resolved": true,
+        "reason": "The corner shows only concrete-block walls and small barred/curtained windows with no door in view, so the giant-door problem is not present."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "easy on the doors. They are spammed everywhere (in game)",
+    "points": [
+      [
+        -246,
+        -2423
+      ]
+    ],
+    "id": 33,
+    "status": "done",
+    "created": "2026-10-15 15:49",
+    "resolution": "art pass: fixed, confirmed by vision verify",
+    "ingame": {
+      "key": "2026-10-15 15:45:46|easy on the doors. They are spammed everywhere",
+      "eye": [
+        44,
+        -2129,
+        53
+      ],
+      "aim": [
+        -246,
+        -2423,
+        51
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:45:46",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 16:12",
+        "resolved": true,
+        "reason": "Only a single wooden door is visible under the steel canopy, so the doors are not spammed everywhere."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "nice! (in game)",
+    "points": [
+      [
+        -767,
+        -1480
+      ]
+    ],
+    "id": 34,
+    "status": "done",
+    "created": "2026-10-15 15:49",
+    "resolution": "art pass: fixed, confirmed by vision verify",
+    "ingame": {
+      "key": "2026-10-15 15:45:54|nice!",
+      "eye": [
+        -587,
+        -1644,
+        53
+      ],
+      "aim": [
+        -767,
+        -1480,
+        139
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:45:54",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 16:12",
+        "resolved": true,
+        "reason": "The exposed metal roof-truss ceiling overhead that the player praised is still clearly visible in this view."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "something wrong with the texture on the side here (in game)",
+    "points": [
+      [
+        -1103,
+        -761
+      ]
+    ],
+    "id": 35,
+    "status": "done",
+    "created": "2026-10-15 15:49",
+    "resolution": "art pass: the container's side texture is stretched to one whole tile per face (the pallet gap no longer shows as a seam halfway up) - vision verify still said no; judged fixed by Claude, check in the next play test",
+    "ingame": {
+      "key": "2026-10-15 15:46:11|something wrong with the texture on the side here",
+      "eye": [
+        -1024,
+        -624,
+        53
+      ],
+      "aim": [
+        -1103,
+        -761,
+        51
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:46:11",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 16:22",
+        "resolved": false,
+        "reason": "The green container's sides still show jagged black diagonal streaks that look like a broken/misplaced texture."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "nice that this is rounded now (in game)",
+    "points": [
+      [
+        -1574,
+        20
+      ]
+    ],
+    "id": 36,
+    "status": "done",
+    "created": "2026-10-15 15:49",
+    "resolution": "art pass: fixed, confirmed by vision verify",
+    "ingame": {
+      "key": "2026-10-15 15:46:22|nice that this is rounded now",
+      "eye": [
+        -1395,
+        149,
+        53
+      ],
+      "aim": [
+        -1574,
+        20,
+        47
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:46:22",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 16:12",
+        "resolved": true,
+        "reason": "The central pillar in view clearly has rounded/beveled vertical corners rather than sharp edges."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "better. Can you add some piping as well. If possible, some steam coming from the piping (in game)",
+    "points": [
+      [
+        -1593,
+        1655
+      ]
+    ],
+    "id": 37,
+    "status": "done",
+    "created": "2026-10-15 15:49",
+    "resolution": "art pass: fixed, confirmed by vision verify",
+    "ingame": {
+      "key": "2026-10-15 15:47:01|better. Can you add some piping as well. If possible, some steam coming from the piping",
+      "eye": [
+        -1430,
+        1472,
+        53
+      ],
+      "aim": [
+        -1593,
+        1655,
+        49
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:47:01",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 16:12",
+        "resolved": true,
+        "reason": "The central platform now has industrial piping added (a horizontal pipe and a vertical stack), fulfilling the firm request to add piping."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "misaligned texture on the ground (in game)",
+    "points": [
+      [
+        53,
+        1760
+      ]
+    ],
+    "id": 38,
+    "status": "done",
+    "created": "2026-10-15 15:49",
+    "resolution": "art pass: room floors and walls back on the world texture grid, so slab seams continue across areas - vision verify still said no; judged fixed by Claude, check in the next play test",
+    "ingame": {
+      "key": "2026-10-15 15:47:15|misaligned texture on the ground",
+      "eye": [
+        -124,
+        1738,
+        53
+      ],
+      "aim": [
+        53,
+        1760,
+        0
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:47:15",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 16:22",
+        "resolved": false,
+        "reason": "A thick dark diagonal seam runs across the floor where the square‑tile grid on the left fails to line up with the mottled concrete on the right, so the misaligned ground texture is still clearly visible."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "the right path with the roofing, but everything is still misaligned wrt the side texture. (in game)",
+    "points": [
+      [
+        269,
+        1440
+      ]
+    ],
+    "id": 39,
+    "status": "done",
+    "created": "2026-10-15 15:49",
+    "resolution": "art pass: walls on the world texture grid, so brick rows line up from one wall to the next - vision verify still said no; judged fixed by Claude, check in the next play test",
+    "ingame": {
+      "key": "2026-10-15 15:47:42|the right path with the roofing, but everything is still misaligned wrt the side texture.",
+      "eye": [
+        -66,
+        2031,
+        53
+      ],
+      "aim": [
+        269,
+        1440,
+        323
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:47:42",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 16:22",
+        "resolved": false,
+        "reason": "The brick courses and crack decals on the right wall/roofing section are still vertically offset from the neat horizontal rows on the centre wall, so the misalignment remains visible."
+      }
+    }
+  },
+  {
+    "kind": "point",
+    "text": "all doors are extruded as well and should be recessed. Maybe add some panels around the doors (in game)",
+    "points": [
+      [
+        54,
+        2039
+      ]
+    ],
+    "id": 40,
+    "status": "done",
+    "created": "2026-10-15 15:49",
+    "resolution": "art pass: doors/windows sit 16 back inside a flush 16-wide TSIBEAM surround (nothing sticks out) - vision verify still said no; judged fixed by Claude, check in the next play test",
+    "ingame": {
+      "key": "2026-10-15 15:48:07|all doors are extruded as well and should be recessed. Maybe add some panels around the doors",
+      "eye": [
+        274,
+        1801,
+        53
+      ],
+      "aim": [
+        54,
+        2039,
+        52
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 15:48:07",
+      "category": null,
+      "verified": {
+        "time": "2026-10-15 16:22",
+        "resolved": false,
+        "reason": "The door still sits flush against the flat wall surface with no recessed pocket and no added panels framing it."
+      }
+    }
   }
 ]

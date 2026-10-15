@@ -207,12 +207,14 @@ skyline:                      # eller bare `skyline: true`
 ```yaml
 wall_details:
   areas: [t_spawn, mid_s, ct_spawn]
-  spacing: 320                # en åbning hver 320 units langs hver væg; døre og vinduer skiftes
-  depth: 8                    # hvor langt panelet står ud fra væggen
-  doors:   [{texture: TSDOOR4, size: [80, 128]}, {texture: DOOR01, size: [128, 192]}]
-  windows: [{texture: WINDOW04A, size: [128, 64], z: 112}]
+  spacing: 352                # en plads hver 352 units langs hver væg
+  door_every: 3               # hver 3. plads er en dør, resten vinduer
+  recess: 16                  # dør-/vinduesfladen sidder 16 inde i væggen
+  frame: TSIBEAM              # valgfri: en flush indfatning (16 bred) rundt om – intet stikker ud
+  doors:   [{texture: TSDOOR4, size: [64, 104], tex: [80, 128]}]
+  windows: [{texture: WINDOW04A, size: [96, 48], tex: [128, 64], z: 104}]
 ```
-- Hvert panel har teksturens størrelse, og teksturen forskydes, så den starter i panelets hjørne – én hel dør eller ét helt vindue, ikke et udsnit af mønstret. Paneler holder 16 fri af rigtige åbninger, cover, modeller og stiger, og passer under loftet. `func_detail`. Tekstur pr. plads vælges stabilt.
+- Døre og vinduer er **forsænkede** (play test 2026-10-15): en niche `recess + 8` dyb skæres kun ud, hvor væggen er massiv så dybt (plus en vægtykkelse bag ved, intet andet rum), og panelet fylder dens bund. `size` er panelets størrelse i menneskeskala; teksturen (`tex` = teksturens størrelse) skaleres, så panelet viser præcis én hel dør eller ét helt vindue. Med `frame` får nichen en flush indfatning (karme, overligger og under et vindue et bånd), så åbningen ikke stikker ud af væggen. Paneler holder 24 fri af rigtige åbninger, cover, modeller og stiger, og passer under loftet. `func_detail`. Tekstur pr. plads vælges stabilt.
 
 ### Tage og skrå lofter (2026-10-15)
 ```yaml

@@ -26,6 +26,7 @@ class Solid:
     lo: tuple[int, int, int]
     hi: tuple[int, int, int]
     tex: Tex = None  # None: the cover's own texture
+    fit: tuple[int, int] | None = None  # texture size: each face shows exactly one whole tile
 
 
 @dataclass(frozen=True)
@@ -113,8 +114,10 @@ RUST = {"side": "TSPLAINRED", "top": "TSOILY"}
 
 def _container(b: Box2, z0: int, h: int) -> list[Solid]:
     """A shipping container: one block, green container sides and a ribbed roof."""
-    return [_box(b, 0, b.length, z0, z0 + h,
-                 {"side": "TSCRTESD", "top": "TSCRTETP", **b.ends("TSDOOR4")})]  # fmt: skip
+    # the side texture is one crate stack with a dark pallet gap at its foot: tiled, the gap
+    # shows halfway up as a black seam, so every face is stretched to one whole tile
+    s = _box(b, 0, b.length, z0, z0 + h, {"side": "TSCRTESD", "top": "TSCRTETP"})
+    return [Solid(s.shape, s.lo, s.hi, s.tex, fit=(64, 64))]
 
 
 def _rail_wagon(b: Box2, z0: int, h: int) -> list[Solid]:

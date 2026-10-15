@@ -176,7 +176,22 @@ def loop_mode(cfg: Config, name: str) -> str:
     if closed(cfg, name):
         return "idle"
     status = (_load(runs_root(cfg, name) / "loop.json") or {}).get("status")
+    if status == "stopped" and frozen(name):  # an old stop from before Gate B waits for no one
+        return "idle"
     return {"running": "running", "stopped": "human"}.get(status or "", "idle")
+
+
+def frozen(name: str) -> bool:
+    """Gate B passed: the map's layout is locked (config/fitness.yaml), the art pass is on."""
+    from mapforge.decide.policy import LOCKED_MAP, load_fitness, locked_for
+
+    try:
+        fit = load_fitness()
+        if name not in (fit.get("locked_maps") or {}) and name != LOCKED_MAP:
+            return False  # other maps only share the top-level locks for the loop's checks
+        return bool(locked_for(fit, name).get("geometry_frozen"))
+    except (OSError, ValueError):
+        return False
 
 
 def closed(cfg: Config, name: str) -> dict[str, Any] | None:
@@ -228,6 +243,11 @@ def current_phase(cfg: Config, name: str, st: dict[str, Any]) -> tuple[str | Non
         text = f"Loopet: iteration {loop.get('iteration')} · " + (
             f"venter på svar til {wait['step']}" if wait else f"i gang: {what}")  # fmt: skip
         return LOOP_STEP_PHASE.get(step), text
+    if frozen(name):
+        return (
+            None,
+            "Gate B godkendt (layoutet er låst) – art pass (fase 7): visuel QA og din feedback",
+        )
     if loop.get("status") == "stopped":
         return "input", f"Venter på dig – loopet stoppede: {loop.get('stop_reason')}"
     nxt = st.get("next")

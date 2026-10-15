@@ -78,22 +78,25 @@ models:   # models the game ships (env_sprite), with clip boxes from their real 
   - {name: a_conveyor, area: a_site, model: models/conveyor1.mdl, pos: [1664, 1984], clip: [256, 112, 32]}   # jumpable (in-game feedback)
   - {name: mid_bags_1, area: mid_top, model: models/pallet_with_bags.mdl, pos: [-896, 848], z: 22, clip: [64, 64, 56]}
   - {name: mid_bags_2, area: mid_top, model: models/pallet_with_bags.mdl, pos: [-896, 776], z: 22, yaw: 30, clip: [64, 64, 56]}
+  - {name: b_steam, area: b_site, model: sprites/steam1.spr, pos: [-1712, 1680], z: 120, scale: 1.5}   # steam from the pump
 skyline:   # buildings of different heights around the yards (an industrial skyline)
   facade: BRICK05-2           # cs_bdog.wad: brick with windows
   roof: TSROOF                # tswad.wad
 roofs:     # canopies over parts of the yards (above head height)
   - {name: a_lean_to, area: a_site, rect: [1536, 1920, 1792, 2048], z: 176, shape: shed, axis: y, rise: 32}   # over the conveyor
   - {name: t_canopy, area: t_spawn, rect: [-384, -2432, -128, -2176], z: 176, shape: flat, posts: true}   # posts: it read as a floating platform
-wall_details:   # locked doors and windows along the yards and T's corridors (in-game feedback: more genuine)
+wall_details:   # locked doors and windows: recessed, at a person's scale, mostly windows (play tests)
   areas: [t_spawn, mid_s, mid, mid_top, a_long_start, a_long, long_ec_s, long_ec_n, ct_spawn, t_to_long, t_to_b]
-  spacing: 320
+  spacing: 352
+  door_every: 3               # every 3rd opening a door, the others windows
+  recess: 16                  # the door/window face sits 16 behind a flush frame
+  frame: TSIBEAM              # a frame around each opening
   doors:
-    - {texture: TSDOOR4, size: [80, 128]}
-    - {texture: CSTRIKE_DJ2OLD, size: [64, 128]}
-    - {texture: DOOR01, size: [128, 192]}
+    - {texture: TSDOOR4, size: [64, 104], tex: [80, 128]}
+    - {texture: CSTRIKE_DJ2OLD, size: [64, 112], tex: [64, 128]}
   windows:
-    - {texture: WINDOW04A, size: [128, 64], z: 112}
-    - {texture: WINDOW03A, size: [64, 144], z: 64}
+    - {texture: WINDOW04A, size: [96, 48], tex: [128, 64], z: 104}
+    - {texture: WINDOW03A, size: [48, 112], tex: [64, 144], z: 64}
 areas:
   # --- spawns and sites ---
   - {name: t_spawn, rect: [-384, -2432, 384, -1664], height: 256, outdoor: true, role: t_spawn, zone: t}   # pushed south: T -> site ~16-18 s
@@ -178,6 +181,8 @@ cover:
   - {name: b_platform, area: b_site, pos: [-1664, 1680], size: [192, 128, 32], texture: CSTRIKE_ME4DCLN}
   - {name: b_pump, area: b_site, pos: [-1712, 1680], size: [64, 64, 64], z: 32, shape: cylinder, texture: TSHULL7}   # the pump on the platform
   - {name: b_motor, area: b_site, pos: [-1600, 1680], size: [48, 48, 40], z: 32, texture: TSCAUTION}
+  - {name: b_pipe_up, area: b_site, pos: [-1712, 1680], size: [32, 32, 128], z: 96, shape: cylinder, texture: TSHULL7}   # the pump's riser
+  - {name: b_pipe_run, area: b_site, pos: [-1840, 1680], size: [224, 32, 32], z: 192, preset: pipe_run}   # to the west wall
   - {name: b_box_se, area: b_site, pos: [-1440, 1424], size: [64, 64, 64]}
   - {name: ct_b_box, area: ct_to_b, pos: [-704, 1792], size: [64, 64, 64]}
   # iteration 6: screen wall inside B's CT door (review: CT spawn still saw onto B) and a crate

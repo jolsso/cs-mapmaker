@@ -173,11 +173,11 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
 
 <section>
   <span class="eyebrow">Arkitektur 1 / 2</span>
-  <h2>To loops: hurtigt og langsomt</h2>
-  <p>Alt der kan ses på et billede eller beregnes fra geometrien, fanges i det hurtige loop på sekunder til minutter. Kun et map, der har bestået Review, får bot-tid. Alle filer gemmes i <code>runs/&lt;map&gt;/&lt;iteration&gt;/</code>, så en iteration kan genskabes fra kode og config alene.</p>
+  <h2>To loops og et art pass</h2>
+  <p>Alt der kan ses på et billede eller beregnes fra geometrien, fanges i det hurtige loop på sekunder til minutter. Kun et map, der har bestået Review, får bot-tid. Efter Gate B (layoutet låst) kommer art passet: visuel QA fra faste kameravinkler og din egen play test in-game; begge bliver til input til Decide. Alle filer gemmes i <code>runs/&lt;map&gt;/&lt;iteration&gt;/</code>, så en iteration kan genskabes fra kode og config alene.</p>
   <figure>
     <div class="diagram">
-      <svg viewBox="0 0 1070 360" role="img" aria-label="Det hurtige loop er Generate, Compile, Validate, Render og Review. Det langsomme loop er Simulate og Analyze. Fejler Validate, Review eller smoke-kørslen, går iterationen direkte til Decide uden fuld simulering. Decide sender en plan tilbage til Generate. Compile og Validate er bygget.">
+      <svg viewBox="0 0 1070 520" role="img" aria-label="Det hurtige loop er Generate, Compile, Validate, Render og Review. Det langsomme loop er Simulate og Analyze. I art passet efter Gate B ser Style-QA mappet fra faste kameravinkler med en lokal vision-model og Claude, og i Play test giver du noter in-game, som bliver til ønsker og efterprøves med før/nu-billeder. Begge sender input til Decide. Fejler Validate, Review eller smoke-kørslen, går iterationen direkte til Decide uden fuld simulering. Decide sender en plan tilbage til Generate. Compile og Validate er bygget.">
         <defs>
           <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
@@ -262,6 +262,37 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
           <polyline points="984,146 984,318 632,318" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
           <text x="978" y="240" text-anchor="end">metrics · heatmaps</text>
 
+          <!-- art pass (after Gate B): visual QA + play test -->
+          <text x="640" y="388" font-size="11" font-family="Cascadia Mono, Consolas, monospace" style="fill:var(--muted)">art pass · efter Gate B · layout låst</text>
+          <line x1="640" y1="396" x2="1048" y2="396" stroke-width="1" style="stroke:var(--line)"/>
+          <g fill="none" stroke-width="2" style="fill:var(--accent-soft);stroke:var(--accent)">
+            <rect x="640" y="410" width="190" height="96" rx="4"/>
+            <rect x="858" y="410" width="190" height="96" rx="4"/>
+          </g>
+          <g font-family="Bahnschrift, Segoe UI, sans-serif" font-size="15" font-weight="600">
+            <text x="652" y="436">5b Style-QA</text>
+            <text x="870" y="436">5c Play test</text>
+          </g>
+          <g font-size="11" style="fill:var(--muted)">
+            <text x="652" y="456">kameravinkler · kontaktark</text>
+            <text x="652" y="472">lokal vision (Qwen) + Claude</text>
+            <text x="870" y="456">feedback-server · AMXX-noter</text>
+            <text x="870" y="472">før/nu-billeder · vision-verify</text>
+          </g>
+          <g font-family="Cascadia Mono, Consolas, monospace" font-size="11">
+            <text x="652" y="496">→ style.json</text>
+            <text x="870" y="496">→ ønsker · verify.json</text>
+          </g>
+          <!-- Review -> Style-QA, Compile (.bsp) -> Play test; both -> Decide -->
+          <g stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah)">
+            <polyline points="720,146 720,408"/>
+            <line x1="830" y1="458" x2="856" y2="458"/>
+            <polyline points="640,470 590,470 590,338"/>
+            <polyline points="953,506 953,514 500,514 500,338"/>
+          </g>
+          <text x="596" y="452" font-size="11">fund</text>
+          <text x="726" y="512" font-size="11">ønsker (genåbnes, hvis verify ikke er løst)</text>
+
           <!-- plan back to Generate -->
           <polyline points="440,322 84,322 84,148" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
           <text x="262" y="314" text-anchor="middle">plan.json → næste .map</text>
@@ -274,7 +305,7 @@ figcaption { color: var(--muted); font-size: 13px; max-width: 90ch; }
       <span><span class="swatch plain"></span>planlagt</span>
       <span>stiplet = fejl går direkte til Decide, ingen fuld simulering</span>
     </div>
-    <figcaption>Review er pre-sim-gaten: deterministiske checks (bl.a. nåbarhed spawn → sites) og Claude, der ser renders mod layout-spec'en. Simulate starter med en smoke-kørsel på ca. 3 runder og kører derefter batches med tidligt stop. Decide får en fast input-kontrakt (se ARCHITECTURE.md) og må kun foreslå tilladte ændringer.</figcaption>
+    <figcaption>Review er pre-sim-gaten: deterministiske checks (bl.a. nåbarhed spawn → sites) og Claude, der ser renders mod layout-spec'en. Simulate starter med en smoke-kørsel på ca. 3 runder og kører derefter batches med tidligt stop. Decide får en fast input-kontrakt (se ARCHITECTURE.md) og må kun foreslå tilladte ændringer. Art passet (fase 7): Style-QA tager billeder fra kameraer udledt af layoutet (rum, døre, landmarks), samler dem i kontaktark og lader en lokal vision-model finde fejl; Claude dømmer til sidst, og kun ændrede billeder køres igen. I Play test spiller du mappet på feedback-serveren og skriver noter (<code>!fb</code>); hver note bliver et ønske med et billede fra din vinkel, og når den er rettet, sammenligner vision-modellen før- og nu-billedet og genåbner ønsket, hvis problemet stadig ses.</figcaption>
   </figure>
 </section>
 

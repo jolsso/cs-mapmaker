@@ -747,29 +747,54 @@ def test_skyline_map_compiles_sealed(tmp_path):
     compile_map(cfg, "de_gen_feat")  # raises CompileError on a leak
 
 
-def test_wall_details_are_whole_doors_and_windows_clear_of_openings():
-    from mapforge.generator.build import wall_detail_boxes
+def test_wall_details_are_recessed_scaled_framed_and_clear_of_openings():
+    from mapforge.generator.build import PANEL, wall_details
 
     data = copy.deepcopy(FEAT)
     data["wall_details"] = {
-        "areas": ["mid", "ct_spawn"], "spacing": 192,
-        "doors": [{"texture": "DEV_DOOR", "size": [64, 128]}],
+        "areas": ["mid", "ct_spawn"], "spacing": 192, "door_every": 2, "frame": "DEV_METAL",
+        "doors": [{"texture": "DEV_DOOR", "size": [64, 104], "tex": [64, 128]}],
         "windows": [{"texture": "DEV_GLASS", "size": [64, 48], "z": 96}],
     }  # fmt: skip
     lay = parse_layout(data)
     g = generate(lay)
-    panels = wall_detail_boxes(lay, g.voids)
-    assert len(panels) >= 4 and {t for _, t in panels} == {"DEV_DOOR", "DEV_GLASS"}
-    doors = [b for n, b in g.voids.items() if n not in lay.areas]
-    for (lo, hi), _ in panels:
-        assert hi[0] - lo[0] == 8 or hi[1] - lo[1] == 8  # flat against a wall
-        for d_lo, d_hi in doors:  # never in front of a real opening
-            overlap_x = d_lo[0] < hi[0] and lo[0] < d_hi[0]
-            assert not (overlap_x and d_lo[1] < hi[1] and lo[1] < d_hi[1])
-    det = [b for e in g.mapfile.entities if e.classname == "func_detail" for b in e.brushes
-           if b.faces[0].texture == "DEV_DOOR"]  # fmt: skip
-    assert det
-    face = det[0].faces[0]  # its texture starts at the panel's corner (one whole door)
-    v = brush_geometry(det[0]).vertices
-    s_vals = v[:, :3] @ np.array(face.u_axis[:3]) + face.u_axis[3]
-    assert s_vals.min() == 0
+    plain_voids = {n: b for n, b in g.voids.items() if not n.startswith("~notch")}
+    det = wall_details(lay, plain_voids)
+    assert det and {d["texture"] for d in det} <= {"DEV_DOOR", "DEV_GLASS"}
+    doors = [b for n, b in plain_voids.items() if n not in lay.areas]
+    for d in det:
+        (n_lo, n_hi), (p_lo, p_hi) = d["notch"], d["panel"]
+        thick = [i for i in range(2) if n_hi[i] - n_lo[i] == 8 + PANEL]
+        assert thick and p_hi[thick[0]] - p_lo[thick[0]] == PANEL  # the panel fills the back
+        for d_lo, d_hi in doors:  # never at a real opening
+            overlap_x = d_lo[0] < n_hi[0] and n_lo[0] < d_hi[0]
+            assert not (overlap_x and d_lo[1] < n_hi[1] and n_lo[1] < d_hi[1])
+        # a flush surround: jambs + lintel (+ the band under a window), none out of the wall
+        assert len(d["frame"]) == (3 if d["texture"] == "DEV_DOOR" else 4)
+        assert all(min(f_lo[i] for i in thick) >= n_lo[thick[0]] for f_lo, _ in d["frame"])
+        assert all(max(f_hi[i] for i in thick) <= n_hi[thick[0]] for _, f_hi in d["frame"])
+    door_panels = [d for d in det if d["texture"] == "DEV_DOOR"]
+    assert door_panels and door_panels[0]["scale"] == (1.0, 104 / 128)
+    brushes = [b for e in g.mapfile.entities if e.classname == "func_detail" for b in e.brushes
+               if b.faces[0].texture == "DEV_DOOR"]  # fmt: skip
+    assert brushes and brushes[0].faces[0].scale[1] == 104 / 128
+
+
+@pytest.mark.slow
+@needs_compilers
+def test_recessed_wall_details_compile_sealed(tmp_path):
+    from mapforge.compile.run import compile_map
+    from mapforge.wad.dev_textures import main as make_dev_wad
+
+    base = load_config()
+    data_cfg = copy.deepcopy(base.data)
+    data_cfg["paths"].update(maps_dir=str(tmp_path / "maps"), build_dir=str(tmp_path / "build"))
+    cfg = Config(root=base.root, data=data_cfg)
+    data = copy.deepcopy(FEAT)
+    data["skyline"] = True
+    data["wall_details"] = {"areas": ["t_spawn", "mid", "ct_spawn", "a_site", "b_site"],
+                            "doors": [{"texture": "DEV_DOOR", "size": [64, 104]}]}  # fmt: skip
+    g = generate(parse_layout(data))
+    write_map(g.mapfile, tmp_path / "maps" / "de_gen_feat" / "src" / "de_gen_feat.map")
+    make_dev_wad()
+    compile_map(cfg, "de_gen_feat")  # raises CompileError on a leak

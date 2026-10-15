@@ -61,6 +61,9 @@ def load_fitness(root: Path = REPO_ROOT) -> dict[str, Any]:
     return yaml.safe_load((root / "config" / "fitness.yaml").read_text(encoding="utf-8"))
 
 
+LOCKED_MAP = "de_forge01"  # the map the top-level `locked` block was approved for
+
+
 def locked_for(fitness: dict[str, Any], map_name: str | None) -> dict[str, Any]:
     """The locked decisions of a map: its own entry under `locked_maps`, else `locked` (the
     decisions approved for de_forge01 at Gate A, which earlier maps share)."""

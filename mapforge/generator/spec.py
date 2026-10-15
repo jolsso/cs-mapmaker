@@ -246,6 +246,7 @@ class Model:
     z: int = 0  # above the area floor
     yaw: int = 0
     clip: tuple[int, int, int] | None = None
+    scale: float = 1.0  # a sprite's size (models: 1)
 
 
 @dataclass(frozen=True)
@@ -585,8 +586,9 @@ def _skyline(sk: Any) -> dict[str, Any] | None:
 
 
 def _wall_details(wd: Any, areas: dict[str, Area]) -> dict[str, Any] | None:
-    """wall_details: {areas: [...], doors: [{texture, size: [w, h]}], windows: [{texture,
-    size: [w, h], z}], spacing: 320, depth: 8} - each panel shows exactly one texture."""
+    """wall_details: {areas: [...], doors: [{texture, size: [w, h], tex: [tw, th]}], windows:
+    [{texture, size, tex, z}], spacing: 320, door_every: 3, recess: 8, frame: TEX} - each panel
+    shows exactly one texture, scaled from its texture size `tex` (default: = size) to `size`."""
     if not wd:
         return None
     wd = dict(wd)
@@ -598,16 +600,20 @@ def _wall_details(wd: Any, areas: dict[str, Area]) -> dict[str, Any] | None:
     for kind in ("doors", "windows"):
         for d in wd.get(kind, []) or []:
             w, h = (int(v) for v in d["size"])
+            tw, th = (int(v) for v in d.get("tex", (w, h)))
             z = int(d.get("z", 0 if kind == "doors" else 96))
-            if w % 16 or h % 8 or z % 8 or w <= 0 or h <= 0:
+            if w % 16 or h % 8 or z % 8 or w <= 0 or h <= 0 or tw <= 0 or th <= 0:
                 raise SpecError(f"wall_details.{kind}: size on the grid (w / 16, h / 8), z / 8")
-            panels.append({"kind": kind[:-1], "texture": str(d["texture"]), "w": w, "h": h, "z": z})
+            panels.append({"kind": kind[:-1], "texture": str(d["texture"]), "w": w, "h": h,
+                           "z": z, "scale": (w / tw, h / th)})  # fmt: skip
     if not panels:
         raise SpecError("wall_details: at least one door or window texture")
-    spacing, depth = int(wd.get("spacing", 320)), int(wd.get("depth", 8))
-    if spacing < 128 or spacing % 16 or depth % 8 or depth <= 0:
-        raise SpecError("wall_details: spacing >= 128 (/ 16), depth / 8")
-    return {"areas": names, "panels": panels, "spacing": spacing, "depth": depth}
+    spacing, recess = int(wd.get("spacing", 320)), int(wd.get("recess", 8))
+    door_every = int(wd.get("door_every", 3))
+    if spacing < 128 or spacing % 16 or recess % 8 or recess < 0 or door_every < 1:
+        raise SpecError("wall_details: spacing >= 128 (/ 16), recess / 8, door_every >= 1")
+    return {"areas": names, "panels": panels, "spacing": spacing, "recess": recess,
+            "door_every": door_every, "frame": wd.get("frame")}  # fmt: skip
 
 
 def parse_layout(data: dict[str, Any]) -> Layout:
@@ -939,9 +945,14 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             pos=_ints(md["pos"], 2, f"model {md['name']}.pos"), z=int(md.get("z", 0)),
             yaw=int(md.get("yaw", 0)),
             clip=_ints(md["clip"], 3, f"model {md['name']}.clip") if md.get("clip") else None,
+            scale=float(md.get("scale", 1.0)),
         )  # fmt: skip
-        if not (mo.model.startswith("models/") and mo.model.lower().endswith(".mdl")):
-            raise SpecError(f"model {mo.name}: model is a path like models/conveyor1.mdl")
+        is_mdl = mo.model.startswith("models/") and mo.model.lower().endswith(".mdl")
+        is_spr = mo.model.startswith("sprites/") and mo.model.lower().endswith(".spr")
+        if not (is_mdl or is_spr):
+            raise SpecError(
+                f"model {mo.name}: a path like models/conveyor1.mdl or sprites/steam1.spr"
+            )
         if not areas[mo.area].inside(*mo.pos):
             raise SpecError(f"model {mo.name}: pos is outside {mo.area}")
         if mo.clip and any(v % 8 or v <= 0 for v in mo.clip):

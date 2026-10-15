@@ -61,7 +61,7 @@ def test_apply_new_geometry_change_types():
     assert win["kind"] == "window" and win["glass"] and win["sill"] == 96
     assert next(d for d in data["doors"] if d["name"] == "d_t_mid")["gate"] == "sliding"
     assert not data.get("wedges") and data["ramps"][0]["area"] == "mid_s"
-    assert next(c for c in data["cover"] if c.get("z") == 96)["area"] == "mid_top"
+    assert any(c.get("z") == 96 and c["area"] == "mid_top" for c in data["cover"])
 
 
 def test_apply_shapes_breakables_water_and_hatch_checks():

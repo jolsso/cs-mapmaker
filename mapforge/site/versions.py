@@ -34,6 +34,7 @@ class Version:
     runs: list[Path] = field(default_factory=list)  # iterations that measured this version
     input_runs: list[Path] = field(default_factory=list)  # iterations whose plan created it
     parent: int | None = None  # index (oldest first) of the version it was built from
+    parent_key: str | None = None  # that version's key
 
     def path(self, rel: str) -> Path | None:
         for s in self.srcs:
@@ -293,13 +294,15 @@ def render_versions(
 ) -> str:
     from mapforge import annotations
     from mapforge.runs import runs_root
-    from mapforge.site.build import _copy, _load, e, stepper
+    from mapforge.site.build import _copy, _load, e, loop_mode, stepper
 
     vers = collect_versions(cfg, name)
     loop = _load(runs_root(cfg, name) / "loop.json") or {}
     wishes = annotations.load(cfg.path("maps_dir"), name)
     for w in wishes:
         w["_version"] = wish_version(w, vers)
+    for v in vers:
+        v.parent_key = vers[v.parent].key if v.parent is not None else None
     boxes = []
     cells, _ = version_graph(vers)
     for idx, v in reversed(list(enumerate(vers))):
@@ -331,7 +334,7 @@ def render_versions(
         if v.parent is not None and v.parent != idx - 1:
             chips.append(f"<span class='chip'>bygget på {e(vers[v.parent].key)}</span>")
         cur = current_phase if v.current else None
-        mode = {"running": "running", "stopped": "human"}.get(loop.get("status") or "", "idle")
+        mode = loop_mode(cfg, name)
         bar = stepper(st, link=False, current=cur, phases=PHASES8, mode=mode)
         now = (
             f"<p class='nowline small {mode}'>▸ {e(current_text)}</p>"
@@ -383,7 +386,25 @@ def phase_panels(cfg: Config, name: str, v: Version, out: Path, img_dir: Path, i
     parts = []
     # 1 Input
     inner = []
+    # input = the wishes drawn on the version this one was built from; the wishes drawn on this
+    # version are its feedback, input to the next one
+    parent = v.parent_key
+    given = [w for w in wishes if parent is not None and w.get("_version") == parent]
     mine = [w for w in wishes if w.get("_version") == v.key]
+    if given:
+        rows = "".join(
+            f"<li class='st-{e(w['status'])}'>#{w['id']} <span class='chip' style='color:{WISH_COLORS.get(w['status'], '#fff')}'>"
+            f"{e(WISH_LABEL.get(w['status'], w['status']))}</span> {e(w['text'])}"
+            + (
+                f"<div class='muted small'>{e(w['resolution'])}</div>"
+                if w.get("resolution")
+                else ""
+            )
+            + "</li>"
+            for w in given
+        )
+        inner.append(f"<div class='card'><h3>Dine ønsker, der skabte denne version (givet på v{e(parent)})</h3>"
+                     f"<ul class='annlist'>{rows}</ul></div>")  # fmt: skip
     if mine:
         rows = "".join(
             f"<li class='st-{e(w['status'])}'>#{w['id']} <span class='chip' style='color:{WISH_COLORS.get(w['status'], '#fff')}'>"
@@ -396,7 +417,7 @@ def phase_panels(cfg: Config, name: str, v: Version, out: Path, img_dir: Path, i
             + "</li>"
             for w in mine
         )
-        inner.append(f"<div class='card'><h3>Dine ønsker til denne version</h3><div class='wishwrap'>"
+        inner.append(f"<div class='card'><h3>Din feedback på denne version – input til næste</h3><div class='wishwrap'>"
                      f"{wish_overlay(v, mine, img_rel)}<ul class='annlist'>{rows}</ul></div></div>")  # fmt: skip
     for r in v.input_runs:
         applied = json.loads((r / "applied.json").read_text(encoding="utf-8"))

@@ -19,7 +19,7 @@ from mapforge.compile.log import parse_compile_log
 from mapforge.config import Config, load_config, platform_key
 
 STEPS = ("csg", "bsp", "vis", "rad")
-KEEP_ON_COMPILE = {"style", "style.json"}  # build/<map>/ entries a recompile leaves alone
+KEEP_ON_COMPILE = {"style", "style.json", "feedback"}  # build/<map>/ a recompile leaves alone
 WAD_KEY = re.compile(r'("wad"\s+")([^"]*)(")')
 ERROR_LINE = re.compile(r"^\s*Error:", re.MULTILINE)
 

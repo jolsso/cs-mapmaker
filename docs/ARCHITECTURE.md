@@ -6,6 +6,7 @@ Simulering koster timer; alt hvad der kan ses eller beregnes uden bots skal fang
 
 - **Hurtigt loop (sekunder–minutter, ingen bots):** Generate → Compile → Validate → Render → **Review**. Fejler et trin, går iterationen direkte til Decide med fejlen som input og kører aldrig simulering.
 - **Langsomt loop (timer):** kun et map, der har bestået Review, simuleres. Simulate starter med en kort smoke-kørsel og stopper tidligt, når resultatet er statistisk afgjort.
+- **Art pass (efter Gate B, layout låst):** visuel QA og menneskelig feedback. **5b Style-QA** fotograferer mappet fra kameraer udledt af layoutet og lader en lokal vision-model + Claude finde stilfejl; **5c Play test** er din egen gennemgang in-game på feedback-serveren, hvor noter bliver til ønsker, og rettelser efterprøves med før/nu-billeder. Begge giver input til Decide (props, cover, lys og teksturer – ikke geometri).
 
 ```
  hurtigt loop ─────────────────────────────────────────────────────┐   langsomt loop ──────────────┐
@@ -15,6 +16,10 @@ Simulering koster timer; alt hvad der kan ses eller beregnes uden bots skal fang
       ▲                          │ fejl                    │ fejl  │       │ smoke fejler │         │
       │                          ▼                         ▼       │       ▼              ▼         │
       └───────────────────────────────── 8 Decide (Claude) ◀──────────────────────────────┘
+                                                      ▲                 art pass (efter Gate B)
+                                                      │ fund / ønsker  ┌────────────┐  ┌─────────────┐
+                                                      └────────────────│5b Style-QA │  │5c Play test │
+                                                                       └────────────┘  └─────────────┘
 ```
 
 | Trin | Input | Output | Værktøj | Tid |
@@ -24,6 +29,8 @@ Simulering koster timer; alt hvad der kan ses eller beregnes uden bots skal fang
 | 3 Validate | `.map`, `.bsp`, `compile.json` | `validation.json` | Python (`mapforge.validate`) | sek. |
 | 4 Render | `.bsp`, WADs | `renders/*.png` + `renders/index.json` | Egen renderer: BSP-parser + moderngl (Mesa/EGL headless) med teksturer og kompilerede lightmaps | < 5 min |
 | 5 Review | renders, `validation.json`, layout-spec, review-tjekliste | `review.json` (pass/fail + fund) | Deterministiske pre-sim-checks + Claude (`claude -p`) ser billederne | ~1 min |
+| 5b Style-QA | renders fra layout-kameraer (rum, døre, landmarks), `ART_DIRECTION.md` | `style.json` (fund pr. billede) + `style/` (kontaktark, minimap) | `mapforge.style`: kontaktark à 6 views → lokal vision-model (LM Studio) → Claude-subagent som dommer; kun ændrede billeder køres igen | min. |
+| 5c Play test | `.bsp` på feedback-serveren, dine noter (`!fb`) | ønsker i `annotations.json` (med `ingame` øje/sigte) + billede pr. note; `feedback/verify.json` | `mapforge.feedback` + AMXX-plugin `mapforge_feedback`; `--verify` renderer nu-billedet og spørger vision-modellen om noten er løst (ellers genåbnes ønsket) | dig + sek. |
 | 6 Simulate | `.bsp`, YaPB-graf | CSV (TRACKER_SPEC.md), `simulation.json` | ReHLDS + Metamod-R + AMXX + YaPB i Docker | min.–timer |
 | 7 Analyze | CSV, renders | `metrics.json`, `report.md`, heatmaps | Python (numpy, Pillow) | sek. |
 | 8 Decide | se input-kontrakt nedenfor | `plan.json` + `NOTES.md` | Claude Code headless (`claude -p`) | ~1 min |
