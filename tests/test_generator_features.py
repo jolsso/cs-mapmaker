@@ -616,3 +616,86 @@ def test_door_lights_hang_on_both_sides_of_the_opening():
     ys = sorted(p[1] for p in new)
     assert ys == [lo[1] - 48, hi[1] + 48]  # mid_a runs between mid (south) and a_site (north)
     assert all(p[0] == (lo[0] + hi[0]) // 2 for p in new)
+
+
+ROOFED = {
+    "roofs": [{"name": "canopy", "area": "ct_spawn", "rect": [576, -192, 896, 64], "z": 160,
+               "shape": "gable", "axis": "y", "rise": 48, "posts": True},
+              {"name": "shed", "area": "ct_spawn", "rect": [576, 96, 896, 224], "z": 128,
+               "shape": "shed", "axis": "x", "rise": 32}],
+}  # fmt: skip
+
+
+def test_roofs_are_slabs_above_head_height_with_posts():
+    data = copy.deepcopy(FEAT)
+    data.update(ROOFED)
+    g = generate(parse_layout(data))
+
+    def inside_roofs(b) -> bool:
+        v = brush_geometry(b).vertices
+        in_x = v[:, 0].min() >= 576 and v[:, 0].max() <= 896
+        return in_x and v[:, 2].min() >= 128 and v[:, 2].max() <= 224
+
+    roof = [b for b in g.mapfile.worldspawn.brushes if inside_roofs(b)]
+    assert len(roof) == 3  # two gable halves + the shed slab
+    posts = [b for b in g.mapfile.worldspawn.brushes
+             if (v := brush_geometry(b).vertices)[:, 2].min() == 0 and v[:, 2].max() == 160
+             and np.ptp(v[:, 0]) == 16 and np.ptp(v[:, 1]) == 16]  # fmt: skip
+    assert len(posts) == 4
+    for b in g.mapfile.brushes():
+        geo = brush_geometry(b)
+        assert not geo.unbounded and all(len(f) >= 3 for f in geo.face_vertices)
+
+
+def test_a_pitched_hall_gets_a_gable_ceiling_inside_a_taller_void():
+    from mapforge.generator.build import pitch_fill
+
+    data = copy.deepcopy(FEAT)
+    next(a for a in data["areas"] if a["name"] == "b_site")["pitch"] = {
+        "shape": "gable",
+        "axis": "x",
+        "rise": 64,
+    }
+    lay = parse_layout(data)
+    g = generate(lay)
+    lo, hi = g.voids["b_site"]
+    assert hi[2] == lay.areas["b_site"].top + 64
+    fill = pitch_fill(lay.areas["b_site"], "X")
+    assert len(fill) == 2
+    v = np.vstack([brush_geometry(b).vertices for b in fill])
+    assert v[:, 2].min() == 192 and v[:, 2].max() == 256 and v[:, 1].max() == -144
+
+
+@pytest.mark.parametrize(
+    "roof, msg",
+    [({"z": 64}, "players hit their heads"), ({"shape": "flat", "rise": 48}, "flat roof"),
+     ({"rect": [576, -192, 1100, 64]}, "inside ct_spawn"), ({"z": 216}, "reaches above")],
+)  # fmt: skip
+def test_bad_roofs(roof, msg):
+    data = copy.deepcopy(FEAT)
+    data["roofs"] = [{**ROOFED["roofs"][0], **roof}]
+    with pytest.raises(SpecError, match=msg):
+        parse_layout(data)
+
+
+@pytest.mark.slow
+@needs_compilers
+def test_roofed_and_pitched_map_compiles_without_a_leak(tmp_path):
+    from mapforge.compile.run import compile_map
+    from mapforge.wad.dev_textures import main as make_dev_wad
+
+    base = load_config()
+    data_cfg = copy.deepcopy(base.data)
+    data_cfg["paths"].update(maps_dir=str(tmp_path / "maps"), build_dir=str(tmp_path / "build"))
+    cfg = Config(root=base.root, data=data_cfg)
+    data = copy.deepcopy(FEAT)
+    data.update(ROOFED)
+    next(a for a in data["areas"] if a["name"] == "b_site")["pitch"] = {
+        "shape": "shed",
+        "axis": "y",
+        "rise": 48,
+    }
+    g = generate(parse_layout(data))
+    write_map(g.mapfile, tmp_path / "maps" / "de_gen_feat" / "src" / "de_gen_feat.map")
+    make_dev_wad()
+    compile_map(cfg, "de_gen_feat")  # raises CompileError on a leak

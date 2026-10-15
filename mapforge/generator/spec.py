@@ -31,6 +31,9 @@ class Area:
     # convex floor plan (counter-clockwise grid vertices) inside `rect` = its bounding box; the
     # rest of the box is solid (angled walls at any grid angle). None = the whole rect
     poly: tuple[tuple[int, int], ...] | None = None
+    # a pitched ceiling (indoor hall): {shape: gable|shed, axis: x|y, rise}; the room keeps its
+    # height up to the eaves (`top`) and the roof rises `rise` above that
+    pitch: dict[str, Any] | None = None
 
     @property
     def top(self) -> int:
@@ -192,6 +195,28 @@ class Water:
     depth: int
 
 
+ROOF_SHAPES = ("flat", "gable", "shed")
+ROOF_CLEARANCE = 96  # the underside of a roof stays above a standing player (72) + a jump
+
+
+@dataclass(frozen=True)
+class Roof:
+    """A roof over part of an area, open on the sides (a canopy in a yard, a shed roof on posts):
+    above head height, so it shades and shapes the skyline. gable: ridge along `axis`; shed:
+    rises along `axis` (low at the low end)."""
+
+    name: str
+    area: str
+    rect: tuple[int, int, int, int]
+    z: int  # eaves (the underside's lowest edge) above the area floor
+    shape: str = "flat"
+    axis: str = "x"
+    rise: int = 0
+    thickness: int = 8
+    texture: str | None = None  # default: the zone's ceiling texture
+    posts: bool = False  # a 16x16 post under each corner (these stand in the play space)
+
+
 @dataclass(frozen=True)
 class Ambient:
     """A looping ambient sound (ambient_generic) in an area: a path under sound/ that the game
@@ -286,6 +311,7 @@ class Layout:
     bridges: list[Bridge] = field(default_factory=list)
     ambient: list[Ambient] = field(default_factory=list)
     models: list[Model] = field(default_factory=list)
+    roofs: list[Roof] = field(default_factory=list)
 
 
 DEFAULT_TEXTURES = {
@@ -567,6 +593,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             light=a.get("light"),
             sound=a.get("sound"),
             poly=poly,
+            pitch=a.get("pitch"),
         )
         if area.name in areas:
             raise SpecError(f"duplicate area {area.name}")
@@ -576,6 +603,18 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         for v in (*rect, area.floor, area.height):
             if v % grid:
                 raise SpecError(f"area {area.name}: {v} is off the {grid}-unit grid")
+        if area.pitch is not None:
+            pt = area.pitch
+            if area.outdoor or area.poly is not None:
+                raise SpecError(f"area {area.name}: pitch is for a rectangular indoor area")
+            if pt.get("shape") not in ROOF_SHAPES[1:] or pt.get("axis") not in ("x", "y"):
+                raise SpecError(f"area {area.name}: pitch needs shape gable|shed and axis x|y")
+            rise = int(pt.get("rise", 0))
+            if rise <= 0 or rise % grid:
+                raise SpecError(f"area {area.name}: pitch rise must be > 0 on the {grid} grid")
+            span = (y1 - y0) if (pt["shape"] == "gable") == (pt["axis"] == "x") else (x1 - x0)
+            if pt["shape"] == "gable" and (span // 2) % grid:
+                raise SpecError(f"area {area.name}: a gable's ridge must sit on the grid")
         areas[area.name] = area
 
     def need(name: str, what: str) -> str:
@@ -817,6 +856,34 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         if amb.pos is not None and not areas[amb.area].inside(*amb.pos):
             raise SpecError(f"ambient {amb.name}: pos is outside {amb.area}")
         ambient.append(amb)
+    roofs = []
+    for rf in data.get("roofs", []) or []:
+        ro = Roof(
+            name=rf["name"], area=need(rf["area"], rf["name"]),
+            rect=_ints(rf["rect"], 4, f"roof {rf['name']}.rect"), z=int(rf["z"]),
+            shape=str(rf.get("shape", "flat")), axis=str(rf.get("axis", "x")),
+            rise=int(rf.get("rise", 0)), thickness=int(rf.get("thickness", 8)),
+            texture=rf.get("texture"), posts=bool(rf.get("posts", False)),
+        )  # fmt: skip
+        a = areas[ro.area]
+        rx0, ry0, rx1, ry1 = ro.rect
+        ax0, ay0, ax1, ay1 = a.rect
+        if ro.shape not in ROOF_SHAPES or ro.axis not in ("x", "y"):
+            raise SpecError(f"roof {ro.name}: shape {ROOF_SHAPES}, axis x|y")
+        if not (ax0 <= rx0 < rx1 <= ax1 and ay0 <= ry0 < ry1 <= ay1):
+            raise SpecError(f"roof {ro.name}: rect must lie inside {a.name}")
+        if any(v % 8 for v in (*ro.rect, ro.z, ro.rise, ro.thickness)) or ro.thickness <= 0:
+            raise SpecError(f"roof {ro.name}: rect/z/rise/thickness on the 8 grid")
+        if ro.z < ROOF_CLEARANCE:
+            raise SpecError(f"roof {ro.name}: z {ro.z} < {ROOF_CLEARANCE}: players hit their heads")
+        if (ro.shape == "flat") != (ro.rise == 0):
+            raise SpecError(f"roof {ro.name}: a flat roof has rise 0, gable/shed need rise > 0")
+        if ro.z + ro.rise + ro.thickness > a.height:
+            raise SpecError(f"roof {ro.name}: z + rise + thickness reaches above {a.name}")
+        across = (ry1 - ry0) if ro.axis == "x" else (rx1 - rx0)
+        if ro.shape == "gable" and (across // 2) % 8:
+            raise SpecError(f"roof {ro.name}: a gable's ridge must sit on the 8 grid")
+        roofs.append(ro)
     models = []
     for md in data.get("models", []) or []:
         mo = Model(
@@ -883,7 +950,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             "offset": _ints(sp.get("offset", [0, 0]), 2, f"spawns.{team}.offset"),
         }
     groups = (doors, stairs, cover, ramps, wedges, ladders, hatches, water, spots, bridges, ambient,
-              models)  # fmt: skip
+              models, roofs)  # fmt: skip
     names = [x.name for group in groups for x in group]
     dup = {n for n in names if names.count(n) > 1 or n in areas}
     if dup:
@@ -917,6 +984,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
         bridges=bridges,
         ambient=ambient,
         models=models,
+        roofs=roofs,
     )
 
 

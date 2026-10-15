@@ -211,6 +211,62 @@ def frame_boxes(lo: tuple, hi: tuple, ceiling: int) -> list[Box]:
     return out
 
 
+def pitch_fill(a: Area, tex) -> list[Brush]:
+    """A pitched ceiling: the room's void reaches `rise` above its eaves; these prisms fill the
+    space above the roof slopes, so the ceiling reads as a gable or a shed roof from inside."""
+    pt = a.pitch or {}
+    x0, y0, x1, y1 = a.rect
+    top, rise = a.top, int(pt["rise"])
+    gable = pt["shape"] == "gable"
+    # the profile's u axis: across the ridge for a gable, along the slope for a shed
+    ax = (1 if pt["axis"] == "x" else 0) if gable else (0 if pt["axis"] == "x" else 1)
+    u0, u1 = (x0, x1) if ax == 0 else (y0, y1)
+    t0, t1 = (y0, y1) if ax == 0 else (x0, x1)
+    hi = top + rise
+    if gable:
+        m = (u0 + u1) // 2
+        tris = [[(u0, top), (u0, hi), (m, hi)], [(u1, top), (m, hi), (u1, hi)]]
+    else:  # low at the low end of the axis, high at the other
+        tris = [[(u0, top), (u0, hi), (u1, hi)]]
+    return [_extrude_uz(t, ax, t0, t1, tex) for t in tris]
+
+
+def roof_brushes(ro, a: Area, tex: str, post_tex: str) -> list[Brush]:
+    """A roof slab (flat, shed or gable) over ro.rect, open on the sides, plus corner posts."""
+    rx0, ry0, rx1, ry1 = ro.rect
+    zb, t, rise = a.floor + ro.z, ro.thickness, ro.rise
+    out: list[Brush] = []
+    if ro.shape == "flat":
+        out.append(box_brush((rx0, ry0, zb), (rx1, ry1, zb + t), tex))
+        under = {c: zb for c in ((rx0, ry0), (rx1, ry0), (rx0, ry1), (rx1, ry1))}
+    else:
+        gable = ro.shape == "gable"
+        ax = (1 if ro.axis == "x" else 0) if gable else (0 if ro.axis == "x" else 1)
+        u0, u1 = (rx0, rx1) if ax == 0 else (ry0, ry1)
+        t0, t1 = (ry0, ry1) if ax == 0 else (rx0, rx1)
+        if gable:
+            m = (u0 + u1) // 2
+            quads = [[(u0, zb), (m, zb + rise), (m, zb + rise + t), (u0, zb + t)],
+                     [(m, zb + rise), (u1, zb), (u1, zb + t), (m, zb + rise + t)]]  # fmt: skip
+        else:
+            quads = [[(u0, zb), (u1, zb + rise), (u1, zb + rise + t), (u0, zb + t)]]
+        out += [_extrude_uz(q, ax, t0, t1, tex) for q in quads]
+
+        def under_at(x: int, y: int) -> int:
+            u = x if ax == 0 else y
+            if gable:
+                return zb
+            return zb + (rise if u == u1 else 0)
+
+        under = {c: under_at(*c) for c in ((rx0, ry0), (rx1, ry0), (rx0, ry1), (rx1, ry1))}
+    if ro.posts:
+        for (cx, cy), z_top in under.items():
+            px = cx if cx == rx0 else cx - 16
+            py = cy if cy == ry0 else cy - 16
+            out.append(box_brush((px, py, a.floor), (px + 16, py + 16, z_top), post_tex))
+    return out
+
+
 def door_box(door: Door, areas: dict[str, Area], wall: int) -> Box:
     """The empty box cut through the wall between the two areas of a door.
 
@@ -571,9 +627,21 @@ def generate(layout: Layout) -> Generated:
         return {"top": t["floor"], "bottom": t["ceiling"], "side": t["wall"]}
 
     voids: dict[str, Box] = {
-        a.name: ((a.rect[0], a.rect[1], a.floor), (a.rect[2], a.rect[3], a.top))
+        a.name: (
+            (a.rect[0], a.rect[1], a.floor),
+            (a.rect[2], a.rect[3], a.top + (int(a.pitch["rise"]) if a.pitch else 0)),
+        )
         for a in areas.values()
     }
+    for a in areas.values():  # the roof space of a pitched hall must be free (+ a wall above)
+        if not a.pitch:
+            continue
+        (hx0, hy0, _), (hx1, hy1, hz1) = voids[a.name]
+        for b in areas.values():
+            bx0, by0, bx1, by1 = b.rect
+            if (b is not a and bx0 < hx1 and hx0 < bx1 and by0 < hy1 and hy0 < by1
+                    and b.floor < hz1 + layout.wall and b.top > a.top):  # fmt: skip
+                raise SpecError(f"area {a.name}: its pitched roof runs into {b.name} above it")
     for d in layout.doors:
         voids[d.name] = door_box(d, areas, layout.wall)
     for h in layout.hatches:
@@ -664,6 +732,12 @@ def generate(layout: Layout) -> Generated:
     if detail:
         ents.append(entity({"classname": "func_detail", "zhlt_detaillevel": "1"}, detail))
     world.brushes += _stair_clips(layout, tex["clip"])
+    for a in areas.values():  # pitched hall ceilings
+        if a.pitch:
+            world.brushes += pitch_fill(a, tex_of(a)["ceiling"])
+    for ro in layout.roofs:  # roofs over parts of areas, open on the sides
+        a = areas[ro.area]
+        world.brushes += roof_brushes(ro, a, ro.texture or tex_of(a)["ceiling"], tex_of(a)["cover"])
 
     # Openings: glass panes and door leaves fill the opening's box; arches round its top;
     # frames (jambs + lintel) are detail brushes around it.

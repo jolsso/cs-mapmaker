@@ -189,6 +189,17 @@ ambient:
 ```
 - `ambient_generic` (looper); `sound` er en sti under `sound/`, som spillet selv har (`cstrike/sound` eller `valve/sound`, CS 1.6 falder tilbage på valve). Generatoren afviser stier, der ikke findes i `paths.sound_dirs` (tjekket kun når Half-Life-installationen er mountet). Standard: områdets midte, 64 over gulvet, volumen 6, radius medium.
 
+### Tage og skrå lofter (2026-10-15)
+```yaml
+roofs:      # tag over en del af et område, åbne sider (halvtag i en gård, skur på stolper)
+  - {name: a_canopy, area: a_site, rect: [x0, y0, x1, y1], z: 160, shape: gable, axis: y, rise: 48, posts: true}
+  - {name: ct_shed, area: ct_spawn, rect: [...], z: 128, shape: shed, axis: x, rise: 32}   # flat | shed | gable
+areas:
+  - {name: b_hall, rect: [...], height: 224, pitch: {shape: gable, axis: x, rise: 64}}   # skråt loft i en hal
+```
+- `roofs`: `z` = tagfodens højde over gulvet (mindst 96: over hovedhøjde), `rise` = hvor meget det stiger (0 for flad), `thickness` 8, `texture` (standard: zonens loft). `gable`: kip langs `axis`; `shed`: stiger langs `axis` (lavest i den lave ende). `posts: true` sætter en 16×16-stolpe under hvert hjørne – kun stolperne står i spilrummet. Taget skal ligge inden for området og under dets loft.
+- `pitch` (kun rektangulære indendørs områder): rummet beholder sin højde op til tagfoden (`height`), og taget rejser sig `rise` derover; rummet bliver højere, og prismer fylder ud over skråningerne (samme princip som buer). Generatoren afviser et skråt loft, der ville løbe op i et område ovenover. Gangbart rum er uændret.
+
 ### Dørkarme og dørlys (2026-10-15)
 ```yaml
 doors:
