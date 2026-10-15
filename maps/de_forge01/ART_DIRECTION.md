@@ -51,7 +51,7 @@ Tema låst 2026-10-15 (Gate B, menneskets valg): **industri**. Geometrien er fro
 - **Decals (`infodecal`):** advarselsskilte ved ovnen (A), "KØLEVAND"-markering i B, pile/spraymaling langs ruter, rustløbere i tunnellerne. Aldrig i hovedsigtelinjer eller hvor de kan forveksles med spillere.
 - **Sprites/modeller:** kun modeller, der følger med spillet (fase 7, ⚠️ VERIFICÉR), sparsomt pga. r_speeds (< ~800 wpoly).
 - **Arkitekturdetaljer (`func_detail`):** rørføringer langs vægge, dørkarme ved chokepoints, kabelbakker i tunnellerne. Må ikke ændre gangbarhed eller sigtelinjer.
-- **Ambient lyd (`ambient_generic`):** A: dyb ovnbrummen. B: pumper og dryppende vand. Tunneler: drypvand. Mid: vind og løs metalplade. Spawns: svag fjern maskinlyd.
+- **Ambient lyd:** ingen. Prøvet 2026-10-15 (ovnbrummen, pumper, drypvand, vind) – irriterende i spillet, så det er fravalgt. Kun spillets egne lyde (skridt, våben) og rumklang (`env_sound`).
 
 ## 7. Stilreview-tjekliste (Claude bruger denne pr. screenshot)
 - [ ] Matcher zonens palet og materialer (A varm/rust, B kold/teal)

@@ -50,10 +50,10 @@ chokes:
 zones:
   t: {floor: -0CSTRIKE_FR4GR, wall: CINDERBLOCK01, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_OE4PNL,
       light: {color: [255, 226, 170], brightness: 280}}   # style review: T->B tunnels were dim and brown
-  ct: {floor: -0CSTRIKE_CA2ST, wall: CSTRIKE_WR4CCPN, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME4METL,
+  ct: {floor: CSTRIKE_ME4METL, wall: -0CSTRIKE_WR3CC, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_OE4PNL,
        light: {color: [225, 235, 255]}}
   mid: {floor: -0CSTRIKE_CA2ST, wall: -0CSTRIKE_WR3CC, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME2RSTW}
-  a: {floor: CSTRIKE_ME4DCLN, wall: CSTRIKE_ME2RSTW, ceiling: CSTRIKE_CE2XCNG, cover: TSHULL5,
+  a: {floor: CSTRIKE_ME4DCLN, wall: TSHULL1, ceiling: CSTRIKE_CE2XCNG, cover: TSHULL5,
       light: {color: [255, 190, 140], brightness: 240}}
   b: {floor: CSTRIKE_ME1GRAT, wall: CSTRIKE_OE4PNL, ceiling: CSTRIKE_ME1CLNG, cover: CSTRIKE_ME4METL,
       light: {color: [190, 225, 230], brightness: 220}}
@@ -64,24 +64,28 @@ texlights: {-0CSTRIKE_MH5TL: [255, 160, 90, 700]}   # the furnace wall at A (Ovn
 # B tunnels grey on grey -> lighter metal panel walls.
 # 3rd round: T corridors' dark red brick hid T players -> grey breeze block (cs_bdog.wad).
 # 4th round: mid's light gravel was still tan -> grey concrete; door lights on the four chokes.
+# 5th round: rust walls on A matched T clothing -> grey steel plates; warmth from the orange
+# light and the furnace wall, rust stays on the ingot stack.
+# 6th round: CT's floor was a tan pattern and its walls had a purple trim -> blue-grey steel
+# floor, plain grey concrete walls.
 
-ambient:   # ART_DIRECTION §6 (sounds the game ships: valve/sound/ambience)
-  - {name: a_furnace, area: a_site, sound: ambience/industrial1.wav, volume: 6}
-  - {name: b_pumps, area: b_site, sound: ambience/pumper.wav, volume: 6}
-  - {name: b_drips, area: b_tunnels, sound: ambience/drips.wav, volume: 5, radius: small}
-  - {name: mid_wind, area: mid, sound: ambience/wind1.wav, volume: 4}
-  - {name: t_machines, area: t_spawn, sound: ambience/industrial3.wav, volume: 3}
-  - {name: ct_machines, area: ct_spawn, sound: ambience/dronemachine1.wav, volume: 3}
+# no ambient sounds: tried 2026-10-15, irritating in game (the human's call)
 models:   # models the game ships (env_sprite), with clip boxes from their real bounds
   - {name: a_conveyor, area: a_site, model: models/conveyor1.mdl, pos: [1664, 1984], clip: [256, 112, 48]}
   - {name: mid_bags_1, area: mid_top, model: models/pallet_with_bags.mdl, pos: [-896, 848], z: 22, clip: [64, 64, 56]}
   - {name: mid_bags_2, area: mid_top, model: models/pallet_with_bags.mdl, pos: [-896, 776], z: 22, yaw: 30, clip: [64, 64, 56]}
+skyline:   # buildings of different heights around the yards (an industrial skyline)
+  facade: BRICK05-2           # cs_bdog.wad: brick with windows
+  roof: TSROOF                # tswad.wad
+roofs:     # canopies over parts of the yards (above head height)
+  - {name: a_lean_to, area: a_site, rect: [1536, 1920, 1792, 2048], z: 176, shape: shed, axis: y, rise: 32}   # over the conveyor
+  - {name: t_canopy, area: t_spawn, rect: [-384, -2432, -128, -2176], z: 176, shape: flat}
 areas:
   # --- spawns and sites ---
   - {name: t_spawn, rect: [-384, -2432, 384, -1664], height: 256, outdoor: true, role: t_spawn, zone: t}   # pushed south: T -> site ~16-18 s
   - {name: ct_spawn, rect: [-128, 1440, 640, 2048], height: 256, outdoor: true, role: ct_spawn, zone: ct}
   - {name: a_site, rect: [1280, 1280, 2048, 2048], floor: 32, height: 320, outdoor: true, role: site, zone: a}
-  - {name: b_site, rect: [-2048, 1280, -1280, 2048], height: 224, role: site, zone: b}
+  - {name: b_site, rect: [-2048, 1280, -1280, 2048], height: 224, role: site, zone: b, pitch: {shape: gable, axis: x, rise: 96}}   # the pump hall's roof
   - {name: mid, rect: [-384, -384, 384, 384], height: 288, outdoor: true, role: mid, zone: mid}
   # --- east: A long (long-range lane) ---
   - {name: a_long_start, rect: [1280, -2048, 2048, -1280], height: 288, outdoor: true, role: corridor, zone: a}
