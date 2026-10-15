@@ -5,7 +5,7 @@
 # Gate A approved 2026-10-10 for de_forge01 (layout v004, history/de_forge01/004).
 # Gate B approved 2026-10-15 for de_forge01: loop iteration 006 (history/de_forge01/008); mid 4-way accepted.
 locked:
-  theme: ""              # not chosen yet: decided before the art pass (phase 7)
+  theme: "industrial"    # chosen by the human 2026-10-15: a closing steel works (maps/de_forge01/ART_DIRECTION.md)
   map_type: "de"
   topology: "3x3 zones; three T routes (long -> A, tunnels -> B, mid -> mid_top -> short A / short B), one chokepoint each before the site; CT spawn north, towards A"
   site_locations:

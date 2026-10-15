@@ -160,7 +160,7 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 ## Fase 7 – Art pass
 **Mål:** Lys og visuel identitet.
 
-- [ ] ART_DIRECTION.md udfyldt for mappet
+- [x] ART_DIRECTION.md udfyldt for mappet (2026-10-15): `maps/de_forge01/ART_DIRECTION.md`. Tema: industri (et stålværk under nedlukning; A = støbepladsen, varm/orange; B = pumpehallen, kold/teal), låst i `config/fitness.yaml`; callouts knyttet til eksisterende cover, da geometrien er frosset
 - [ ] Regelbaseret lysplacering + `lights.rad` texlights + zonefarver
 - [ ] Tekstur-pipeline: billede → kvantisering → WAD3 (kun fri licens)
 - [ ] Claude-review af klient-screenshots mod stilguide
