@@ -84,21 +84,29 @@ def _vec(v: Any, n: int, grid: int, what: str) -> list[int]:
     return out
 
 
-def soul_elements(lay: Any) -> set[str]:
+SOUL_FIELDS = (("landmarks", "element"), ("irregularities", "element"), ("chokes", "door"))
+
+
+def soul_elements(lay: Any, fields: Any = SOUL_FIELDS) -> set[str]:
     """Names the layout's soul fields point at (landmarks, irregularities, chokes): the loop must
     not optimise them away (DESIGN_GUIDE.md §9, "lås sjælselementer")."""
     names = set()
-    for key, field in (("landmarks", "element"), ("irregularities", "element"), ("chokes", "door")):
+    for key, field in fields:
         for item in lay.get(key, []) or []:
             if isinstance(item, dict) and item.get(field):
                 names.add(str(item[field]))
     return names
 
 
-def _guard_area(area: Any, lay: Any = None) -> None:
+def _guard_area(area: Any, lay: Any = None, bend: bool = False) -> None:
+    """`bend`: a new bend in an irregularity keeps it irregular (more so), so only landmarks and
+    chokes stay locked against it; straightening one is still refused."""
     if area.get("role") in LOCKED_ROLES or area.get("protected"):
         raise ValueError(f"area {area['name']!r} is locked (role {area.get('role')}, FITNESS)")
-    if lay is not None and area["name"] in soul_elements(lay):
+    if lay is None:
+        return
+    fields = [f for f in SOUL_FIELDS if f[0] != "irregularities"] if bend else SOUL_FIELDS
+    if area["name"] in soul_elements(lay, fields):
         raise ValueError(
             f"area {area['name']!r} is a landmark/irregularity in the layout spec (locked)"
         )
@@ -303,11 +311,11 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         area = _area(lay, str(p["target"]), "corridor")
         if "from" not in area:
             raise ValueError(f"{area['name']} is not an angled corridor (corridors:)")
-        _guard_area(area, lay)
         pts = p["via"]
         if pts and not isinstance(pts[0], (list, tuple)):
             pts = [pts]  # one bend given as [x, y]
         via = [_vec(v, 2, grid, "via") for v in pts or []]
+        _guard_area(area, lay, bend=bool(via))
         if via:
             area["via"] = _flow([_flow(v) for v in via])
             return f"corridor {area['name']} bent through {via}"
