@@ -30,6 +30,13 @@ locked_maps:
     site_locations: []
     landmarks: []
     geometry_frozen: false
+  de_cistern02:
+    theme: ""
+    map_type: "de"
+    topology: ""           # engine test map (package 3): nothing locked until a Gate A
+    site_locations: []
+    landmarks: []
+    geometry_frozen: false
   de_viaduct01:
     theme: ""
     map_type: "de"

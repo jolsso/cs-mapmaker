@@ -151,6 +151,7 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [x] Pakke 3, cover (2026-10-15): `shape: cylinder` (facetteret prisme, 8/12/16 sider på 8-gitteret: tønder, runde søjler) og presets `crate_stack` (boost), `barrels`, `pallets` (trin); værktøjskassen: `add_cover` med `preset` (uden `size`) eller `shape: cylinder`
 - [x] Pakke 3, buer i døråbninger (2026-10-15): `arch: true` på en almindelig dør – halv-elliptisk bue, vederlag ≥ 80 over gulvet, så hele bredden stadig er gangbar; værktøjskassen: `set_arch`, `add_connection` med `arch`
 - [x] Bevægelige elementer (pakke 3, 2026-10-15): elevator i en lem (`lift: auto|button` på `hatches`: `func_plat` + `func_button` på en sokkel på hver etage). Verificeret i YaPB's kilde (`analyze.cpp`, `navigate.cpp`): bots kan kun køre med en elevator via graf-noder med `NodeFlag::Lift`, og auto-analysen sætter aldrig det flag. Elevatoren er derfor en ekstra rute for mennesker: ikke i værktøjskassen, og validatoren (som også ignorerer `func_plat`) kræver, at begge etager nås uden den
+- [x] Testmap til pakke 3: `de_cistern02` (de_cistern01 + elevator med knapper til kontoret, buer på tre døre, runde søjler, kassestabel, tønder, palletrin): validering 0/0, review bestået (kun minor), smoke OK – YaPB når begge sites (2026-10-15)
 
 **Accept:** et genereret map med de nye features compiler, validerer uden fejl, simuleres (YaPB når begge sites) og forbedres af loopet uden manuelle trin.
 
