@@ -25,7 +25,7 @@ name: de_forge01
 grid: 16
 wall: 16
 sky:
-  name: desert
+  name: TrainYard   # de_train's sky (in-game feedback: the desert sky was out of place)
   sun: {pitch: -35, yaw: 225, color: [255, 220, 180], brightness: 220, ambient: 90}   # low afternoon sun (ART_DIRECTION §5)
 lights: {spacing: 320, brightness: 230, color: [255, 232, 200]}
 
@@ -50,12 +50,14 @@ chokes:
 zones:
   t: {floor: -0CSTRIKE_FR4GR, wall: CINDERBLOCK01, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_OE4PNL,
       light: {color: [255, 226, 170], brightness: 280}}   # style review: T->B tunnels were dim and brown
-  ct: {floor: CSTRIKE_ME4METL, wall: -0CSTRIKE_WR3CC, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_OE4PNL,
+  ct: {floor: CONCRETE01, wall: -0CSTRIKE_WR3CC, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_OE4PNL,
        light: {color: [225, 235, 255]}}
-  mid: {floor: -0CSTRIKE_CA2ST, wall: -0CSTRIKE_WR3CC, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME2RSTW}
-  a: {floor: CSTRIKE_ME4DCLN, wall: TSHULL1, ceiling: CSTRIKE_CE2XCNG, cover: TSHULL5,
+  mid: {floor: CONCRETE01, wall: -0CSTRIKE_WR3CC, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME2RSTW}
+  a: {floor: CONCRETE02, wall: TSHULL1, ceiling: CSTRIKE_CE2XCNG, cover: TSHULL5,
       light: {color: [255, 190, 140], brightness: 240}}
-  b: {floor: CSTRIKE_ME1GRAT, wall: CSTRIKE_OE4PNL, ceiling: CSTRIKE_ME1CLNG, cover: CSTRIKE_ME4METL,
+  b: {floor: CONCRETE02, wall: CSTRIKE_OE4PNL, ceiling: CSTRIKE_ME1CLNG, cover: CSTRIKE_ME4METL,
+      light: {color: [190, 225, 230], brightness: 220}}
+  bt: {floor: CSTRIKE_ME1GRAT, wall: CSTRIKE_OE4PNL, ceiling: CSTRIKE_ME1CLNG, cover: CSTRIKE_ME4METL,
       light: {color: [190, 225, 230], brightness: 220}}
 texlights: {-0CSTRIKE_MH5TL: [255, 160, 90, 700]}   # the furnace wall at A (Ovnvæggen)
 # style review 2026-10-15 (local model + Claude): A was rust floor on rust walls (players blend in)
@@ -66,12 +68,14 @@ texlights: {-0CSTRIKE_MH5TL: [255, 160, 90, 700]}   # the furnace wall at A (Ovn
 # 4th round: mid's light gravel was still tan -> grey concrete; door lights on the four chokes.
 # 5th round: rust walls on A matched T clothing -> grey steel plates; warmth from the orange
 # light and the furnace wall, rust stays on the ingot stack.
+# In-game feedback 2026-10-15: metal floors everywhere were loud and tiring -> concrete,
+# grating only in the B tunnels (zone bt).
 # 6th round: CT's floor was a tan pattern and its walls had a purple trim -> blue-grey steel
 # floor, plain grey concrete walls.
 
 # no ambient sounds: tried 2026-10-15, irritating in game (the human's call)
 models:   # models the game ships (env_sprite), with clip boxes from their real bounds
-  - {name: a_conveyor, area: a_site, model: models/conveyor1.mdl, pos: [1664, 1984], clip: [256, 112, 48]}
+  - {name: a_conveyor, area: a_site, model: models/conveyor1.mdl, pos: [1664, 1984], clip: [256, 112, 32]}   # jumpable (in-game feedback)
   - {name: mid_bags_1, area: mid_top, model: models/pallet_with_bags.mdl, pos: [-896, 848], z: 22, clip: [64, 64, 56]}
   - {name: mid_bags_2, area: mid_top, model: models/pallet_with_bags.mdl, pos: [-896, 776], z: 22, yaw: 30, clip: [64, 64, 56]}
 skyline:   # buildings of different heights around the yards (an industrial skyline)
@@ -79,7 +83,7 @@ skyline:   # buildings of different heights around the yards (an industrial skyl
   roof: TSROOF                # tswad.wad
 roofs:     # canopies over parts of the yards (above head height)
   - {name: a_lean_to, area: a_site, rect: [1536, 1920, 1792, 2048], z: 176, shape: shed, axis: y, rise: 32}   # over the conveyor
-  - {name: t_canopy, area: t_spawn, rect: [-384, -2432, -128, -2176], z: 176, shape: flat}
+  - {name: t_canopy, area: t_spawn, rect: [-384, -2432, -128, -2176], z: 176, shape: flat, posts: true}   # posts: it read as a floating platform
 areas:
   # --- spawns and sites ---
   - {name: t_spawn, rect: [-384, -2432, 384, -1664], height: 256, outdoor: true, role: t_spawn, zone: t}   # pushed south: T -> site ~16-18 s
@@ -92,8 +96,8 @@ areas:
   - {name: a_long, rect: [1280, -384, 2048, 384], height: 288, outdoor: true, role: corridor, zone: a}
   - {name: long_ec_s, rect: [1472, -1264, 1856, -400], height: 288, outdoor: true, role: corridor, zone: a}
   - {name: long_ec_n, rect: [1472, 400, 1856, 1264], height: 288, outdoor: true, role: corridor, zone: a}
-  - {name: b_tunnels, rect: [-2048, -384, -1280, 384], height: 160, role: corridor, zone: b}
-  - {name: b_tunnel_n, rect: [-1792, 400, -1536, 1264], height: 144, role: corridor, zone: b}
+  - {name: b_tunnels, rect: [-2048, -384, -1280, 384], height: 160, role: corridor, zone: bt}
+  - {name: b_tunnel_n, rect: [-1792, 400, -1536, 1264], height: 144, role: corridor, zone: bt}
   # --- middle and cross connectors ---
   - {name: mid_s, rect: [-192, -1648, 192, -400], height: 256, outdoor: true, role: corridor, zone: mid}
   - {name: t_to_long, rect: [400, -1856, 1264, -1472], height: 192, role: corridor, zone: t}

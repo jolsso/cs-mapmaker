@@ -306,21 +306,543 @@
     "resolution": "iteration 010: area b_tunnels removed (now solid), with its doors, cover and stairs"
   },
   {
-    "kind": "rect",
-    "text": "Slet hele dette område, for at se om vi kan tvinge en anden vej til Site B.",
+    "kind": "point",
+    "text": "what is this platform doing? It has no effect other than being out of place (in game)",
     "points": [
       [
-        -1907,
-        -1926
-      ],
-      [
-        -484,
-        -171
+        -245,
+        -2198
       ]
     ],
     "id": 6,
+    "status": "done",
+    "created": "2026-10-15 14:30",
+    "resolution": "2026-10-15 art pass: t_canopy got corner posts: a canopy, not a floating platform",
+    "ingame": {
+      "key": "2026-10-15 14:23:36|what is this platform doing? It has no effect other than being out of place",
+      "eye": [
+        -56,
+        -1758,
+        53
+      ],
+      "aim": [
+        -245,
+        -2198,
+        175
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:23:36",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "the sky is so out of place. Can we make a skybox instead of this? The sky is tiled and doesnt make sens (in game)",
+    "points": [
+      [
+        307,
+        -2447
+      ]
+    ],
+    "id": 7,
+    "status": "done",
+    "created": "2026-10-15 14:30",
+    "resolution": "2026-10-15 art pass: sky: TrainYard (de_train's industrial sky) instead of desert",
+    "ingame": {
+      "key": "2026-10-15 14:24:06|the sky is so out of place. Can we make a skybox instead of this? The sky is tiled and doesnt make sens",
+      "eye": [
+        -56,
+        -1758,
+        53
+      ],
+      "aim": [
+        307,
+        -2447,
+        525
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:24:06",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "these buildings up here could be cool, but they're not adjusted correctly and without roof. What's happening? (in game)",
+    "points": [
+      [
+        44,
+        -1664
+      ]
+    ],
+    "id": 8,
     "status": "open",
-    "created": "2026-10-11 06:32",
-    "resolution": null
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:24:36|these buildings up here could be cool, but they're not adjusted correctly and without roof. What's happening?",
+      "eye": [
+        -93,
+        -2238,
+        53
+      ],
+      "aim": [
+        44,
+        -1664,
+        274
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:24:36",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "something is wrong on the flooring here. Looks like it needs adjusted. I can see a clear line where one texture sta (in game)",
+    "points": [
+      [
+        -1098,
+        -619
+      ]
+    ],
+    "id": 9,
+    "status": "open",
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:25:19|something is wrong on the flooring here. Looks like it needs adjusted. I can see a clear line where one texture sta",
+      "eye": [
+        -1034,
+        -807,
+        53
+      ],
+      "aim": [
+        -1098,
+        -619,
+        0
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:25:19",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "the sound of the flooring is annoying. Can we make most of the flooring conrete instead? It's ok if one hallway hao (in game)",
+    "points": [
+      [
+        -1571,
+        1517
+      ]
+    ],
+    "id": 10,
+    "status": "done",
+    "created": "2026-10-15 14:30",
+    "resolution": "2026-10-15 art pass: floors are concrete (CONCRETE01/02) almost everywhere; grating only in the B tunnels",
+    "ingame": {
+      "key": "2026-10-15 14:26:14|the sound of the flooring is annoying. Can we make most of the flooring conrete instead? It's ok if one hallway hao",
+      "eye": [
+        -1420,
+        1568,
+        53
+      ],
+      "aim": [
+        -1571,
+        1517,
+        0
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:26:14",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "is this CT spawn? How do they arrive? Do they just pop up randomly in an alley with roof? (in game)",
+    "points": [
+      [
+        -967,
+        1736
+      ]
+    ],
+    "id": 11,
+    "status": "open",
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:26:39|is this CT spawn? How do they arrive? Do they just pop up randomly in an alley with roof?",
+      "eye": [
+        -1257,
+        1678,
+        53
+      ],
+      "aim": [
+        -967,
+        1736,
+        0
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:26:39",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "box not adjusted very well (in game)",
+    "points": [
+      [
+        -671,
+        1792
+      ]
+    ],
+    "id": 12,
+    "status": "open",
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:26:52|box not adjusted very well",
+      "eye": [
+        -489,
+        1739,
+        53
+      ],
+      "aim": [
+        -671,
+        1792,
+        25
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:26:52",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "nice that we have a building set back on top of the other, but the texture is off and the roof is missing (in game)",
+    "points": [
+      [
+        639,
+        1605
+      ]
+    ],
+    "id": 13,
+    "status": "open",
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:27:14|nice that we have a building set back on top of the other, but the texture is off and the roof is missing",
+      "eye": [
+        6,
+        1755,
+        53
+      ],
+      "aim": [
+        639,
+        1605,
+        362
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:27:14",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "such a boring box (in game)",
+    "points": [
+      [
+        116,
+        1440
+      ]
+    ],
+    "id": 14,
+    "status": "open",
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:27:29|such a boring box",
+      "eye": [
+        623,
+        2031,
+        53
+      ],
+      "aim": [
+        116,
+        1440,
+        140
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:27:29",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "stairs are a nice addition (in game)",
+    "points": [
+      [
+        1022,
+        1736
+      ]
+    ],
+    "id": 15,
+    "status": "done",
+    "created": "2026-10-15 14:30",
+    "resolution": "2026-10-15 art pass: noted (positive): stairs kept",
+    "ingame": {
+      "key": "2026-10-15 14:27:40|stairs are a nice addition",
+      "eye": [
+        753,
+        1640,
+        53
+      ],
+      "aim": [
+        1022,
+        1736,
+        16
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:27:40",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "again. Building near the top are weird (in game)",
+    "points": [
+      [
+        1909,
+        1280
+      ]
+    ],
+    "id": 16,
+    "status": "open",
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:27:56|again. Building near the top are weird",
+      "eye": [
+        1846,
+        1877,
+        85
+      ],
+      "aim": [
+        1909,
+        1280,
+        398
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:27:56",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "what is this? It provides a nice cover but does not make sense lore wise. (in game)",
+    "points": [
+      [
+        1903,
+        1552
+      ]
+    ],
+    "id": 17,
+    "status": "open",
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:28:10|what is this? It provides a nice cover but does not make sense lore wise.",
+      "eye": [
+        1945,
+        1726,
+        85
+      ],
+      "aim": [
+        1903,
+        1552,
+        71
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:28:10",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "I cannot walk over this prop. It blocks me although it's not very tall (in game)",
+    "points": [
+      [
+        1634,
+        2047
+      ]
+    ],
+    "id": 18,
+    "status": "done",
+    "created": "2026-10-15 14:30",
+    "resolution": "2026-10-15 art pass: conveyor clip lowered to 32: it can be jumped over",
+    "ingame": {
+      "key": "2026-10-15 14:28:30|I cannot walk over this prop. It blocks me although it's not very tall",
+      "eye": [
+        2026,
+        1811,
+        85
+      ],
+      "aim": [
+        1634,
+        2047,
+        45
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:28:30",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "again the buildings near the top (in game)",
+    "points": [
+      [
+        1533,
+        400
+      ]
+    ],
+    "id": 19,
+    "status": "open",
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:28:47|again the buildings near the top",
+      "eye": [
+        1727,
+        1164,
+        85
+      ],
+      "aim": [
+        1533,
+        400,
+        354
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:28:47",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "buildings near the top needs adjustment and roof. all over the map (in game)",
+    "points": [
+      [
+        1387,
+        -383
+      ]
+    ],
+    "id": 20,
+    "status": "open",
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:29:05|buildings near the top needs adjustment and roof. all over the map",
+      "eye": [
+        1887,
+        225,
+        53
+      ],
+      "aim": [
+        1387,
+        -383,
+        348
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:29:05",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "cool to just have metal flooring in one room but annoying in a big room and all over (in game)",
+    "points": [
+      [
+        1720,
+        -534
+      ]
+    ],
+    "id": 21,
+    "status": "done",
+    "created": "2026-10-15 14:30",
+    "resolution": "2026-10-15 art pass: metal floors only in the B tunnels (one hallway), concrete elsewhere",
+    "ingame": {
+      "key": "2026-10-15 14:29:30|cool to just have metal flooring in one room but annoying in a big room and all over",
+      "eye": [
+        1783,
+        -411,
+        53
+      ],
+      "aim": [
+        1720,
+        -534,
+        0
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:29:30",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "shouldn't this be some sort of building like a shed with a roof and window? does not make sense lore wise (in game)",
+    "points": [
+      [
+        1804,
+        -1695
+      ]
+    ],
+    "id": 22,
+    "status": "open",
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:29:57|shouldn't this be some sort of building like a shed with a roof and window? does not make sense lore wise",
+      "eye": [
+        1822,
+        -1392,
+        53
+      ],
+      "aim": [
+        1804,
+        -1695,
+        36
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:29:57",
+      "category": null
+    }
+  },
+  {
+    "kind": "point",
+    "text": "a concrete slab in the middle? (in game)",
+    "points": [
+      [
+        1728,
+        -1561
+      ]
+    ],
+    "id": 23,
+    "status": "open",
+    "created": "2026-10-15 14:30",
+    "resolution": null,
+    "ingame": {
+      "key": "2026-10-15 14:30:06|a concrete slab in the middle?",
+      "eye": [
+        1949,
+        -1647,
+        53
+      ],
+      "aim": [
+        1728,
+        -1561,
+        27
+      ],
+      "player": "BaconVampire",
+      "time": "2026-10-15 14:30:06",
+      "category": null
+    }
   }
 ]
