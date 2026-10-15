@@ -19,6 +19,7 @@
 new const CATEGORIES[][] = {"layout", "texture", "light", "gameplay", "bug", "good"}
 new g_category[33]          // index into CATEGORIES, -1 = none (per player)
 new g_count
+new g_pNoBots
 
 public plugin_init()
 {
@@ -26,13 +27,23 @@ public plugin_init()
     register_clcmd("say", "cmd_say")
     register_clcmd("say_team", "cmd_say")
     register_clcmd("mf_fb", "cmd_fb")       // messagemode mf_fb
+    g_pNoBots = create_cvar("mf_feedback_nobots", "0", _, "Kick every bot that joins (a feedback server is for humans)")
     mkdir("logs/mapforge")
 }
 
 public client_putinserver(id)
 {
     g_category[id] = -1
+    if (is_user_bot(id)) {
+        if (get_pcvar_num(g_pNoBots)) set_task(0.5, "task_kick", get_user_userid(id))
+        return
+    }
     set_task(5.0, "task_hello", id)
+}
+
+public task_kick(userid)
+{
+    server_cmd("kick #%d ^"feedback server: no bots^"", userid)
 }
 
 public task_hello(id)

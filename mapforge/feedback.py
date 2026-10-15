@@ -31,7 +31,11 @@ CVARS = {  # a calm server to walk around on
     "mp_freezetime": 0, "mp_roundtime": 9, "mp_timelimit": 0, "mp_buytime": 9,
     "mp_startmoney": 16000, "mp_autoteambalance": 0, "mp_limitteams": 0, "sv_cheats": 1,
     "mp_friendlyfire": 0, "mf_max_rounds": 0, "sys_timescale": 1, "sv_alltalk": 1,
+    "mf_feedback_nobots": 1,  # the plugin kicks any bot that still joins
 }  # fmt: skip
+# No bots: quota 0 and none of YaPB's own graph analysis on a map without a graph (it added
+# bots on the first feedback server, 2026-10-15).
+YAPB = 'yb_quota 0\nyb_quota_mode normal\nyb_graph_analyze_auto_start 0\nyb_graph_url ""\n'
 
 
 def container_name(map_name: str) -> str:
@@ -61,7 +65,7 @@ def start(cfg: Config, map_name: str, log=print) -> str:
     )
     files = {
         "mapforge.cfg": cfg_text.encode(),
-        "addons/yapb/conf/mapforge_yapb.cfg": b"yb_quota 0\nyb_quota_mode normal\n",
+        "addons/yapb/conf/mapforge_yapb.cfg": YAPB.encode(),
         f"maps/{map_name}.bsp": bsp.read_bytes(),
     }
     sim = cfg.data["simulate"]
