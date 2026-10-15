@@ -74,3 +74,95 @@ def test_style_cameras_cover_areas_doors_and_landmarks(tmp_path):
     assert any(c.subject == "mid_a" for c in cams if c.kind == "door")  # choke + site entrance
     for c in cams:  # every eye is in open air
         assert bsp.point_contents(np.array([c.cam.eye]))[0] != -2
+
+
+def test_sheets_group_by_zone_six_per_sheet(tmp_path):
+    from mapforge.style.sheets import make_sheets
+
+    imgs = []
+    for k in range(8):
+        name = f"v{k}.png"
+        Image.fromarray(np.full((72, 128, 3), 30 * k, dtype=np.uint8)).save(tmp_path / name)
+        imgs.append({"file": name, "zone": "a" if k < 7 else "b", "subject": f"s{k}"})
+    sheets = make_sheets(tmp_path, imgs, tmp_path / "sheets")
+    assert [(s["file"], len(s["tiles"])) for s in sheets] == [("a_1.png", 6), ("a_2.png", 1),
+                                                               ("b_1.png", 1)]  # fmt: skip
+    assert sheets[0]["tiles"][5] == {"n": 6, "image": "v5.png", "subject": "s5"}
+    assert Image.open(tmp_path / "sheets" / "a_1.png").size == (1920, 760)
+
+
+def test_local_review_writes_notes_progress_and_an_answer(tmp_path, monkeypatch):
+    import json
+
+    from mapforge.config import Config, load_config
+    from mapforge.style import local
+
+    base = load_config()
+    data = copy.deepcopy(base.data)
+    data["paths"].update(build_dir=str(tmp_path / "build"), maps_dir=str(tmp_path / "maps"))
+    cfg = Config(root=base.root, data=data)
+    style = tmp_path / "build" / "m" / "style"
+    (style / "sheets").mkdir(parents=True)
+    (tmp_path / "maps" / "m").mkdir(parents=True)
+    (tmp_path / "maps" / "m" / "ART_DIRECTION.md").write_text("art", encoding="utf-8")
+    Image.new("RGB", (8, 8)).save(style / "sheets" / "a_1.png")
+    sheets = [{"file": "a_1.png", "zone": "a", "tiles": [
+        {"n": 1, "image": "x.png", "subject": "a_site"},
+        {"n": 2, "image": "y.png", "subject": "A"}]}]  # fmt: skip
+    (style / "sheets.json").write_text(json.dumps(sheets), encoding="utf-8")
+    reply = {"images": [
+        {"n": 1, "zone_match": 2, "flag": "critical", "note": "rust on rust", "fix": "grey floor"},
+        {"n": 2, "zone_match": 5, "flag": "ok", "note": "fine", "fix": ""}]}  # fmt: skip
+    sent = []
+
+    def fake_post(url, body, timeout):
+        sent.append(body)
+        return {"choices": [{"message": {"content": json.dumps(reply)}}]}
+
+    monkeypatch.setattr(local, "_post", fake_post)
+    published = []
+    answer = local.run_local(cfg, "m", lambda: published.append(1))
+    assert sent[0]["response_format"]["type"] == "json_schema" and len(published) == 2
+    assert answer["findings"] == [{"severity": "critical", "image": "x.png", "where": "a_site",
+                                   "what": "rust on rust", "fix": "grey floor"}]  # fmt: skip
+    assert answer["zones"] == [{"zone": "a", "score": 4, "reason": "mean of the views"}]
+    prog = json.loads((style / "progress.json").read_text(encoding="utf-8"))
+    assert prog["state"] == "done" and prog["done"] == 1
+    assert len(json.loads((style / "notes.json").read_text(encoding="utf-8"))) == 2
+
+
+def test_local_review_retries_an_empty_answer_and_resumes(tmp_path, monkeypatch):
+    import json
+
+    from mapforge.config import Config, load_config
+    from mapforge.style import local
+
+    base = load_config()
+    data = copy.deepcopy(base.data)
+    data["paths"].update(build_dir=str(tmp_path / "build"), maps_dir=str(tmp_path / "maps"))
+    cfg = Config(root=base.root, data=data)
+    style = tmp_path / "build" / "m" / "style"
+    (style / "sheets").mkdir(parents=True)
+    (tmp_path / "maps" / "m").mkdir(parents=True)
+    (tmp_path / "maps" / "m" / "ART_DIRECTION.md").write_text("art", encoding="utf-8")
+    sheets = []
+    for name in ("a_1.png", "b_1.png"):
+        Image.new("RGB", (8, 8)).save(style / "sheets" / name)
+        sheets.append({"file": name, "zone": name[0], "tiles": [
+            {"n": 1, "image": f"{name[0]}.png", "subject": name[0]}]})  # fmt: skip
+    (style / "sheets.json").write_text(json.dumps(sheets), encoding="utf-8")
+    done = [{"image": "a.png", "subject": "a", "zone": "a", "sheet": "a_1.png", "flag": "ok",
+             "zone_match": 5, "note": "fine", "fix": "", "source": "local"}]  # fmt: skip
+    (style / "notes.json").write_text(json.dumps(done), encoding="utf-8")
+    reply = {"images": [{"n": 1, "zone_match": 4, "flag": "ok", "note": "fine", "fix": ""}]}
+    budgets = []
+
+    def fake_post(url, body, timeout):
+        budgets.append(body["max_tokens"])
+        content = "" if len(budgets) == 1 else json.dumps(reply)  # first answer is empty
+        return {"choices": [{"message": {"content": content}}]}
+
+    monkeypatch.setattr(local, "_post", fake_post)
+    answer = local.run_local(cfg, "m", resume=True)
+    assert budgets == [8000, 16000]  # only sheet b_1 asked, retried with twice the budget
+    assert {z["zone"] for z in answer["zones"]} == {"a", "b"}

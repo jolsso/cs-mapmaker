@@ -1,10 +1,13 @@
 """Style review (phase 7): systematic cameras over the whole map, checked against the map's
 ART_DIRECTION.md by Claude, with pass/fail decided here (no critical findings).
 
-  --emit (default)  render build/<map>/style/ (+ index.json with per-image numbers) and write
-                    style_prompt.md + style_schema.json; a fresh subagent reads the prompt and
-                    the images and writes build/<map>/style_answer.json.
-  --answer [FILE]   check that answer against the schema -> build/<map>/style.json.
+  --emit (default)  render build/<map>/style/ (+ index.json with per-image numbers), put the
+                    views that changed since the last scored review on contact sheets
+                    (style/sheets/, six views each, by zone; --all: every view) and write
+                    style_prompt.md + style_schema.json; a fresh subagent reads all sheets in one
+                    turn and writes build/<map>/style_answer.json.
+  --answer [FILE]   check that answer against the schema -> build/<map>/style.json; findings
+                    on views that did not change are carried over from the previous review.
 
 Cameras (mapforge.style.cameras): every area from its middle, both sides of every chokepoint
 and site entrance, every landmark from inside its zone. Deterministic checks run first and
@@ -28,6 +31,7 @@ import yaml
 from PIL import Image
 
 from mapforge.config import Config, load_config
+from mapforge.style.sheets import image_hash, make_sheets
 
 SEVERITIES = ("critical", "medium", "cosmetic")  # ART_DIRECTION.md §7: kritisk/middel/kosmetisk
 BURNT_LUMA, BURNT_SHARE = 250, 0.25  # an image with >= 25 % pure-white pixels is burnt out
@@ -66,24 +70,25 @@ SCHEMA = {
     "required": ["summary", "findings", "zones"],
 }
 
-PROMPT = """Du er stilreviewer i en pipeline, der laver Counter-Strike 1.6 maps (GoldSrc). Mappet er i art pass (fase 7): layoutet er låst, kun teksturer, lys, props og pynt kan ændres. Vurdér billederne mod mappets art direction og tjeklisten (§7). Vær konkret: hellere få, rigtige fund med en brugbar rettelse end mange vage.
+PROMPT = """You are the style reviewer in a pipeline that builds Counter-Strike 1.6 maps (GoldSrc). The map is in its art pass (phase 7): the layout is locked; only textures, lighting, props and dressing can change. Judge the views against the map's art direction and its checklist (§7). Be concrete: a few real findings with a usable fix beat many vague ones. The art direction is written in Danish; answer in English.
 
 Map: {map}
 
-## Billeder
-Læs HVER fil med Read-værktøjet (absolutte stier). Øjenhøjde 64 units (en stående spiller), FOV {fov}°. Vores egen renderer: teksturer og kompileret lys, men himlen er en flad farve, og decals, modeller og sprites vises ikke.
+## Images
+The images are contact sheets: six camera views per sheet, numbered 1-6 with the camera's name above each view. **Read ALL sheets in one message** (several Read calls in the same turn), then write the answer - do not read them one at a time. If you need a view at full resolution, it is at {full}/<name>.png. Eye height 64 units (a standing player), FOV {fov} degrees. Our own renderer: textures and compiled lighting, but the sky is a flat colour, and decals, models and sprites are not shown.
+{scope}
 {images}
 
-## Deterministiske målinger (allerede kørt)
+## Deterministic measurements (already run)
 {numbers}
 
-## Art direction (facitliste)
+## Art direction (the reference)
 {art}
 
-## Svar
-Skriv alle tekster på dansk. Svar KUN med JSON efter skemaet.
-- `findings`: et fund pr. konkret problem. `severity`: `critical` = påvirker gameplay/læsbarhed (fx spillere svære at se mod baggrunden, mørkt spilområde), `medium` = bryder stilen (forkert palet for zonen, landmark ikke til at genkende, tekstur strakt eller forkert alignet, mønstret gentagelse), `cosmetic` = småting. `image` = filnavnet. `where` = område/dør/landmark i ord. `fix` = den konkrete rettelse (tekstur, lysfarve/-styrke, prop eller decal) – aldrig en ændring af layoutet.
-- `zones`: én score 1-5 pr. zone i art direction (`t`, `ct`, `mid`, `a`, `b` …) for, hvor godt billederne rammer zonens palet, materialer og lys-stemning.
+## Answer
+Write all text in English. Answer ONLY with JSON following the schema.
+- `findings`: one per concrete problem. `image` is the camera's file name (e.g. `area_a_site_north.png`), not the sheet's. `severity`: `critical` = affects gameplay/readability (e.g. players hard to see against the background, a dark play area), `medium` = breaks the style (wrong palette for the zone, landmark not recognisable, stretched or misaligned texture, patterned repetition), `cosmetic` = small things. `where` = area/door/landmark in words. `fix` = the concrete fix (texture, light colour/brightness, prop or decal) - never a change to the layout.
+- `zones`: one score 1-5 per zone of the art direction (`t`, `ct`, `mid`, `a`, `b` ...) for how well the views hit the zone's palette, materials and lighting mood.
 """
 
 
@@ -140,7 +145,8 @@ def render_style(cfg: Config, map_name: str) -> dict[str, Any]:
         name = f"{sc.cam.name}.png"
         Image.fromarray(img).save(out / name)
         images.append({"file": name, "kind": sc.kind, "area": sc.area, "zone": sc.zone,
-                       "subject": sc.subject, **sc.cam.to_dict(), **image_numbers(out / name)})  # fmt: skip
+                       "subject": sc.subject, "hash": image_hash(out / name),
+                       **sc.cam.to_dict(), **image_numbers(out / name)})  # fmt: skip
     rindex = build / "renders" / "index.json"
     brightness = (
         json.loads(rindex.read_text(encoding="utf-8")).get("brightness", {})
@@ -165,41 +171,96 @@ def deterministic_findings(index: dict[str, Any]) -> list[dict[str, str]]:
     out = []
     for name in index["missing_textures"]:
         out.append({"severity": "critical", "image": "index.json", "where": name,
-                    "what": f"teksturen {name} findes ikke i nogen WAD (checkerboard i spillet)",
-                    "fix": "vælg en tekstur fra ./mf textures"})  # fmt: skip
+                    "what": f"texture {name} is in no WAD (checkerboard in game)",
+                    "fix": "pick a texture from ./mf textures"})  # fmt: skip
     if index["dark_zones"]:
-        out.append({"severity": "critical", "image": "renders/topdown_dark.png", "where": "spilområder",
-                    "what": f"{index['dark_zones']} mørke zoner i lysstyrkekortet",
-                    "fix": "mere lys eller lysere zonefarve dér"})  # fmt: skip
+        out.append({"severity": "critical", "image": "renders/topdown_dark.png", "where": "play areas",
+                    "what": f"{index['dark_zones']} dark zones in the brightness map",
+                    "fix": "more light or a brighter zone colour there"})  # fmt: skip
     for i in index["images"]:
         if i["burnt"] >= BURNT_SHARE:
             out.append({"severity": "medium", "image": i["file"], "where": i["subject"],
-                        "what": f"{i['burnt']:.0%} af billedet er udbrændt (luma >= {BURNT_LUMA})",
-                        "fix": "lavere sol-/lysstyrke eller mørkere tekstur i zonen"})  # fmt: skip
+                        "what": f"{i['burnt']:.0%} of the view is burnt out (luma >= {BURNT_LUMA})",
+                        "fix": "lower sun/light brightness or a darker texture in the zone"})  # fmt: skip
     return out
 
 
-def build_prompt(cfg: Config, map_name: str, index: dict[str, Any]) -> str:
+def build_prompt(
+    cfg: Config, map_name: str, index: dict[str, Any], sheets: list[dict], carried: int = 0
+) -> str:
     out = cfg.path("build_dir") / map_name / "style"
     art = cfg.path("maps_dir") / map_name / "ART_DIRECTION.md"
     if not art.is_file():
         raise RuntimeError(f"missing {art}: the style review needs the map's art direction")
+    purpose = {i["file"]: i["purpose"] for i in index["images"]}
     images = "\n".join(
-        f"- {_shown(out / i['file'], cfg.root)} — {i['purpose']} [zone {i['zone'] or '-'}]"
-        for i in index["images"]
+        f"- {_shown(out / 'sheets' / sh['file'], cfg.root)} (zone {sh['zone']}): "
+        + "; ".join(f"{t['n']} = {t['image']} ({purpose[t['image']]})" for t in sh["tiles"])
+        for sh in sheets
+    )
+    scope = (
+        f"Only the {sum(len(sh['tiles']) for sh in sheets)} views that changed since the last "
+        f"review are included; {carried} unchanged views keep their earlier findings."
+        if carried
+        else "All views are included."
     )
     rows = [
-        "| billede | zone | middel-luma | udbrændt | sort | kontrast |",
+        "| image | zone | mean luma | burnt out | black | contrast |",
         "|---|---|---|---|---|---|",
     ]
     rows += [f"| {i['file']} | {i['zone'] or '-'} | {i['mean_luma']} | {i['burnt']:.0%} | {i['black']:.0%} | {i['contrast']} |"
              for i in index["images"]]  # fmt: skip
     numbers = "\n".join(rows) + (
-        f"\n\nMørke zoner i lysstyrkekortet: {index['dark_zones']}. Manglende teksturer: "
-        f"{index['missing_textures'] or 'ingen'}."
+        f"\n\nDark zones in the brightness map: {index['dark_zones']}. Missing textures: "
+        f"{index['missing_textures'] or 'none'}."
     )
-    return PROMPT.format(map=map_name, fov=index["fov"], images=images, numbers=numbers,
-                         art=art.read_text(encoding="utf-8"))  # fmt: skip
+    return PROMPT.format(map=map_name, fov=index["fov"], images=images, numbers=numbers, scope=scope,
+                         full=_shown(out, cfg.root), art=art.read_text(encoding="utf-8"))  # fmt: skip
+
+
+def previous(build: Path) -> dict[str, Any]:
+    """The last scored review (style.json), or {}."""
+    p = build / "style.json"
+    return json.loads(p.read_text(encoding="utf-8")) if p.is_file() else {}
+
+
+def emit(cfg: Config, map_name: str, review_all: bool = False) -> dict[str, Any]:
+    """Render, put the changed views on sheets, write prompt + schema. -> summary numbers."""
+    build = cfg.path("build_dir") / map_name
+    index = render_style(cfg, map_name)
+    seen = {} if review_all else previous(build).get("image_hashes", {})
+    todo = [i for i in index["images"] if seen.get(i["file"]) != i["hash"]]
+    sheets = make_sheets(build / "style", todo, build / "style" / "sheets")
+    (build / "style" / "sheets.json").write_text(json.dumps(sheets, indent=2), encoding="utf-8")
+    carried = len(index["images"]) - len(todo)
+    (build / "style_prompt.md").write_text(
+        build_prompt(cfg, map_name, index, sheets, carried), encoding="utf-8"
+    )
+    (build / "style_schema.json").write_text(json.dumps(SCHEMA, indent=2), encoding="utf-8")
+    return {"images": len(index["images"]), "changed": len(todo), "sheets": len(sheets),
+            "seconds": index["seconds"]}  # fmt: skip
+
+
+def score(cfg: Config, map_name: str, answer: dict[str, Any], executor: str) -> dict[str, Any]:
+    """Pass/fail in code: deterministic findings + the answer's + previous findings on views that
+    did not change. -> style.json."""
+    build = cfg.path("build_dir") / map_name
+    index = json.loads((build / "style" / "index.json").read_text(encoding="utf-8"))
+    sheets = json.loads((build / "style" / "sheets.json").read_text(encoding="utf-8"))
+    reviewed = {t["image"] for sh in sheets for t in sh["tiles"]}
+    current = {i["file"] for i in index["images"]}
+    old = [f for f in previous(build).get("findings", [])
+           if f.get("image") in current - reviewed and f.get("source") != "code"]  # fmt: skip
+    code = [{**f, "source": "code"} for f in deterministic_findings(index)]
+    findings = code + [{**f, "source": executor} for f in answer["findings"]] + old
+    result = {"map": map_name, "passed": not any(f["severity"] == "critical" for f in findings),
+              "executor": executor, "summary": answer["summary"], "zones": answer["zones"],
+              "findings": findings, "images": len(index["images"]), "reviewed": len(reviewed),
+              "image_hashes": {i["file"]: i["hash"] for i in index["images"]}}  # fmt: skip
+    (build / "style.json").write_text(
+        json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    return result
 
 
 def check_answer(answer: Any) -> dict[str, Any]:
@@ -227,39 +288,60 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--map", required=True)
     ap.add_argument("--answer", nargs="?", const="", metavar="FILE")
+    ap.add_argument("--all", action="store_true", help="review every view, not only changed ones")
+    ap.add_argument(
+        "--local",
+        action="store_true",
+        help="emit, then review the sheets with the local model (style.local)",
+    )
+    ap.add_argument("--resume", action="store_true",
+                    help="with --local: no new emit; go on from the last sheet that was done")  # fmt: skip
     args = ap.parse_args(argv)
     cfg = load_config()
     build = cfg.path("build_dir") / args.map
     try:
-        if args.answer is None:
-            index = render_style(cfg, args.map)
-            (build / "style_prompt.md").write_text(
-                build_prompt(cfg, args.map, index), encoding="utf-8"
+        if args.local:
+            from mapforge.style.local import run_local
+            from mapforge.style.publish import publish
+
+            if not args.resume:
+                n = emit(cfg, args.map, args.all)
+                print(f"style {args.map}: {n['changed']} of {n['images']} views on {n['sheets']} "
+                      f"sheets -> local model {cfg.data['style']['local']['model']}")  # fmt: skip
+                publish(cfg, args.map, images=True)
+            answer = check_answer(
+                run_local(cfg, args.map, lambda: publish(cfg, args.map), resume=args.resume)
             )
-            (build / "style_schema.json").write_text(json.dumps(SCHEMA, indent=2), encoding="utf-8")
-            print(f"style {args.map}: {len(index['images'])} images in {index['seconds']} s; prompt "
-                  f"{build / 'style_prompt.md'} -> answer to {build / 'style_answer.json'}, then --answer")  # fmt: skip
+            (build / "style_answer.json").write_text(
+                json.dumps(answer, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+            result = score(cfg, args.map, answer, "local")
+            publish(cfg, args.map)
+            report(args.map, result)
+            return 0 if result["passed"] else 1
+        if args.answer is None:
+            n = emit(cfg, args.map, args.all)
+            print(f"style {args.map}: {n['images']} views ({n['changed']} changed) on {n['sheets']} sheets "
+                  f"in {n['seconds']} s; prompt {build / 'style_prompt.md'} -> answer to "
+                  f"{build / 'style_answer.json'}, then --answer")  # fmt: skip
             return 0
-        index = json.loads((build / "style" / "index.json").read_text(encoding="utf-8"))
         path = Path(args.answer) if args.answer else build / "style_answer.json"
         answer = check_answer(json.loads(path.read_text(encoding="utf-8")))
+        result = score(cfg, args.map, answer, "session")
     except (RuntimeError, OSError, json.JSONDecodeError) as exc:
         print(f"style review failed to run: {exc}", file=sys.stderr)
         return 2
-    findings = deterministic_findings(index) + answer["findings"]
-    result = {"map": args.map, "passed": not any(f["severity"] == "critical" for f in findings),
-              "summary": answer["summary"], "zones": answer["zones"], "findings": findings,
-              "images": len(index["images"])}  # fmt: skip
-    (build / "style.json").write_text(
-        json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
-    counts = {s: sum(f["severity"] == s for f in findings) for s in SEVERITIES}
-    print(
-        f"style {args.map}: {'PASS' if result['passed'] else 'FAIL'} {counts} - {answer['summary']}"
-    )
-    for f in findings:
-        print(f"  [{f['severity']}] {f['where']}: {f['what']} -> {f['fix']} ({f['image']})")
+    report(args.map, result)
     return 0 if result["passed"] else 1
+
+
+def report(map_name: str, result: dict[str, Any]) -> None:
+    counts = {s: sum(f["severity"] == s for f in result["findings"]) for s in SEVERITIES}
+    print(
+        f"style {map_name}: {'PASS' if result['passed'] else 'FAIL'} {counts} - {result['summary']}"
+    )
+    for f in result["findings"]:
+        print(f"  [{f['severity']}] {f['where']}: {f['what']} -> {f['fix']} ({f['image']})")
 
 
 if __name__ == "__main__":

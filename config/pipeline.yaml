@@ -172,6 +172,18 @@ review:
   # this call); api_key: use ANTHROPIC_API_KEY as is.
   auth: login
 
+style:
+  # Style review (phase 7, ./mf style): session = a Claude subagent judges the contact sheets
+  # (the phase 7 gate); --local = the local vision model below writes notes per view (running
+  # reviewer between iterations, free). Same sheets, same pass rule.
+  local:
+    url: http://host.docker.internal:1234/v1   # LM Studio on the host (auth off, localhost only)
+    model: qwen3.8-27b                         # reasoning on in LM Studio: much better (calibration)
+    temperature: 0.2
+    top_p: 0.9
+    max_tokens: 8000                           # room for the reasoning tokens (~3000 per sheet)
+    timeout_s: 600
+
 decide:
   # Roadmap phase the plan is checked for (lighting changes need >= 7).
   phase: 6

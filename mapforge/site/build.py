@@ -20,6 +20,7 @@ from mapforge.config import Config, load_config
 from mapforge.history import versions
 from mapforge.runs import iterations, stage_of
 from mapforge.site import charts
+from mapforge.style.publish import section as style_section
 
 PHASES = [  # (key, label, built?)
     ("input", "1 Input", True),
@@ -48,7 +49,11 @@ NEW_VERSION = (
 JS_VERSION = (
     __import__("hashlib").sha256(Path(__file__).with_name("live.js").read_bytes()).hexdigest()[:8]
 )
-SKIP_BUILD_DIRS = {"refmaps", "site", "no-hl-install"}
+STYLE_VERSION = (
+    __import__("hashlib").sha256(Path(__file__).with_name("style.js").read_bytes()).hexdigest()[:8]
+)
+SKIP_BUILD_DIRS = {"refmaps", "site", "no-hl-install", "textures", "topologies"}
+
 
 e = html.escape
 
@@ -1041,6 +1046,7 @@ def build_site(cfg: Config) -> Path:
     from mapforge.site import graph as graph_page
 
     shutil.copy2(Path(__file__).with_name("graph.js"), out / "graph.js")
+    shutil.copy2(Path(__file__).with_name("style.js"), out / "style.js")
     shutil.copy2(Path(__file__).with_name("graph.css"), out / "graph.css")
     topos = graph_page.topologies(cfg, maps)
     (out / "graph.html").write_text(
@@ -1063,6 +1069,9 @@ def build_site(cfg: Config) -> Path:
         if m in topos:
             body += (f"<section class='panel'><h2>Topologi</h2><p class='muted'>{e(m)} som rum og forbindelser, "
                      f"med reglerne beregnet på grafen: <a href='../../graph.html#{e(m)}'>se grafen</a>.</p></section>")  # fmt: skip
+        style_html = style_section(cfg, m)
+        if style_html:
+            body += style_html + f"<script src='../../style.js?v={STYLE_VERSION}'></script>"
         body += f"<script src='../../live.js?v={JS_VERSION}'></script>"
         (mdir / "index.html").write_text(
             _page(f"MapForge – {m}", body, 2, m, maps), encoding="utf-8"
