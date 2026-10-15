@@ -174,6 +174,7 @@ class Hatch:
     upper: str
     rect: tuple[int, int, int, int]
     ladder: str | None = None  # +x -x +y -y: the hatch side the ladder stands on; None = drop only
+    lift: str | None = None  # auto (func_plat: step on below) | button (func_button on both floors)
 
 
 @dataclass(frozen=True)
@@ -714,6 +715,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             upper=need(h["upper"], h["name"]),
             rect=_ints(h["rect"], 4, f"hatch {h['name']}.rect"),
             ladder=h.get("ladder"),
+            lift=h.get("lift"),
         )
         lo, up = areas[ht.lower], areas[ht.upper]
         hx0, hy0, hx1, hy1 = ht.rect
@@ -731,6 +733,14 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             raise SpecError(f"hatch {ht.name}: needs >= 48 units across (a player is 32)")
         if ht.ladder not in (None, "+x", "-x", "+y", "-y"):
             raise SpecError(f"hatch {ht.name}: ladder must be +x/-x/+y/-y or absent")
+        if ht.lift not in (None, "auto", "button"):
+            raise SpecError(f"hatch {ht.name}: lift must be auto, button or absent")
+        if ht.lift and ht.ladder:
+            raise SpecError(f"hatch {ht.name}: a lift and a ladder exclude each other")
+        if ht.lift and min(hx1 - hx0, hy1 - hy0) < 64:
+            raise SpecError(f"hatch {ht.name}: a lift needs >= 64 units across")
+        if ht.lift and up.floor - lo.floor > 512:
+            raise SpecError(f"hatch {ht.name}: a lift travels at most 512 units")
         hatches.append(ht)
     water = []
     for w in data.get("water", []) or []:

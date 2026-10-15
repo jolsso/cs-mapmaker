@@ -42,6 +42,9 @@ def test_layout_graph_windows_are_no_entrances_and_touching_areas_are_one_room()
         "sites": {"A": "a"},
     }
     assert layout_graph(lay)["site_entrances"] == {"A": 1}
+    # nor is it with a second opening (ladder hatch + lift): still only the site as neighbour
+    lay["hatches"] = [{"lower": "a", "upper": "office"}]
+    assert layout_graph(lay)["site_entrances"] == {"A": 1}
 
 
 def test_design_findings_severities():

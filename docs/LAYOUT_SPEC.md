@@ -159,6 +159,13 @@ doors:
 - `arch` (kun en almindelig dør: ingen `gate`, `glass`, vindue eller vent): en halv-elliptisk bue over hele bredden, stigning = halv bredde, men vederlaget ligger altid mindst 80 over gulvet, så en stående spiller (72) passer i hele bredden. Hjørnerne fyldes med trekanter i gitteret gennem væggen (world brushes). Kræver en åbning på mindst 96 i højden.
 - Værktøjskassen: `set_arch` (target, `arch: false` fjerner den) og `add_connection` med `arch: true`.
 
+```yaml
+hatches:
+  - {name: h_lift, lower: b_site, upper: b_upper, rect: [x0, y0, x1, y1], lift: button}   # auto | button
+```
+- `lift` på en lem: en `func_plat` fylder hullet i det øverste gulv (tegnet i topposition, `height` = forskellen mellem gulvene) og kører ned til det nederste gulv. `auto`: venter nede og kører op, når man træder på den. `button`: starter oppe; en `func_button` på en sokkel (16×16×40) ved siden af lemmen på hver etage sender den op/ned (soklen placeres på første ledige side +x, -x, +y, -y). Min. 64 på tværs, højst 512 i højden, udelukker `ladder`.
+- **Bots kan ikke bruge elevatoren** (verificeret 2026-10-15 i YaPB's kilde: kræver `NodeFlag::Lift`-noder, som auto-analysen aldrig laver), og validatorens gangbarhedsgraf ignorerer `func_plat`. Elevatoren er derfor en ekstra rute for mennesker; etagen skal kunne nås ad anden vej (stige, trappe, rampe). Den er ikke i værktøjskassen.
+
 ### Vinkler og niveauer (2026-10-14): skrå rum i vilkårlig vinkel, broer, overgange
 ```yaml
 areas:

@@ -443,6 +443,46 @@ def _poly_fill(a: Area) -> list[list[tuple[int, int]]]:
     return out
 
 
+LIFT_BUTTON = (16, 40, 8)  # footprint, pedestal height, button height
+
+
+def _lift_entities(h, areas: dict[str, Area], tex: dict[str, str], world) -> list:
+    """A func_plat filling the hatch at the upper floor (plats are drawn at the top) that
+    travels down to the lower floor. `auto`: it waits at the bottom and rises when stepped
+    on; `button`: it starts at the top and a button on each floor (a pedestal next to the
+    hatch) sends it up or down. Bots cannot ride it (YaPB's analyser makes no lift nodes), so
+    it must never be the only way between two areas."""
+    lower, upper = areas[h.lower], areas[h.upper]
+    hx0, hy0, hx1, hy1 = h.rect
+    name = f"lift_{h.name}"
+    props = {"classname": "func_plat", "height": str(upper.floor - lower.floor),
+             "speed": "150", "sounds": "2"}  # fmt: skip
+    if h.lift == "button":
+        props["targetname"] = name
+    plat = box_brush((hx0, hy0, upper.floor - 8), (hx1, hy1, upper.floor), tex["door"])
+    out = [entity(props, [plat])]
+    if h.lift != "button":
+        return out
+    size, pedestal, knob = LIFT_BUTTON
+    cx, cy = (hx0 + hx1) // 2, (hy0 + hy1) // 2
+    for a in (lower, upper):
+        for bx, by in ((hx1 + 16, cy - size // 2), (hx0 - 16 - size, cy - size // 2),
+                       (cx - size // 2, hy1 + 16), (cx - size // 2, hy0 - 16 - size)):  # fmt: skip
+            if a.inside(bx, by, margin=0) and a.inside(bx + size, by + size, margin=0):
+                break
+        else:
+            raise SpecError(f"hatch {h.name}: no room for the lift button in {a.name}")
+        z = a.floor
+        world.brushes.append(box_brush((bx, by, z), (bx + size, by + size, z + pedestal),
+                                       tex["door"]))  # fmt: skip
+        out.append(entity({"classname": "func_button", "target": name, "angle": "-2",
+                           "speed": "50", "wait": "1", "lip": "4", "sounds": "1"},
+                          [box_brush((bx, by, z + pedestal), (bx + size, by + size,
+                                                              z + pedestal + knob),
+                                     tex["door"])]))  # fmt: skip
+    return out
+
+
 def _bridge_boxes(br: Bridge, a: Area) -> list[Box]:
     """A bridge's deck (first) and its railings: wall to wall along its axis."""
     x0, y0, x1, y1 = a.rect
@@ -634,8 +674,11 @@ def generate(layout: Layout) -> Generated:
         )
         ents.append(entity({"classname": "func_ladder"}, [box_brush(l_lo, l_hi, tex["trigger"])]))
 
-    # Hatches: an optional ladder up through the hole, on one of its sides.
+    # Hatches: an optional lift (func_plat, drawn at the top) or ladder through the hole.
     for h in layout.hatches:
+        if h.lift:
+            ents += _lift_entities(h, areas, tex, world)
+            continue
         if not h.ladder:
             continue
         hx0, hy0, hx1, hy1 = h.rect

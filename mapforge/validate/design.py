@@ -234,21 +234,21 @@ def layout_graph(layout: dict[str, Any]) -> dict[str, Any]:
     for a, b in walk_doors:
         degree[a] += 1
         degree[b] += 1
+    neighbours: dict[str, set[str]] = {n: set() for n in areas}
+    for a, b in walk_doors:
+        neighbours[a].add(b)
+        neighbours[b].add(a)
     sites = layout.get("sites", {})
     site_areas = {k: find(v["area"] if isinstance(v, dict) else v) for k, v in sites.items()}
-    # a door into a dead end (a closet, an office only reachable from the site) is part of the
-    # site, not a way in
+    # a door into a dead end (a closet, an office only reachable from the site - by however
+    # many openings: a ladder hatch and a lift) is part of the site, not a way in
     entrances = {
-        k: sum(1 for x, y in walk_doors if a in (x, y) and degree[y if x == a else x] > 1)
+        k: sum(1 for x, y in walk_doors if a in (x, y) and len(neighbours[y if x == a else x]) > 1)
         for k, a in site_areas.items()
     }
     ct_areas = {a for a, x in areas.items() if x.get("role") == "ct_spawn"}
     # a site's CT entrance: a door to an area that CT reaches without crossing the site (direct
     # neighbour of the CT spawn area or the spawn itself)
-    neighbours: dict[str, set[str]] = {n: set() for n in areas}
-    for a, b in walk_doors:
-        neighbours[a].add(b)
-        neighbours[b].add(a)
     ct_side = set(ct_areas) | {n for c in ct_areas for n in neighbours[c]}
     ct_entrance = {k: bool(neighbours.get(a, set()) & ct_side) for k, a in site_areas.items()}
     junction = {

@@ -454,3 +454,32 @@ def test_bad_arches(door, msg):
     next(d for d in data["doors"] if d["name"] == "mid_a").update(arch=True, **door)
     with pytest.raises(SpecError, match=msg):
         generate(parse_layout(data))
+
+
+@pytest.mark.parametrize("mode", ["auto", "button"])
+def test_lift_is_a_plat_drawn_at_the_upper_floor(mode):
+    data = copy.deepcopy(STACKED)
+    hatch = data["hatches"][0]
+    del hatch["ladder"]
+    hatch["lift"] = mode
+    g = generate(parse_layout(data))
+    plats = [e for e in g.mapfile.entities if e.classname == "func_plat"]
+    assert len(plats) == 1 and plats[0].properties["height"] == "176"  # loft floor - hall floor
+    v = brush_geometry(plats[0].brushes[0]).vertices
+    assert v[:, 2].min() == 168 and v[:, 2].max() == 176
+    buttons = [e for e in g.mapfile.entities if e.classname == "func_button"]
+    assert "func_ladder" not in [e.classname for e in g.mapfile.entities]
+    if mode == "auto":
+        assert not buttons and "targetname" not in plats[0].properties
+    else:
+        assert len(buttons) == 2
+        assert {b.properties["target"] for b in buttons} == {plats[0].properties["targetname"]}
+        zs = sorted(brush_geometry(b.brushes[0]).vertices[:, 2].min() for b in buttons)
+        assert zs == [40, 176 + 40]  # on a pedestal on each floor
+
+
+def test_lift_and_ladder_exclude_each_other():
+    data = copy.deepcopy(STACKED)
+    data["hatches"][0]["lift"] = "auto"
+    with pytest.raises(SpecError, match="exclude each other"):
+        parse_layout(data)
