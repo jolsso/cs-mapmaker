@@ -83,6 +83,7 @@ class Door:
     sill: int = 0  # bottom of the opening above the higher of the two floors
     glass: bool = False  # breakable glass pane in the opening (func_breakable)
     gate: str = "none"  # an openable door leaf in the opening (func_door / func_door_rotating)
+    arch: bool = False  # rounded top corners (a plain door; full width stays >= 80 high)
 
     @property
     def walkable(self) -> bool:
@@ -557,6 +558,7 @@ def parse_layout(data: dict[str, Any]) -> Layout:
                 sill=int(d.get("sill", 0)),
                 glass=bool(d.get("glass", False)),
                 gate=str(d.get("gate", "none")),
+                arch=bool(d.get("arch", False)),
             )
         )
         dr = doors[-1]
@@ -572,6 +574,8 @@ def parse_layout(data: dict[str, Any]) -> Layout:
             raise SpecError(f"door {dr.name}: a vent needs height 40..64 (crouch hull 36)")
         if dr.glass and dr.gate != "none":
             raise SpecError(f"door {dr.name}: glass and gate exclude each other")
+        if dr.arch and (dr.kind != "door" or dr.glass or dr.gate != "none"):
+            raise SpecError(f"door {dr.name}: an arch is only for a plain door (no gate/glass)")
     stairs = []
     for s in data.get("stairs", []):
         st = Stairs(

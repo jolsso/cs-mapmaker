@@ -418,3 +418,39 @@ def test_cylinders_and_presets_are_convex_and_on_the_grid():
 def test_bad_round_cover_and_presets(item, msg):
     with pytest.raises(SpecError, match=msg):
         feat(cover=[{"name": "x", "area": "a_site", "pos": [0, 400], **item}])
+
+
+def test_arch_rounds_the_top_of_a_doorway_and_keeps_the_hull_clear():
+    from mapforge.generator.build import arch_brushes
+
+    data = copy.deepcopy(FEAT)
+    next(d for d in data["doors"] if d["name"] == "mid_a")["arch"] = True
+    lay = parse_layout(data)
+    plain = generate(feat())
+    g = generate(lay)
+    extra = len(g.mapfile.worldspawn.brushes) - len(plain.mapfile.worldspawn.brushes)
+    lo, hi = g.voids["mid_a"]
+    arch = arch_brushes(lo, hi, "X")
+    assert extra == len(arch) >= 6
+    for b in arch:
+        geo = brush_geometry(b)
+        assert not geo.unbounded and all(len(v) >= 3 for v in geo.face_vertices)
+        v = geo.vertices
+        assert not np.any(np.abs(v - np.round(v / 8) * 8) > 1e-3), "off the 8 grid"
+        assert v[:, 2].min() >= lo[2] + 80  # standing hull fits the whole width
+        assert v[:, 0].min() >= lo[0] and v[:, 0].max() <= hi[0]
+        assert v[:, 1].min() >= lo[1] and v[:, 1].max() <= hi[1]
+
+
+@pytest.mark.parametrize(
+    "door, msg",
+    [
+        ({"gate": "sliding"}, "only for a plain door"),
+        ({"height": 88}, "too low for an arch"),
+    ],
+)
+def test_bad_arches(door, msg):
+    data = copy.deepcopy(FEAT)
+    next(d for d in data["doors"] if d["name"] == "mid_a").update(arch=True, **door)
+    with pytest.raises(SpecError, match=msg):
+        generate(parse_layout(data))

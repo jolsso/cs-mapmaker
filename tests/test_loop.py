@@ -99,6 +99,15 @@ def test_apply_cover_presets_need_no_size():
     assert any(c.get("shape") == "cylinder" for c in data["cover"])
 
 
+def test_apply_arch_on_and_off():
+    door = yaml.safe_load(LAYOUT)["doors"][0]["name"]
+    new, applied, failed = apply_plan(LAYOUT, [{"type": "set_arch", "params": {"target": door}}])
+    assert not failed and next(d for d in yaml.safe_load(new)["doors"] if d["name"] == door)["arch"]
+    off = [{"type": "set_arch", "params": {"target": door, "arch": False}}]
+    new, _, failed = apply_plan(new, off)
+    assert not failed and "arch" not in yaml.safe_load(new)["doors"][0]
+
+
 def test_policy_counts_windows_per_iteration_and_uses_per_map_locks():
     from mapforge.decide.policy import check_plan, load_fitness, locked_for
 

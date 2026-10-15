@@ -226,6 +226,8 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
             door.update(kind="vent", height=_vec(p.get("height", 48), 1, 8, "height")[0])
         if p.get("offset"):
             door["offset"] = _vec(p["offset"], 1, 8, "offset")[0]
+        if p.get("arch") and kind == "door":
+            door["arch"] = True
         lay["doors"].append(_flow_map(door))
         return f"{kind} {door['name']} ({width} wide) between {a} and {b}"
     if t == "add_window":
@@ -254,6 +256,13 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
         else:
             door["gate"] = gate
         return f"door {door['name']} gate {gate}"
+    if t == "set_arch":
+        door = _find(lay["doors"], str(p["target"]), "door")
+        if p.get("arch", True):
+            door["arch"] = True
+        else:
+            door.pop("arch", None)
+        return f"door {door['name']} arch {'on' if door.get('arch') else 'off'}"
     if t == "add_ramp":
         area = _area(lay, str(p["zone"]), "area")
         _guard_spawn(area)

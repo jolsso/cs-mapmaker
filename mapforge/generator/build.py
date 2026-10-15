@@ -140,6 +140,55 @@ def cover_solids(c: Cover, floor: int) -> list[tuple[str, tuple, tuple]]:
     return [("cylinder", (bx, by, z0), (bx + dia, by + dia, z0 + h)) for bx, by in cells]
 
 
+ARCH_SPRING = 80  # lowest springing line: a standing player (72) fits the whole width
+
+
+def arch_brushes(lo: tuple, hi: tuple, tex: str, grid: int = 8) -> list[Brush]:
+    """Fill for the two top corners of a door opening, leaving a (half-)elliptic arch.
+
+    The arch spans the opening's width; its rise is half the width, but never lower than
+    ARCH_SPRING above the floor. Each corner is a fan of triangles from the corner to the
+    snapped arc (monotone, so the fan never folds), extruded through the wall.
+    """
+    ax = 0 if (hi[0] - lo[0]) > (hi[1] - lo[1]) else 1  # the opening's width runs along ax
+    u0, u1, z0, z1 = lo[ax], hi[ax], lo[2], hi[2]
+    rise = min((u1 - u0) // 2, z1 - z0 - ARCH_SPRING) // grid * grid
+    if rise < 2 * grid:
+        raise SpecError(f"opening {lo}..{hi}: too low for an arch (needs {ARCH_SPRING + 16})")
+    uc, zs, half = (u0 + u1) / 2, z1 - rise, (u1 - u0) / 2
+
+    def snap(v: float) -> int:
+        return round(v / grid) * grid
+
+    out = []
+    for corner_u, sign in ((u0, -1), (u1, 1)):
+        arc = []
+        for i in range(9):  # top of the arch (centre) -> springing point at the side
+            t = math.pi / 2 * i / 8
+            p = (snap(uc + sign * half * math.sin(t)), snap(zs + rise * math.cos(t)))
+            if not arc or p != arc[-1]:
+                arc.append(p)
+        for p, q in zip(arc, arc[1:], strict=False):
+            tri = [(corner_u, z1), p, q]
+            if (p[0] - corner_u) * (q[1] - z1) == (q[0] - corner_u) * (p[1] - z1):
+                continue  # degenerate: all three on one line
+            out.append(_extrude_uz(tri, ax, lo[1 - ax], hi[1 - ax], tex))
+    return out
+
+
+def _extrude_uz(poly: list[tuple[int, int]], ax: int, t0: int, t1: int, tex: str) -> Brush:
+    """Prism from a convex (u, z) polygon, u along axis `ax`, through t0..t1 on the other."""
+
+    def at(u: int, z: int, t: int) -> tuple[int, int, int]:
+        return (u, t, z) if ax == 0 else (t, u, z)
+
+    s0 = [at(u, z, t0) for u, z in poly]
+    s1 = [at(u, z, t1) for u, z in poly]
+    n = len(poly)
+    sides = [[s0[i], s0[(i + 1) % n], s1[(i + 1) % n], s1[i]] for i in range(n)]
+    return polyhedron_brush([s0, s1, *sides], tex)
+
+
 def door_box(door: Door, areas: dict[str, Area], wall: int) -> Box:
     """The empty box cut through the wall between the two areas of a door.
 
@@ -550,9 +599,14 @@ def generate(layout: Layout) -> Generated:
         ents.append(entity({"classname": "func_detail", "zhlt_detaillevel": "1"}, detail))
     world.brushes += _stair_clips(layout, tex["clip"])
 
-    # Openings: glass panes and door leaves fill the opening's box.
+    # Openings: glass panes and door leaves fill the opening's box; arches round its top.
     for d in layout.doors:
         (o_lo, o_hi) = voids[d.name]
+        if d.arch:
+            try:
+                world.brushes += arch_brushes(o_lo, o_hi, tex_of(areas[d.between[0]])["wall"])
+            except SpecError as exc:
+                raise SpecError(f"door {d.name}: {exc}") from None
         if d.glass:
             ents.append(entity({"classname": "func_breakable", "material": "0", "health": "20",
                                 "rendermode": "2", "renderamt": "110"},

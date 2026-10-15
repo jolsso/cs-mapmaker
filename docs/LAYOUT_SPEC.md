@@ -140,7 +140,7 @@ diagonals:                    # makro: en 45°-korridor af mindst `width` i et k
   - {name: diag, rect: [512, 272, 1024, 784], width: 192, dir: ne, height: 192}   # ne: SV→NØ, nw: SØ→NV
 ```
 
-### Pakke 3 (2026-10-15): runde former og kasse-presets
+### Pakke 3 (2026-10-15): runde former, kasse-presets og buer
 ```yaml
 cover:
   - {name: drum, area: hall, pos: [x, y], size: [96, 96, 128], shape: cylinder}   # facetteret: 8/12/16 sider efter størrelse
@@ -151,6 +151,13 @@ cover:
 - `cylinder`: hjørnerne snappes til 8-gitteret og reduceres til deres konvekse hylster; min. 32 på tværs. Under 64 bliver det en ottekant, 64–127 tolv sider, ≥ 128 seksten.
 - `preset`: `size` er valgfri (standardmål ovenfor) og angiver fodaftrykket; alle dele ligger inden for det, så spawns og værktøjskassen behandler presettet som én kasse. `crate_stack` lægges langs den lange side (lang side delelig med 32, højde med 16); `barrels` kræver mindst 64 på tværs (kort side delelig med 16). `shape` kan ikke kombineres med et preset. `breakable` gælder hver del (`break_<navn>_<n>`).
 - Værktøjskassen: `add_cover` med `shape: cylinder` eller `preset` (uden `size`).
+
+```yaml
+doors:
+  - {name: mid_a, between: [mid, a_site], width: 128, arch: true}   # bue: øverste hjørner rundes af
+```
+- `arch` (kun en almindelig dør: ingen `gate`, `glass`, vindue eller vent): en halv-elliptisk bue over hele bredden, stigning = halv bredde, men vederlaget ligger altid mindst 80 over gulvet, så en stående spiller (72) passer i hele bredden. Hjørnerne fyldes med trekanter i gitteret gennem væggen (world brushes). Kræver en åbning på mindst 96 i højden.
+- Værktøjskassen: `set_arch` (target, `arch: false` fjerner den) og `add_connection` med `arch: true`.
 
 ### Vinkler og niveauer (2026-10-14): skrå rum i vilkårlig vinkel, broer, overgange
 ```yaml

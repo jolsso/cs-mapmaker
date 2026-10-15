@@ -100,7 +100,7 @@ allowed_changes:
     max_abs_delta: 256
   add_connection:
     description: Add a secondary connection between two areas (kind door, or vent = crouch route, height 40-64)
-    params: [from, to]               # optional width, offset, kind, height
+    params: [from, to]               # optional width, offset, kind, height, arch (plain door)
     before_gate_b_only: true
     max_per_iteration: 1
   remove_connection:
@@ -125,6 +125,9 @@ allowed_changes:
   set_gate:
     description: Put an openable door leaf in an opening (sliding / rotating) or take it out (none)
     params: [target, gate]
+  set_arch:
+    description: Round the top corners of a plain doorway (arch; the full width stays >= 80 high) or square it again (arch false)
+    params: [target]                 # optional arch (default true)
   add_ramp:
     description: A sloped floor (<= 45 degrees) across an area; the rest of the area is raised (not in spawn areas)
     params: [zone, axis, rise, length] # axis +x/-x/+y/-y = uphill; optional start
