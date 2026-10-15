@@ -292,3 +292,19 @@ def test_bend_is_allowed_on_an_irregularity_but_not_a_straightening():
     lay["landmarks"] = [{"name": "Langbanen", "element": "t_long"}]
     _, applied, failed = apply_plan(yaml.safe_dump(lay, sort_keys=False), [bend])
     assert not applied and "landmark" in failed[0]["reason"]
+
+
+def test_decide_hears_why_the_smoke_test_failed(tmp_path, monkeypatch):
+    import json
+
+    loop = _loop(tmp_path)
+    monkeypatch.setattr(type(loop), "it_dir", property(lambda self: tmp_path))
+    (tmp_path / "sim").mkdir()
+    (tmp_path / "sim" / "simulation.json").write_text(json.dumps({"ok": False, "smoke": {
+        "ok": False, "checks": {"bots_move": {"ok": True},
+                                "sites_reached": {"ok": False, "samples_per_site": {"A": 38, "B": 0}}}},
+        "graph_attempts": [{"distance": 80, "samples_per_site": {"A": 0, "B": 0}}]}))  # fmt: skip
+    loop.state["started"] = "2026-10-15 08:00:00"
+    text = loop.loop_context()
+    assert "Smoke-testen fejlede" in text and '"B": 0' in text and "80 units" in text
+    assert "bots_move" not in text

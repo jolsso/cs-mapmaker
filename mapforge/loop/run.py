@@ -350,7 +350,26 @@ class Loop:
         lines.append(
             "\nMålinger: `analysis/report.md` og `analysis/metrics.json` (+ heatmaps) i iterationsmappen, hvis der blev simuleret."
         )
+        lines += self._smoke_failure()
         return "\n".join(lines)
+
+    def _smoke_failure(self) -> list[str]:
+        """Why this iteration's smoke test failed (a site never reached, ...): Decide must fix
+        that first, so it gets the failed checks per graph attempt, not only 'reached: smoke'."""
+        sim = _load(self.it_dir / "sim" / "simulation.json") or {}
+        smoke = sim.get("smoke") or {}
+        if sim.get("ok", True) or not smoke:
+            return []
+        out = ["", "**Smoke-testen fejlede**, så der blev ikke målt. Ret det først (fx en blokeret eller "
+               "for smal vej til et site); sammenlign med layoutet fra den sidste iteration, der nåede simulate."]  # fmt: skip
+        for name, check in (smoke.get("checks") or {}).items():
+            if not check.get("ok", True):
+                detail = {k: v for k, v in check.items() if k != "ok"}
+                out.append(f"- `{name}`: {json.dumps(detail, ensure_ascii=False)}")
+        for a in sim.get("graph_attempts") or []:
+            out.append(f"- YaPB-graf med {a.get('distance')} units mellem noder: "
+                       f"bot-samples pr. site {json.dumps(a.get('samples_per_site'))}")  # fmt: skip
+        return out
 
     def step_apply(self) -> int:
         from mapforge.decide.run import answer
