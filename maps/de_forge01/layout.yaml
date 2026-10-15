@@ -48,16 +48,22 @@ chokes:
 # (maps/de_forge01/ART_DIRECTION.md). Textures from the game's own WADs (cstrike.wad,
 # referenced, never embedded). Textures and light only: the layout is frozen since Gate B.
 zones:
-  t: {floor: CSTRIKE_FT4APHT, wall: CSTRIKE_WB6PLN1, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_OE4PNL,
-      light: {color: [255, 226, 170]}}
-  ct: {floor: CSTRIKE_CR2PLN, wall: CSTRIKE_WR4CCPN, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME4METL,
+  t: {floor: -0CSTRIKE_FR4GR, wall: CINDERBLOCK01, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_OE4PNL,
+      light: {color: [255, 226, 170], brightness: 280}}   # style review: T->B tunnels were dim and brown
+  ct: {floor: -0CSTRIKE_CA2ST, wall: CSTRIKE_WR4CCPN, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME4METL,
        light: {color: [225, 235, 255]}}
-  mid: {floor: CSTRIKE_FT2DIRT, wall: -0CSTRIKE_WR3CC, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME2RSTW}
-  a: {floor: CSTRIKE_FE2SQRS, wall: CSTRIKE_ME2RSTW, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME2DRST,
+  mid: {floor: -0CSTRIKE_CA2ST, wall: -0CSTRIKE_WR3CC, ceiling: CSTRIKE_CE2XCNG, cover: CSTRIKE_ME2RSTW}
+  a: {floor: CSTRIKE_ME4DCLN, wall: CSTRIKE_ME2RSTW, ceiling: CSTRIKE_CE2XCNG, cover: TSHULL5,
       light: {color: [255, 190, 140], brightness: 240}}
-  b: {floor: CSTRIKE_ME1GRAT, wall: -0CSTRIKE_WE1MT, ceiling: CSTRIKE_ME1CLNG, cover: CSTRIKE_OE4PNL,
+  b: {floor: CSTRIKE_ME1GRAT, wall: CSTRIKE_OE4PNL, ceiling: CSTRIKE_ME1CLNG, cover: CSTRIKE_ME4METL,
       light: {color: [190, 225, 230], brightness: 220}}
 texlights: {-0CSTRIKE_MH5TL: [255, 160, 90, 700]}   # the furnace wall at A (Ovnvæggen)
+# style review 2026-10-15 (local model + Claude): A was rust floor on rust walls (players blend in)
+# -> grey steel floor; B's teal rust walls repeated and hid the teal pillars -> blue-grey walls.
+# 2nd round: CT and mid floors were orange-brown like T clothing -> grey concrete / light gravel;
+# B tunnels grey on grey -> lighter metal panel walls.
+# 3rd round: T corridors' dark red brick hid T players -> grey breeze block (cs_bdog.wad).
+# 4th round: mid's light gravel was still tan -> grey concrete; door lights on the four chokes.
 
 ambient:   # ART_DIRECTION §6 (sounds the game ships: valve/sound/ambience)
   - {name: a_furnace, area: a_site, sound: ambience/industrial1.wav, volume: 6}
@@ -66,6 +72,10 @@ ambient:   # ART_DIRECTION §6 (sounds the game ships: valve/sound/ambience)
   - {name: mid_wind, area: mid, sound: ambience/wind1.wav, volume: 4}
   - {name: t_machines, area: t_spawn, sound: ambience/industrial3.wav, volume: 3}
   - {name: ct_machines, area: ct_spawn, sound: ambience/dronemachine1.wav, volume: 3}
+models:   # models the game ships (env_sprite), with clip boxes from their real bounds
+  - {name: a_conveyor, area: a_site, model: models/conveyor1.mdl, pos: [1664, 1984], clip: [256, 112, 48]}
+  - {name: mid_bags_1, area: mid_top, model: models/pallet_with_bags.mdl, pos: [-896, 848], z: 22, clip: [64, 64, 56]}
+  - {name: mid_bags_2, area: mid_top, model: models/pallet_with_bags.mdl, pos: [-896, 776], z: 22, yaw: 30, clip: [64, 64, 56]}
 areas:
   # --- spawns and sites ---
   - {name: t_spawn, rect: [-384, -2432, 384, -1664], height: 256, outdoor: true, role: t_spawn, zone: t}   # pushed south: T -> site ~16-18 s
@@ -106,10 +116,10 @@ doors:
   - {name: d_long_s1, between: [a_long_start, long_ec_s], width: 192, offset: -96}
   - {name: d_long_s2, between: [long_ec_s, a_long], width: 192, offset: 96}
   - {name: d_long_n1, between: [a_long, long_ec_n], width: 192, offset: -96}
-  - {name: d_long_n2, between: [long_ec_n, a_site], width: 192, offset: 96, protected: true} # chokepoint A long
+  - {name: d_long_n2, between: [long_ec_n, a_site], width: 192, offset: 96, protected: true, frame: TSIBEAM, light: true} # chokepoint A long
   # B tunnels
   - {name: d_b_tun_n1, between: [b_tunnels, b_tunnel_n], width: 160, offset: 32}
-  - {name: d_b_tun_n2, between: [b_tunnel_n, b_site], width: 160, offset: -32, protected: true} # chokepoint B tunnels
+  - {name: d_b_tun_n2, between: [b_tunnel_n, b_site], width: 160, offset: -32, protected: true, frame: TSIBEAM, light: true} # chokepoint B tunnels
   # mid and its connections
   - {name: d_mid_long1, between: [mid, mid_to_long], width: 160}
   - {name: d_mid_long2, between: [mid_to_long, a_long], width: 160}
@@ -118,10 +128,10 @@ doors:
   - {name: d_mid_top, between: [mid, mid_top], width: 192, offset: 160}
   - {name: d_top_ashort, between: [mid_top, a_short_up], width: 192}
   - {name: d_ashort_turn, between: [a_short_up, a_short], width: 192}
-  - {name: d_ashort_a, between: [a_short, a_site], width: 160, protected: true}          # chokepoint short A
+  - {name: d_ashort_a, between: [a_short, a_site], width: 160, protected: true, frame: TSIBEAM, light: true}          # chokepoint short A
   - {name: d_top_bshort, between: [mid_top, b_short_up], width: 192}
   - {name: d_bshort_turn, between: [b_short_up, b_short], width: 192}
-  - {name: d_bshort_b, between: [b_short, b_site], width: 160, protected: true}          # chokepoint short B
+  - {name: d_bshort_b, between: [b_short, b_site], width: 160, protected: true, frame: TSIBEAM, light: true}          # chokepoint short B
   # CT side
   - {name: d_ct_a1, between: [ct_spawn, ct_to_a], width: 192}
   - {name: d_ct_a2, between: [ct_to_a, a_site], width: 192}
@@ -162,7 +172,7 @@ cover:
   - {name: long_box, area: a_long, pos: [1760, 0], size: [96, 96, 64], texture: CSTRIKE_ME4GREB}
   - {name: long_start_box, area: a_long_start, pos: [1664, -1568], size: [128, 64, 64]}
   # B route
-  - {name: b_tun_wall, area: b_tunnels, pos: [-1664, 0], size: [256, 32, 160], texture: CSTRIKE_OE6TNKF}
+  - {name: b_tun_wall, area: b_tunnels, pos: [-1664, 0], size: [256, 32, 160], texture: TSCABLES}
   - {name: b_tun_box, area: b_tunnels, pos: [-1472, 224], size: [64, 64, 64]}
   - {name: b_cut_chicane, area: t_b_cut, pos: [-1184, -800], size: [160, 32, 128]}
   - {name: mid_top_cover, area: mid_top, pos: [-824, 704], size: [272, 32, 128]}
