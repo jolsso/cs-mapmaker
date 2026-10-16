@@ -311,7 +311,7 @@ GoldSrc har ingen `prop_static`. Detaljer bygges derfor primært af **brushes**:
 6. **Galleri:** kandidater (simpel) eller fit-varianter (avanceret) med radar, nøgletal, Curators "hvorfor", skitse-overlay, ændringsliste, knap til `--watch`-server.
 7. **Vælg / remix:** "kandidat 2, men B fra kandidat 4" → nyt Sketcher-kald med begge som input.
 
-API (live-containeren, kun dashboardets origin som i dag): `POST /api/maps` (v2-felter), `POST /api/maps/<map>/images` (upload + tag + licens), `PUT /api/maps/<map>/sketch`, `PUT /api/maps/<map>/intent` (rettelser), `POST /api/maps/<map>/pick` (valg fra galleriet).
+API (live-containeren, kun dashboardets origin som i dag): `POST /api/maps` (v2-felter), `POST /api/maps/<map>/images` (upload + tag + licens), `PUT /api/maps/<map>/sketch`, `PUT /api/maps/<map>/intent` (rettelser), `POST /api/maps/<map>/pick` (valg fra galleriet). Graf-editoren (2026-10-16, `docs/superpowers/specs/2026-10-16-graph-editor-design.md`): `GET/PUT /api/maps/<map>/graph` (`maps/<map>/graph.json`, `{graph, approve}`), `GET /api/maps/<map>/topology` (mappets graf: graph.json eller layoutet foldet, + `frozen`), `POST /api/maps/<map>/changes` (`{before, after}` → et ønske af typen `graph` med Decide-operatorer), `GET /api/loop/<map>` og `POST /api/loop/<map>/skip` (spring den igangværende iteration over → `maps/<map>/skip.json`).
 
 ## Kommandoer (forslag)
 

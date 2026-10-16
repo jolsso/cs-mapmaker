@@ -113,6 +113,7 @@ SITE_ORIGINS = set(
     )
 )
 MAPS_DIR = Path(os.environ.get("MAPFORGE_MAPS_DIR", "maps"))
+RUNS_DIR = Path(os.environ.get("MAPFORGE_RUNS_DIR", "runs"))  # read-only: the loop's state
 MAP_NAME = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 REASONS = {
     200: "OK",
@@ -219,8 +220,11 @@ async def maps_api(
 ) -> None:
     """GET /api/maps (briefs) · POST /api/maps {brief v2} · GET /api/maps/<map> (brief, images,
     intent) · POST /api/maps/<map>/images {file, data (base64), tag, license, note} ·
-    PUT /api/maps/<map>/intent {intent} (writes: dashboard origin only)."""
+    PUT /api/maps/<map>/intent {intent} · graph editor: GET/PUT /api/maps/<map>/graph
+    {graph, approve}, GET /api/maps/<map>/topology (the map as a graph + frozen),
+    POST /api/maps/<map>/changes {before, after} (writes: dashboard origin only)."""
     from mapforge import brief
+    from mapforge import graph as gr
 
     origin = headers.get("origin", "")
     allow = origin if origin in SITE_ORIGINS else "null"
@@ -236,6 +240,13 @@ async def maps_api(
         _respond(writer, 404, {"error": "unknown map"}, allow)
         return
     try:
+        if method == "GET" and parts[1:] == ["graph"]:
+            g = gr.load(MAPS_DIR, parts[0])
+            _respond(writer, 200 if g else 404, g or {"error": "no graph"}, allow)
+            return
+        if method == "GET" and parts[1:] == ["topology"]:
+            _respond(writer, 200, map_graph(parts[0]), allow)
+            return
         if method == "GET":
             _respond(writer, 200, map_brief(parts[0]) if parts else list_briefs(), allow)
             return
@@ -249,6 +260,16 @@ async def maps_api(
             _respond(writer, 201, create_map(req), allow)
         elif method == "POST" and parts[1:] == ["images"]:
             _respond(writer, 201, brief.add_image(MAPS_DIR, parts[0], req), allow)
+        elif method == "PUT" and parts[1:] == ["graph"]:
+            g = {**req.get("graph", {}), "status": "approved" if req.get("approve") else "draft"}
+            _respond(writer, 200, gr.save(MAPS_DIR, parts[0], g), allow)
+        elif method == "POST" and parts[1:] == ["changes"]:
+            from mapforge import annotations
+
+            frozen = map_frozen(parts[0])
+            wish = annotations.add_graph_wish(MAPS_DIR, parts[0], req.get("before") or {},
+                                              req.get("after") or {}, frozen)  # fmt: skip
+            _respond(writer, 201, wish, allow)
         elif method == "PUT" and parts[1:] == ["intent"]:
             from mapforge import interpret
 
@@ -257,6 +278,78 @@ async def maps_api(
             raise ValueError("unsupported")
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         _respond(writer, 400, {"error": str(exc)}, allow)
+
+
+def map_graph(name: str) -> dict[str, Any]:
+    """The editor's graph of an own map (graph.json, else its layout folded) and its lock."""
+    import yaml
+
+    from mapforge import graph as gr
+
+    g = gr.load(MAPS_DIR, name)
+    if g is None:
+        lay = MAPS_DIR / name / "layout.yaml"
+        if not lay.is_file():
+            raise ValueError("the map has no layout yet")
+        g = gr.from_layout(yaml.safe_load(lay.read_text(encoding="utf-8")))
+    return {"graph": g, "frozen": map_frozen(name)}
+
+
+def map_frozen(name: str) -> bool:
+    """Is the map's layout locked (after Gate B)? config/fitness.yaml -> locked_maps / locked."""
+    from mapforge.decide.policy import load_fitness, locked_for
+
+    return bool(locked_for(load_fitness(), name).get("geometry_frozen"))
+
+
+def loop_state(name: str) -> dict[str, Any] | None:
+    p = RUNS_DIR / name / "loop.json"
+    try:
+        st = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return {k: st.get(k) for k in ("status", "step", "iteration", "stop_reason")}
+
+
+async def loop_api(
+    method: str, path: str, headers: dict[str, str], body: bytes, writer: asyncio.StreamWriter
+) -> None:
+    """GET /api/loop/<map> (loop state + pending skip) · POST /api/loop/<map>/skip {reason}:
+    ask the loop to skip the current iteration (dashboard origin only)."""
+    from mapforge import skip
+
+    origin = headers.get("origin", "")
+    allow = origin if origin in SITE_ORIGINS else "null"
+    parts = [p for p in path.split("?")[0].split("/") if p][2:]  # after /api/loop
+    if method == "OPTIONS":
+        writer.write(
+            f"HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: {allow}\r\nVary: Origin\r\n"
+            "Access-Control-Allow-Methods: GET, POST\r\nAccess-Control-Allow-Headers: Content-Type\r\n"
+            "Content-Length: 0\r\n\r\n".encode()
+        )
+        return
+    if not parts or not MAP_NAME.match(parts[0]) or not (MAPS_DIR / parts[0]).is_dir():
+        _respond(writer, 404, {"error": "unknown map"}, allow)
+        return
+    st = loop_state(parts[0])
+    if method == "GET" and len(parts) == 1:
+        _respond(writer, 200, {**(st or {}), "skip": skip.pending(MAPS_DIR, parts[0])}, allow)
+        return
+    if origin not in SITE_ORIGINS:
+        _respond(writer, 403, {"error": "writes only from the local dashboard"}, allow)
+        return
+    if method != "POST" or parts[1:] != ["skip"]:
+        _respond(writer, 400, {"error": "unsupported"}, allow)
+        return
+    if not st or st.get("status") != "running":
+        _respond(writer, 409, {"error": "the loop is not running", "loop": st}, allow)
+        return
+    try:
+        req = json.loads(body.decode("utf-8")) if body else {}
+    except (ValueError, UnicodeDecodeError):
+        req = {}
+    skip.request(MAPS_DIR, parts[0], str(req.get("reason", "")))
+    _respond(writer, 202, {"requested": True, "loop": st}, allow)
 
 
 async def project_api(
@@ -311,12 +404,13 @@ async def http(state: State, reader: asyncio.StreamReader, writer: asyncio.Strea
             headers[k.strip().lower()] = v.strip()
         method, path = ([*line.split(" "), "", ""])[:2]
         bare = path.split("?")[0].rstrip("/")
-        if path.startswith(("/api/annotations", "/api/project", "/api/maps")):
+        if path.startswith(("/api/annotations", "/api/project", "/api/maps", "/api/loop")):
             cap = 12_000_000 if bare.endswith("/images") else 200_000  # an image: up to 8 MB
             length = min(int(headers.get("content-length", "0") or 0), cap)
             body = await reader.readexactly(length) if length else b""
             api = (annotations_api if path.startswith("/api/annotations")
-                   else project_api if path.startswith("/api/project") else maps_api)  # fmt: skip
+                   else project_api if path.startswith("/api/project")
+                   else loop_api if path.startswith("/api/loop") else maps_api)  # fmt: skip
             await api(method, path, headers, body, writer)
             await writer.drain()
             return

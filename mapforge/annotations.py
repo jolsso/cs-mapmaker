@@ -81,6 +81,38 @@ def add(maps_dir: Path, map_name: str, item: dict[str, Any]) -> dict[str, Any]:
     return clean
 
 
+def add_graph_wish(
+    maps_dir: Path, map_name: str, before: dict[str, Any], after: dict[str, Any], frozen: bool
+) -> dict[str, Any]:
+    """A change drawn in the graph editor: the two graphs and the Decide operators between them.
+
+    On a map frozen after Gate B the structural changes cannot be applied without the human
+    lifting the lock, so the wish waits for them (needs_human) from the start."""
+    from mapforge import graph, project
+
+    if project.is_closed(maps_dir, map_name):
+        raise ValueError("banen er afsluttet – genåbn den under Input for at tilføje ønsker")
+    before, after = graph.validate(before), graph.validate(after)
+    ops = graph.diff_ops(before, after)
+    items = load(maps_dir, map_name)
+    wish = {
+        "kind": "graph",
+        "text": graph.summary(ops, before, after),
+        "points": [],
+        "graph": {"before": before, "after": after},
+        "ops": ops,
+        "id": max((a["id"] for a in items), default=0) + 1,
+        "status": "needs_human" if frozen and ops else "open",
+        "created": time.strftime("%Y-%m-%d %H:%M"),
+        "resolution": "the layout is locked (Gate B): unlock it to apply these changes"
+        if frozen and ops
+        else None,
+    }
+    items.append(wish)
+    save(maps_dir, map_name, items)
+    return wish
+
+
 def remove(maps_dir: Path, map_name: str, ann_id: int) -> bool:
     items = load(maps_dir, map_name)
     keep = [a for a in items if a["id"] != ann_id]
@@ -116,6 +148,13 @@ def prompt_text(maps_dir: Path, map_name: str, layout: dict[str, Any] | None) ->
         return ""
     lines = []
     for a in items:
+        if a["kind"] == "graph":  # drawn in the graph editor: concrete operators, not a hint
+            ops = json.dumps(a.get("ops", []), ensure_ascii=False)
+            lines.append(f'- **annotation:{a["id"]}** (graph change, REQUESTED by the human): "{a["text"]}". '
+                         f"Carry out these changes with addresses [\"annotation:{a['id']}\"] "
+                         f"(the per-iteration limits and the ±256 move cap do not apply), or explain "
+                         f"why not: {ops}")  # fmt: skip
+            continue
         where = {"point": "punkt", "rect": "område", "path": "streg", "note": "tekst"}[a["kind"]]
         pts = a["points"] if a["kind"] != "path" else [a["points"][0], a["points"][-1]]
         if a["kind"] == "note":
