@@ -206,6 +206,12 @@ footer { color: var(--muted); font-size: 12px; text-align: center; padding-top: 
 button { font: 600 13px var(--font); color: var(--ink); background: var(--panel2); border: 1px solid var(--line2); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 button:hover { border-color: var(--accent); }
 button.on, button.primary { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+a.btn { display: inline-block; font: 600 13px var(--font); color: var(--ink); background: var(--panel2); border: 1px solid var(--line2); border-radius: 8px; padding: 6px 12px; text-decoration: none; }
+a.btn:hover { border-color: var(--accent); }
+a.btn.primary { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+a.btn.disabled { opacity: .45; pointer-events: none; }
+.gw { display: flex; gap: 10px; align-items: flex-start; margin-top: 6px; }
+.gw ul { margin: 0; padding-left: 16px; }
 .annside { display: grid; gap: 10px; align-content: start; }
 .annside textarea { width: 100%; font: 14px var(--font); color: var(--ink); background: var(--bg2); border: 1px solid var(--line2); border-radius: 8px; padding: 8px 10px; resize: vertical; }
 .annlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-height: 520px; overflow: auto; }

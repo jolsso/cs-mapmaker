@@ -161,6 +161,10 @@
     const body = sec.querySelector(".intentbody"), edit = sec.querySelector(".intentedit");
     const btns = sec.querySelector(".intentbtns"), imsg = sec.querySelector(".intentmsg");
     let shown = "";
+    function graphStep() {   // step 6: draw the map as a graph in the editor (editor.html#new/<map>)
+      if (document.getElementById("graphstep")) return;
+      imsg.insertAdjacentHTML("afterend", `<p id="graphstep"><a class="btn primary" href="editor.html#new/${encodeURIComponent(name)}">Tegn grafen →</a> <span class="muted small">Placér spawns, sites og rum; editoren tjekker designreglerne undervejs. Når du godkender den, bygger Claude layoutet ud fra den.</span></p>`);
+    }
     async function poll() {
       try {
         const r = await fetch(`${API}/${encodeURIComponent(name)}`);
@@ -171,6 +175,7 @@
           const { meta, ...plain } = d.intent;
           edit.querySelector("textarea").value = JSON.stringify(plain, null, 2);
           edit.hidden = btns.hidden = false;
+          if (d.intent.meta && d.intent.meta.confirmed) graphStep();
         }
       } catch { /* API down: try again */ }
       setTimeout(poll, 5000);
@@ -181,7 +186,8 @@
       const r = await fetch(`${API}/${encodeURIComponent(name)}/intent`, { method: "PUT", headers: { "Content-Type": "application/json" },
                                                                            body: JSON.stringify({ intent, confirm }) });
       const d = await r.json();
-      imsg.textContent = r.ok ? (confirm ? "Bekræftet – Claude går videre med skitsen." : "Gemt.") : (d.error || "kunne ikke gemme");
+      imsg.textContent = r.ok ? (confirm ? "Bekræftet – næste trin: tegn grafen (rum og forbindelser) i editoren." : "Gemt.") : (d.error || "kunne ikke gemme");
+      if (r.ok && confirm) graphStep();
       if (r.ok) { shown = JSON.stringify(d); body.innerHTML = renderIntent(d); }
     }
     sec.querySelector(".intentsave").onclick = () => put(false);

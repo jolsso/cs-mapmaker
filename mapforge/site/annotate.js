@@ -100,13 +100,30 @@
     renderList(); draw();
   }
 
+  // a change drawn in the graph editor: before (grey) / after (green = new, red = removed), and its ops
+  function graphWish(a) {
+    const g = a.graph || {}, b = g.before || {nodes: [], edges: []}, n = g.after || {nodes: [], edges: []};
+    const all = [...b.nodes, ...n.nodes];
+    if (!all.length) return "";
+    const xs = all.map(v => v.pos[0]), ys = all.map(v => v.pos[1]);
+    const x0 = Math.min(...xs), y0 = Math.min(...ys), s = 150 / Math.max(Math.max(...xs) - x0, Math.max(...ys) - y0, 1);
+    const P = (gr, id) => { const v = gr.nodes.find(q => q.id === id); return v ? [5 + (v.pos[0] - x0) * s, 155 - (v.pos[1] - y0) * s] : null; };
+    const key = e => [e.a, e.b].sort().join("|"), bk = new Set(b.edges.map(key)), nk = new Set(n.edges.map(key));
+    const line = (gr, e, c, w) => { const p = P(gr, e.a), q = P(gr, e.b); return p && q ? `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="${c}" stroke-width="${w}"/>` : ""; };
+    const svg = [...b.edges.map(e => line(b, e, nk.has(key(e)) ? "#777" : "#e05a5a", nk.has(key(e)) ? 1.5 : 3)),
+                 ...n.edges.filter(e => !bk.has(key(e))).map(e => line(n, e, "#4caf50", 3)),
+                 ...n.nodes.map(v => { const p = P(n, v.id); return `<circle cx="${p[0]}" cy="${p[1]}" r="${v.role === "room" ? 3 : 5}" fill="${{T: "#e07b39", CT: "#3b7dd8", A: "#c9a227", B: "#2a9d8f"}[v.role] || "#aaa"}"/>`; })].join("");
+    const ops = (a.ops || []).map(o => `<li><code>${esc(o.type)}</code> ${esc(o.why || "")}</li>`).join("");
+    return `<div class="gw"><svg viewBox="0 0 160 160" width="120" height="120" style="background:#111;border-radius:6px">${svg}</svg>${ops ? `<ul class="small">${ops}</ul>` : ""}</div>`;
+  }
+
   function renderList() {
     const label = { open: "åben", done: "udført", needs_human: "kræver dig", rejected: "afvist" };
-    const kind = { point: "punkt", rect: "område", path: "streg", note: "tekst" };
+    const kind = { point: "punkt", rect: "område", path: "streg", note: "tekst", graph: "graf" };
     list.innerHTML = items.length ? items.slice().reverse().map(a =>
       `<li class="st-${esc(a.status)}"><b>#${a.id}</b> <span class="chip">${kind[a.kind] || ""}</span>
        <span class="chip ${a.status === "done" ? "ok" : a.status === "needs_human" ? "bad" : "run"}">${label[a.status] || esc(a.status)}</span>
-       <span>${esc(a.text)}</span>${a.resolution ? `<div class="muted small">${esc(a.resolution)}</div>` : ""}
+       <span>${esc(a.text)}</span>${a.kind === "graph" ? graphWish(a) : ""}${a.resolution ? `<div class="muted small">${esc(a.resolution)}</div>` : ""}
        <button data-del="${a.id}" title="slet">✕</button></li>`).join("") : "<li class='muted'>Ingen åbne ønsker. Udførte ønsker ligger under den version, du tegnede dem på (Versioner → 1 Input).</li>";
     list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
       await fetch(`${API}/${b.dataset.del}`, { method: "DELETE" });

@@ -38,6 +38,11 @@ ANN_VERSION = (
     .sha256(Path(__file__).with_name("annotate.js").read_bytes())
     .hexdigest()[:8]
 )
+LOOPCTL_VERSION = (
+    __import__("hashlib")
+    .sha256(Path(__file__).with_name("loopctl.js").read_bytes())
+    .hexdigest()[:8]
+)
 PROJ_VERSION = (
     __import__("hashlib")
     .sha256(Path(__file__).with_name("project.js").read_bytes())
@@ -517,6 +522,9 @@ def loop_section(cfg: Config, name: str) -> str:
     return (f"<section id='loop' class='panel'><h2><span class='no'>∞</span>Autonomt loop</h2><p>{chip} "
             f"<span class='muted'>iteration {e(st.get('iteration', ''))} · trin {e(st.get('step', ''))} · bedste {e(str(best.get('iteration', '–')))} "
             f"(score {best.get('score', '–')}) · målinger {c.get('measured', 0)}</span></p>{wait_html}"
+            + (f"<p class='phases'><button data-skip='{e(name)}'>Spring iterationen over</button> "
+               "<span class='skipmsg muted small'></span></p>"
+               f"<script src='../../loopctl.js?v={LOOPCTL_VERSION}'></script>" if running else "")
             + (f"<div class='chartbox'><h3>Score pr. iteration</h3>{trend}</div>" if trend else "")
             + "<div class='table'><table><tr><th>iteration</th><th>nåede</th><th>review</th><th>score</th><th>T-winrate</th>"
             f"<th>A-plants</th><th>ift. bedste</th><th>anvendte ændringer</th></tr>{rows}</table></div></section>")  # fmt: skip
@@ -618,8 +626,47 @@ def _wishes_section(cfg: Config, name: str) -> str:
         "<textarea rows='3' maxlength='500' placeholder='Hvad vil du gerne have gjort her?'></textarea>"
         "<div class='phases'><button class='annsave primary'>Gem ønske</button><button class='anncancel'>Annullér</button></div>"
         "<p class='annmsg muted small'></p><h3>Ønsker</h3><ul class='annlist'></ul></div></div>"
-        f"<script>const ANN = {json.dumps(ann)};</script><script src='../../annotate.js?v={ANN_VERSION}'></script></section>"
+        f"<script>const ANN = {json.dumps(ann)};</script><script src='../../annotate.js?v={ANN_VERSION}'></script>"
+        f"{graph_change_link(cfg, name)}</section>"
     )  # fmt: skip
+
+
+def graph_change_link(cfg: Config, name: str) -> str:
+    """ "+ Add change": the graph editor with the map's current graph; the change becomes a wish
+    (input to the next iteration). Off on a closed map."""
+    from mapforge import project
+
+    closed = project.is_closed(cfg.path("maps_dir"), name)
+    attrs = (
+        " aria-disabled='true' tabindex='-1' class='btn disabled'"
+        if closed
+        else " class='btn primary'"
+    )
+    return (f"<p class='phases' style='margin-top:12px'><a href='../../editor.html#change/{e(name)}'{attrs}>"
+            "+ Tilføj ændring (graf)</a> <span class='muted small'>Tegn ændringen i graf-editoren (rum, "
+            "forbindelser, niveauer); den bliver et ønske, som næste iteration udfører.</span></p>")  # fmt: skip
+
+
+def estimate_section(cfg: Config, name: str) -> str:
+    """The graph editor's estimate next to the measured BSP timings (anti-goal: the editor's
+    numbers must not silently disagree with the built map)."""
+    g = _load(cfg.path("maps_dir") / name / "graph.json") or {}
+    est = g.get("estimate")
+    val = _load(cfg.path("build_dir") / name / "validation.json") or {}
+    timings = {t["site"]: t for t in (val.get("stats") or {}).get("timings") or []}
+    if not est or not timings:
+        return ""
+    f = lambda v: "–" if v is None else f"{v:.1f} s"  # noqa: E731
+    meas = lambda s, team: (timings.get(s, {}).get(team) or {}).get("median_s")  # noqa: E731
+    rows = [("T → A", est.get("tA"), meas("A", "T")), ("T → B", est.get("tB"), meas("B", "T")),
+            ("CT → A", est.get("cA"), meas("A", "CT")), ("CT → B", est.get("cB"), meas("B", "CT"))]  # fmt: skip
+    body = "".join(
+        f"<tr><td>{k}</td><td class='num'>{f(a)}</td><td class='num'>{f(b)}</td></tr>"
+        for k, a, b in rows
+    )
+    return ("<section class='panel'><h2><span class='no'>≈</span>Grafen og det byggede map</h2>"
+            "<p class='muted'>Editorens estimat (lige linjer × 1,3) mod de målte tider i BSP'en (walk-grafen).</p>"
+            f"<table><tr><th></th><th>graph estimate</th><th>measured</th></tr>{body}</table></section>")  # fmt: skip
 
 
 CHOICE_DA = {  # dashboard labels for brief v2's choices (mapforge.brief.ENUMS)
@@ -887,6 +934,7 @@ def map_page(cfg: Config, name: str, out: Path) -> str:
     from mapforge.site.versions import render_versions
 
     parts.append(render_versions(cfg, name, out, cur, cur_text))
+    parts.append(estimate_section(cfg, name))
     parts.append(loop_section(cfg, name))
     return "".join(parts)
 
@@ -1211,6 +1259,7 @@ def build_site(cfg: Config) -> Path:
     shutil.copy2(Path(__file__).with_name("annotate.js"), out / "annotate.js")
     shutil.copy2(Path(__file__).with_name("newmap.js"), out / "newmap.js")
     shutil.copy2(Path(__file__).with_name("project.js"), out / "project.js")
+    shutil.copy2(Path(__file__).with_name("loopctl.js"), out / "loopctl.js")
     brief_grid(out)
     from mapforge.site import graph as graph_page
 

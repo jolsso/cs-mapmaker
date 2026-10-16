@@ -77,3 +77,59 @@ def test_input_is_not_a_gate_but_marks_a_loop_waiting_for_a_person(tmp_path):
     home = (build_site(cfg) / "index.html").read_text(encoding="utf-8")
     assert "af 7 faser bestået" in home and "class='stepper human'" in home
     assert "class='step todo now'" in home and "Venter på dig" in home
+
+
+def _map_site(tmp_path, closed=False, loop=True, graph=None, timings=None):
+    base = load_config()
+    data = copy.deepcopy(base.data)
+    data["paths"].update(build_dir=str(tmp_path / "build"), maps_dir=str(tmp_path / "maps"),
+                         runs_dir=str(tmp_path / "runs"))  # fmt: skip
+    cfg = Config(root=base.root, data=data)
+    b = tmp_path / "build" / "de_x"
+    (b / "renders").mkdir(parents=True)
+    (b / "renders" / "topdown.png").write_bytes(b"\x89PNG")
+    view = {"file": "topdown.png", "purpose": "overview",
+            "view": {"world_rect": [-100, -100, 100, 100], "size": [64, 64]}}  # fmt: skip
+    (b / "renders" / "index.json").write_text(json.dumps({"images": [view], "brightness": {}}))
+    if timings:
+        (b / "validation.json").write_text(json.dumps({
+            "ok": True, "source": "map", "summary": {"errors": 0, "warnings": 0}, "findings": [],
+            "stats": {"timings": timings}}))  # fmt: skip
+    m = tmp_path / "maps" / "de_x"
+    m.mkdir(parents=True)
+    if closed:
+        (m / "project.json").write_text(json.dumps({"state": "closed", "changed": "x"}))
+    if graph:
+        (m / "graph.json").write_text(json.dumps(graph))
+    if loop:
+        r = tmp_path / "runs" / "de_x"
+        r.mkdir(parents=True)
+        (r / "loop.json").write_text(json.dumps({"status": "running", "step": "sim",
+                                                 "iteration": "002", "history": []}))  # fmt: skip
+    out = build_site(cfg)
+    return (out / "maps" / "de_x" / "index.html").read_text(encoding="utf-8"), out
+
+
+def test_map_page_has_add_change_and_skip(tmp_path):
+    page, _ = _map_site(tmp_path)
+    assert "editor.html#change/de_x" in page and "data-skip='de_x'" in page
+    assert "loopctl.js" in page
+
+
+def test_closed_map_disables_add_change(tmp_path):
+    page, _ = _map_site(tmp_path, closed=True)
+    i = page.index("editor.html#change/de_x")
+    assert "aria-disabled='true'" in page[i - 200 : i + 200]
+
+
+def test_map_page_shows_estimate_vs_measured(tmp_path):
+    g = {"estimate": {"tA": 18.2, "tB": 19.0, "cA": 3.1, "cB": 9.4, "rot": 14.2}}
+    timings = [{"site": "A", "T": {"median_s": 21.0}, "CT": {"median_s": 4.0}},
+               {"site": "B", "T": {"median_s": 18.5}, "CT": {"median_s": 9.0}}]  # fmt: skip
+    page, _ = _map_site(tmp_path, graph=g, timings=timings)
+    assert "graph estimate" in page and "18.2" in page and "21.0" in page
+
+
+def test_new_page_links_graph_step(tmp_path):
+    _, out = _map_site(tmp_path, loop=False)
+    assert "editor.html#new/" in (out / "newmap.js").read_text(encoding="utf-8")
