@@ -49,3 +49,6 @@ __pycache__/
 
 # brief images with licence `inspiration` (from the web etc.): local only, never a texture
 maps/*/brief/inspiration/
+
+# brainstorming companion (mockups, spikes)
+.superpowers/
