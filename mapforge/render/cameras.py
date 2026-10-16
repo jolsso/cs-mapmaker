@@ -100,18 +100,26 @@ def auto_cameras(
         # Walk back from the site entry; take the farthest point within `approach` units that
         # still sees the site centre (hull-0 line of sight), so the camera never faces a wall.
         entry = feet[path[-1]]
-        target = np.r_[site_centre[:2], entry[2] + 32]
-        pick = path[0]
-        best = -1.0
-        for node in reversed(path):
-            d = float(np.linalg.norm(feet[node, :2] - entry[:2]))
-            if d > approach * 1.5:
+        centre_t = np.r_[site_centre[:2], entry[2] + 32]
+        # site centre hidden from the whole approach (cover, a bend): look at the entry instead,
+        # and failing that stand ~`approach` back along the walk - never back at the T spawn
+        pick = None
+        for target in (centre_t, entry + [0, 0, EYE]):
+            best, fallback = -1.0, None
+            for node in reversed(path):
+                d = float(np.linalg.norm(feet[node, :2] - entry[:2]))
+                if d > approach * 1.5:
+                    break
+                fallback = node if fallback is None or d <= approach else fallback
+                eye = feet[node] + [0, 0, EYE]
+                if d >= approach / 2 and d > best and line_of_sight(bsp, eye, target):
+                    best, pick = d, node
+                if d >= approach and best >= 0:
+                    break
+            if pick is not None:
                 break
-            eye = feet[node] + [0, 0, EYE]
-            if d >= approach / 2 and d > best and line_of_sight(bsp, eye, target):
-                best, pick = d, node
-            if d >= approach and best >= 0:
-                break
+        if pick is None:
+            pick = fallback
         eye = feet[pick] + [0, 0, EYE]
         cams.append(CameraSpec(f"site{n}_approach", _t(eye), _t(target), fov,
                                f"Attacker's view onto bomb site {n} from ~{approach:g} units "
