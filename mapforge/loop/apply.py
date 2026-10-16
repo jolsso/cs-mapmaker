@@ -120,6 +120,37 @@ def _new_name(items: Any, base: str) -> str:
     return name
 
 
+def _corridor_ends(
+    a: list[int], b: list[int], wall: int, grid: int
+) -> tuple[list[int], list[int], list[list[int]]]:
+    """`from`/`to` of an angled corridor between two areas: the middles of their facing walls,
+    one wall outside them, and a knee where the two rooms are side by side diagonally (an
+    L-shaped route: along the main axis, then across)."""
+
+    def snap(v: float) -> int:
+        return int(round(v / grid)) * grid
+
+    acx, acy, bcx, bcy = (a[0] + a[2]) / 2, (a[1] + a[3]) / 2, (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
+    dx, dy = bcx - acx, bcy - acy
+    if abs(dx) >= abs(dy):  # main axis x
+        fx = a[2] + wall if dx > 0 else a[0] - wall
+        lo, hi = max(a[1], b[1]), min(a[3], b[3])
+        if hi - lo >= 2 * grid:  # the walls face each other: straight across
+            y = snap((lo + hi) / 2)
+            return [fx, y], [b[0] - wall if dx > 0 else b[2] + wall, y], []
+        y = snap(acy)
+        ty = b[1] - wall if dy > 0 else b[3] + wall
+        return [fx, y], [snap(bcx), ty], [[snap(bcx), y]]
+    fy = a[3] + wall if dy > 0 else a[1] - wall
+    lo, hi = max(a[0], b[0]), min(a[2], b[2])
+    if hi - lo >= 2 * grid:
+        x = snap((lo + hi) / 2)
+        return [x, fy], [x, b[1] - wall if dy > 0 else b[3] + wall], []
+    x = snap(acx)
+    tx = b[0] - wall if dx > 0 else b[2] + wall
+    return [x, fy], [tx, snap(bcy)], [[x, snap(bcy)]]
+
+
 def _guard_spawn(area: Any) -> None:
     if area.get("role") in ("t_spawn", "ct_spawn"):
         raise ValueError(f"no floor changes in spawn area {area['name']!r} (spawns stand there)")
@@ -375,6 +406,36 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
             raise ValueError(f"door {door['name']!r} is protected (locked topology)")
         lay["doors"].remove(door)
         return f"door {door['name']} between {a} and {b} removed"
+    if t == "add_corridor":  # a human's new connection between two rooms that are apart
+        a_name, b_name = str(p["from_area"]), str(p["to_area"])
+        rects = {x["name"]: x["rect"] for x in expand_macros(dict(lay), grid)["areas"]}
+        for n in (a_name, b_name):
+            if n not in rects:
+                raise ValueError(f"no area named {n!r}")
+        (w,) = _vec(p.get("width", 160), 1, grid, "width")
+        start, end, via = _corridor_ends(
+            rects[a_name], rects[b_name], int(lay.get("wall", 16)), grid
+        )
+        if p.get("via"):
+            via = [_vec(v, 2, grid, "via") for v in p["via"]]
+        corridors = lay.setdefault("corridors", CommentedSeq())
+        names = [x for k in AREA_KEYS for x in lay.get(k) or []]
+        name = _new_name(names, f"c_{a_name}_{b_name}")
+        c = {"name": name, "from": _flow(start), "to": _flow(end), "width": w, "height": 192,
+             "between": _flow([a_name, b_name])}  # fmt: skip
+        if via:
+            c["via"] = _flow([_flow(v) for v in via])
+        corridors.append(_flow_map(c))
+        return f"corridor {name} added between {a_name} and {b_name}"
+    if t == "set_level":
+        area = _area(lay, str(p["target"]), "area")
+        _guard_area(area, lay)
+        (fl,) = _vec(p["floor"], 1, grid, "floor")
+        if fl:
+            area["floor"] = fl
+        else:
+            area.pop("floor", None)
+        return f"{area['name']} floor {fl}"
     if t == "add_area":
         name = str(p["name"])
         if any(x["name"] == name for k in AREA_KEYS for x in lay.get(k) or []):

@@ -86,7 +86,11 @@ def answer(cfg: Config, run_dir: Path, phase: float) -> dict[str, Any]:
     if not plan_path.is_file():
         raise RuntimeError(f"no plan.json in {run_dir}")
     plan = json.loads(plan_path.read_text(encoding="utf-8"))
-    verdict = check_plan(plan, load_fitness(cfg.root), phase, run_dir.parent.name)
+    from mapforge import annotations
+
+    wishes = annotations.load(cfg.path("maps_dir"), run_dir.parent.name)
+    graph_wishes = {f"annotation:{a['id']}" for a in wishes if a.get("kind") == "graph"}
+    verdict = check_plan(plan, load_fitness(cfg.root), phase, run_dir.parent.name, graph_wishes)
     decision = {
         **verdict.to_dict(),
         "escalate": bool(plan.get("escalate")),

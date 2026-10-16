@@ -45,6 +45,13 @@ locked_maps:
     site_locations: []
     landmarks: []
     geometry_frozen: false
+  de_nasa:
+    theme: ""
+    map_type: "de"
+    topology: ""           # from the dashboard brief (2026-10-16): nothing locked until a Gate A
+    site_locations: []
+    landmarks: []
+    geometry_frozen: false
 
 # Bot-data targets (>= 100 rounds per measurement). Changed 2026-10-10 after the design
 # research (docs/DESIGN_GUIDE.md §9): YaPB cannot see a map, so bot numbers are sanity checks and
@@ -123,6 +130,16 @@ allowed_changes:
     params: [name, rect, doors]      # rect [x0,y0,x1,y1] on the grid; doors [{to, width, offset?}]
     before_gate_b_only: true
     requires_annotation: true        # only when a human annotation asks for it
+  add_corridor:
+    description: Add an angled corridor between two areas that are not one wall apart (the graph editor's new connection)
+    params: [from_area, to_area]     # optional width (default 160), via [[x, y]] knees
+    before_gate_b_only: true
+    requires_annotation: true        # a human's graph change
+  set_level:
+    description: Put an area on another floor height (the graph editor's level change)
+    params: [target, floor]          # floor in units (one level = 160)
+    before_gate_b_only: true
+    requires_annotation: true
   remove_area:
     description: Remove an area (corridor/room) and its doors/cover/stairs; the space becomes solid
     params: [target]

@@ -103,9 +103,17 @@ def _mentions(change: dict[str, Any], names: list[str]) -> str | None:
 
 
 def check_plan(
-    plan: Any, fitness: dict[str, Any], phase: float = 6, map_name: str | None = None
+    plan: Any,
+    fitness: dict[str, Any],
+    phase: float = 6,
+    map_name: str | None = None,
+    graph_wishes: set[str] | None = None,
 ) -> Verdict:
-    """Validate structure, then each change against the allowed toolbox and locked decisions."""
+    """Validate structure, then each change against the allowed toolbox and locked decisions.
+
+    `graph_wishes`: "annotation:<id>" of the human's graph-editor changes. A change addressing one
+    is the human's own request: the per-iteration limits and the move cap do not apply to it
+    (locks, protected elements and minimum widths still do)."""
     v = Verdict()
     if not isinstance(plan, dict):
         v.errors.append("plan must be a JSON object")
@@ -129,6 +137,11 @@ def check_plan(
         reason = None
         ctype = change.get("type") if isinstance(change, dict) else None
         spec = allowed.get(ctype) if ctype else None
+        requested = (
+            bool(graph_wishes)
+            and isinstance(change, dict)
+            and any(str(a) in graph_wishes for a in change.get("addresses", []) or [])
+        )
         if spec is None:
             reason = f"type {ctype!r} is not in the allowed toolbox (FITNESS.md)"
         else:
@@ -152,7 +165,7 @@ def check_plan(
                 )
             else:
                 try:
-                    if "max_abs_delta" in spec:
+                    if "max_abs_delta" in spec and not requested:
                         key = "delta" if "delta" in params else "length_delta"
                         worst = max(abs(x) for x in _numbers(params[key]))
                         if worst > spec["max_abs_delta"]:
@@ -161,7 +174,9 @@ def check_plan(
                         reason = f"width below the {spec['min_width']} unit norm"
                 except ValueError as exc:
                     reason = str(exc)
-            if reason is None and ctype in CONNECTION_TYPES:
+            if reason is None and requested:
+                pass  # the human asked for exactly this: no per-iteration limits
+            elif reason is None and ctype in CONNECTION_TYPES:
                 connections += 1
                 if connections > int(spec.get("max_per_iteration", 1)):
                     reason = "only one connection change per iteration"
