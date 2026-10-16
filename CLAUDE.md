@@ -81,6 +81,7 @@ docker compose up -d live     # PÅ VÆRTEN: live-collector (UDP → SSE på loc
 ./mf loop MAP=<navn> -- --init [--force-sim]   # start det autonome loop (runs/<map>/loop.json); afbryder Docker eller processen, genoptager næste kørsel simuleringen (færdige batches/servere beholdes, runder reddes fra efterladte containere)
 ./mf loop MAP=<navn>          # fortsæt; exit 3 = venter på et Review/Decide-svar (se nedenfor)
 ./mf loop MAP=<navn> -- --status
+# Spring iterationen over: map-sidens knap (POST /api/loop/<map>/skip → maps/<map>/skip.json); loopet går til Decide ved næste trin eller simuleringsbatch (ingen ny måling, bedste/rollback urørt)
 ```
 Fallback til debugging på værten: `uv run task <navn>` (samme tasks, Windows-binaries i `tools/`). Kun Docker-vejen tæller for acceptkriterier.
 - Imaget er Debian trixie: SDHLT 1.3.0's Linux-binaries kræver glibc ≥ 2.38 (bookworm har 2.36).

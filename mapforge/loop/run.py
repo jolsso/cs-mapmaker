@@ -132,6 +132,34 @@ class Loop:
             hist.append({"iteration": self.state["iteration"]})
         hist[-1].update(kw)
 
+    def check_skip(self) -> bool:
+        """The human asked to skip this iteration (map page; maps/<map>/skip.json): from build,
+        review or sim go straight to decide. True when it did."""
+        from mapforge import skip
+
+        req = skip.pending(self.cfg.path("maps_dir"), self.map)
+        if not req or self.state.get("step") not in ("build", "review", "sim"):
+            return False
+        self.skip_now(self.state["step"], req)
+        return True
+
+    def skip_now(self, at: str, req: dict[str, Any] | None) -> None:
+        """Record the skip, clear the flag and go to decide (best/rollback untouched)."""
+        from mapforge import skip
+
+        reason = (req or {}).get("reason", "")
+        self.record(skipped=True, at=at, reason=reason)
+        self.state.update(step="decide", skipped=self.state["iteration"])
+        self.state.pop("awaiting", None)
+        notes = self.it_dir / "NOTES.md"
+        notes.parent.mkdir(parents=True, exist_ok=True)
+        with notes.open("a", encoding="utf-8") as f:
+            f.write(f"\n**Iteration skipped by the human at {at}**"
+                    f"{': ' + reason if reason else ''} ({(req or {}).get('time', '')}).\n")  # fmt: skip
+        skip.clear(self.cfg.path("maps_dir"), self.map)
+        self.log(f"skipped by the human at {at}")
+        self.save()
+
     def stop(self, reason: str) -> int:
         self.state.update(status="stopped", stop_reason=reason, step="done")
         self.state.pop("awaiting", None)
@@ -253,9 +281,20 @@ class Loop:
         d = self.it_dir
         self.state["force_sim"] = False  # only the baseline measurement may skip the review gate
         t0 = time.time()
-        # --resume: an iteration cut off while simulating goes on where it stopped
-        code = simulate(["--map", self.map, "--out", str(d / "sim"), "--resume"])
+        import mapforge.simulate.run as sim_run
+        from mapforge import skip
+
+        maps = self.cfg.path("maps_dir")
+        sim_run.CANCEL = lambda: skip.pending(maps, self.map) is not None
+        try:
+            # --resume: an iteration cut off while simulating goes on where it stopped
+            code = simulate(["--map", self.map, "--out", str(d / "sim"), "--resume"])
+        finally:
+            sim_run.CANCEL = None
         sim = _load(d / "sim" / "simulation.json") or {}
+        if sim.get("stop_reason") == "skipped":  # the batches so far stay on disk, unscored
+            self.skip_now("sim", skip.pending(maps, self.map))
+            return "decide"
         if code != 0 or not sim.get("summary"):
             self.record(reached="smoke" if not (sim.get("smoke") or {}).get("ok") else "simulate",
                         why=str(sim.get("stop_reason", "simulation failed")))  # fmt: skip
@@ -358,6 +397,10 @@ class Loop:
             "\nMålinger: `analysis/report.md` og `analysis/metrics.json` (+ heatmaps) i iterationsmappen, hvis der blev simuleret."
         )
         lines += self._smoke_failure()
+        if self.state.get("skipped") == self.state["iteration"]:
+            lines.append("\n**This iteration was skipped by the human:** no new simulation. Carry out "
+                         "the open wishes (above all the graph changes); the last measurement stays "
+                         "the baseline.")  # fmt: skip
         return "\n".join(lines)
 
     def _smoke_failure(self) -> list[str]:
@@ -518,6 +561,7 @@ class Loop:
         self.state.pop("awaiting", None)
         self._mark = time.time()  # active time starts now (see save)
         while True:
+            self.check_skip()
             step = self.state["step"]
             if step == "build":
                 self.step_build()

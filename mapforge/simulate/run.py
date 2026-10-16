@@ -26,6 +26,7 @@ import math
 import shutil
 import sys
 import time
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -36,6 +37,10 @@ from mapforge.config import Config, load_config
 from mapforge.simulate.records import assign_plant_sites, load_run, valid_round
 from mapforge.simulate.server import ServerJob, run_server, salvage
 from mapforge.simulate.stats import stop_decision, summarize
+
+# Set by the loop: returns True when the human asked to skip the iteration (maps/<map>/skip.json).
+# Checked before every batch, so a skip waits at most for the batch that is running.
+CANCEL: Callable[[], bool] | None = None
 
 PROGRESS = "progress.json"
 
@@ -377,6 +382,10 @@ class Simulation:
                 summary = summarize(valid, float(self.sim["confidence"]), self.targets)
                 finished, stop_reason = stop_decision(summary, self.min_rounds, self.max_rounds)
         while ok and not smoke_only and not finished:
+            if CANCEL and CANCEL():
+                stop_reason, ok = "skipped", False
+                self.log("skipped by the human: no more batches")
+                break
             if pending:  # the batch that was cut off
                 name, rounds = pending["name"], int(pending["rounds"])
                 self.log(f"batch {name}: resuming ({rounds} rounds on {self.servers} servers) ...")
