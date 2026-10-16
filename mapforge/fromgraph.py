@@ -217,8 +217,10 @@ def _detour(pts, extra, width, rects, ends, placed):
     (p, q) = pts
     along_x = p[1] == q[1]
     o = min(_snap(extra / 2), 1024)
-    if o < 2 * GRID:
+    leg = width + 96  # every leg needs room for its knee rooms (generator: corridor_chain)
+    if o < 2 * GRID or math.dist(p, q) / 4 < leg:
         return None
+    o = max(o, _snap(leg))
     for s in (1, -1):
         if along_x:
             q1, q3 = _snap(p[0] + (q[0] - p[0]) / 4), _snap(p[0] + 3 * (q[0] - p[0]) / 4)

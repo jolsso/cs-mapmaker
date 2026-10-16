@@ -560,4 +560,5 @@ async function start() {
   seq = G.nodes.length + 1;
   update();
 }
+addEventListener("hashchange", () => location.reload());   // MODE/MAP are read once at load
 start();

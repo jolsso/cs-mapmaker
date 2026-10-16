@@ -160,3 +160,11 @@ def test_no_free_route_still_avoids_rooms():
     pts = route[4]
     boxes = [fromgraph._seg_box(p, q, 160) for p, q in zip(pts, pts[1:], strict=False)]
     assert not any(fromgraph._overlap(b, rects["wall"], 16) for b in boxes)
+
+
+def test_detour_legs_leave_room_for_the_knees():
+    # a short, wide corridor: a U on quarter legs would put the knee rooms on top of each other
+    assert fromgraph._detour([[16, 2016], [-400, 2016]], 400, 160, {}, ("a", "b"), []) is None
+    pts = fromgraph._detour([[0, 0], [2048, 0]], 400, 160, {}, ("a", "b"), [])
+    legs = [abs(p[0] - q[0]) + abs(p[1] - q[1]) for p, q in zip(pts, pts[1:], strict=False)]
+    assert min(legs) >= 160 + 96

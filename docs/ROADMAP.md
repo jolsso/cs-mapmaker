@@ -206,6 +206,7 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 **Accept:** Tre forskellige briefs (én kun tekst, én med billeder, én med et `layout`-billede) giver skema-gyldige `intent.json`, og mennesket godkender mindst to af tre uden rettelser.
 
 **Graf-editoren (rykket frem fra 8c, 2026-10-16, på menneskets ønske – alle nye maps lignede de_forge01):** `editor.html` (nyt map: `#new/<map>` → `graph.json` → godkend → `./mf fromgraph`; kørende map: "+ Tilføj ændring (graf)" på map-siden → ønske af typen `graph`, som næste iteration udfører, vist under "Input – dine ønsker"), "Spring iterationen over" på map-siden, editorens estimat mod de målte tider på map-siden. Spec `docs/superpowers/specs/2026-10-16-graph-editor-design.md`, plan `docs/superpowers/plans/2026-10-16-graph-editor.md`.
+Ende-til-ende på de_nasa (skabelon → godkend → fromgraph → generate → validate, 0 errors, 2026-10-16): editorens estimat ligger ~25 % over BSP-walk (T→A 24,0/19,3 s, T→B 23,9/18,0 s, CT→A 6,8/4,9 s, CT→B 12,8/9,1 s) – omvejsfaktoren 1,3 er for høj for lige korridorer; kalibreres med graf-evaluatoren i 8b.
 
 ### 8b – Topologi og graf-niveau-evaluator
 - [x] Topologi-udtræk fra ethvert layout: `mapforge/topology.py` (`./mf topology MAP=…` → `build/<map>/topology.yaml`), samme tal som `layout_graph()` på alle egne maps (`tests/test_topology.py`) (2026-10-15)
