@@ -1,7 +1,92 @@
 {
+ "-0A747PLANE": {
+  "risk": "high",
+  "feature": "elevator door and button panel",
+  "by": "qwen3.8-27b"
+ },
+ "-0A747PLANE_X4": {
+  "risk": "high",
+  "feature": "elevator door and button panel",
+  "by": "qwen3.8-27b"
+ },
+ "-0AZDIRT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0AZMOSS": {
+  "risk": "medium",
+  "feature": "horizontal moss / grass band",
+  "by": "qwen3.8-27b"
+ },
+ "-0AZWLL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0BROCKWALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0BSTUCCO": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "-0C2A4_COR2": {
   "risk": "medium",
   "feature": "rust streaks and weathering marks",
+  "by": "qwen3.8-27b"
+ },
+ "-0CASTWLL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0CASTWLLFUNG": {
+  "risk": "medium",
+  "feature": "green moss bands",
+  "by": "qwen3.8-27b"
+ },
+ "-0CLAYROOF": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSSANDWALL": {
+  "risk": "high",
+  "feature": "dark specks / bullet holes and brown brick patches",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_CA2ST": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_FJ2DK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_FR4CC": {
+  "risk": "medium",
+  "feature": "dark patches on cracked plaster",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_FR4GR": {
+  "risk": "high",
+  "feature": "white scuff marks and dark specks",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_MA1BL": {
+  "risk": "medium",
+  "feature": "teal peeling-paint blotches",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_MB2GG": {
+  "risk": "low",
+  "feature": "",
   "by": "qwen3.8-27b"
  },
  "-0CSTRIKE_ME1PL": {
@@ -9,9 +94,39 @@
   "feature": "edge rust patch and dark holes",
   "by": "qwen3.8-27b"
  },
+ "-0CSTRIKE_ME2RI": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "-0CSTRIKE_MH5TL": {
   "risk": "low",
   "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_MJ2SG": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_MR2DR": {
+  "risk": "medium",
+  "feature": "mottled plaster blotches",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_MR2ST": {
+  "risk": "high",
+  "feature": "rust speck clusters",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_WA5OR": {
+  "risk": "high",
+  "feature": "small dark speck pairs",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_WB6BK": {
+  "risk": "medium",
+  "feature": "weathered brick stains",
   "by": "qwen3.8-27b"
  },
  "-0CSTRIKE_WE1MT": {
@@ -19,9 +134,179 @@
   "feature": "large rust blob and dark stain",
   "by": "qwen3.8-27b"
  },
+ "-0CSTRIKE_WE4AL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_WK4ST": {
+  "risk": "medium",
+  "feature": "light pebble clusters / shading",
+  "by": "qwen3.8-27b"
+ },
+ "-0CSTRIKE_WR3CC": {
+  "risk": "high",
+  "feature": "exposed brick patch with rust streaks",
+  "by": "qwen3.8-27b"
+ },
+ "-0GRYSTUCCO": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0IKJUNGW": {
+  "risk": "high",
+  "feature": "tree trunks and leaf clumps",
+  "by": "qwen3.8-27b"
+ },
+ "-0IKROCKA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0ROCK": {
+  "risk": "high",
+  "feature": "dark cracks / streaks",
+  "by": "qwen3.8-27b"
+ },
+ "-0ROCKCOBBLEST": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0SAND": {
+  "risk": "medium",
+  "feature": "soft dirt mottling and faint cracks",
+  "by": "qwen3.8-27b"
+ },
+ "-0SANDROCK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0SANDYBRICK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-0WLSTUCCO": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1A747PLANE": {
+  "risk": "high",
+  "feature": "recessed vent grille and warning-label plate",
+  "by": "qwen3.8-27b"
+ },
+ "-1A747PLANE_X4": {
+  "risk": "high",
+  "feature": "electrical breaker panels (window + red light)",
+  "by": "qwen3.8-27b"
+ },
+ "-1AZDIRT": {
+  "risk": "medium",
+  "feature": "dark dirt patches / mottling",
+  "by": "qwen3.8-27b"
+ },
+ "-1AZMOSS": {
+  "risk": "high",
+  "feature": "grass band at base of wall",
+  "by": "qwen3.8-27b"
+ },
+ "-1AZWLL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1BROCKWALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1BSTUCCO": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1CASTWLL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1CASTWLLFUNG": {
+  "risk": "high",
+  "feature": "green moss band",
+  "by": "qwen3.8-27b"
+ },
+ "-1CLAYROOF": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSSANDWALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_CA2ST": {
+  "risk": "medium",
+  "feature": "diagonal weathering streaks",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_FJ2DK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_FR4CC": {
+  "risk": "high",
+  "feature": "brown crack stains",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_FR4GR": {
+  "risk": "high",
+  "feature": "bullet-hole stains",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_MA1BL": {
+  "risk": "medium",
+  "feature": "peeling paint blotches",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_MB2GG": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "-1CSTRIKE_ME1PL": {
   "risk": "high",
   "feature": "rust patch with drips",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_ME2RI": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_MH5TL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_MR2DR": {
+  "risk": "medium",
+  "feature": "plaster smudges and streaks",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_MR2ST": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_WA5OR": {
+  "risk": "high",
+  "feature": "dark specks and dirt stains",
   "by": "qwen3.8-27b"
  },
  "-1CSTRIKE_WE1MT": {
@@ -29,9 +314,109 @@
   "feature": "edge rust patches per plate",
   "by": "qwen3.8-27b"
  },
+ "-1CSTRIKE_WK4ST": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1CSTRIKE_WR3CC": {
+  "risk": "high",
+  "feature": "exposed brick patches and pipes",
+  "by": "qwen3.8-27b"
+ },
+ "-1GRYSTUCCO": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1IKJUNGW": {
+  "risk": "medium",
+  "feature": "tree trunks with fern clusters",
+  "by": "qwen3.8-27b"
+ },
+ "-1IKROCKA": {
+  "risk": "medium",
+  "feature": "cracked rock strata",
+  "by": "qwen3.8-27b"
+ },
+ "-1ROCK": {
+  "risk": "medium",
+  "feature": "vertical rock fissures",
+  "by": "qwen3.8-27b"
+ },
+ "-1ROCKCOBBLEST": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1SAND": {
+  "risk": "medium",
+  "feature": "faint mottling and vertical streaks",
+  "by": "qwen3.8-27b"
+ },
+ "-1SANDROCK": {
+  "risk": "high",
+  "feature": "metal plates set into brick wall",
+  "by": "qwen3.8-27b"
+ },
+ "-1SANDYBRICK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-1WLSTUCCO": {
+  "risk": "high",
+  "feature": "clusters of dark pockmarks / bullet-hole specks",
+  "by": "qwen3.8-27b"
+ },
+ "-2AZDIRT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-2BROCKWALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-2BSTUCCO": {
+  "risk": "medium",
+  "feature": "pale faded plaster patches",
+  "by": "qwen3.8-27b"
+ },
+ "-2CASTWLL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-2CLAYROOF": {
+  "risk": "high",
+  "feature": "bullet holes on red tiles",
+  "by": "qwen3.8-27b"
+ },
+ "-2CSTRIKE_FR4GR": {
+  "risk": "high",
+  "feature": "dark specks / pockmarks",
+  "by": "qwen3.8-27b"
+ },
+ "-2CSTRIKE_MA1BL": {
+  "risk": "high",
+  "feature": "peeling white paint patches",
+  "by": "qwen3.8-27b"
+ },
+ "-2CSTRIKE_MB2GG": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "-2CSTRIKE_ME1PL": {
   "risk": "high",
   "feature": "central rust blotch and specks",
+  "by": "qwen3.8-27b"
+ },
+ "-2CSTRIKE_WA5OR": {
+  "risk": "high",
+  "feature": "bullet holes with paint splatter",
   "by": "qwen3.8-27b"
  },
  "-2CSTRIKE_WE1MT": {
@@ -39,9 +424,99 @@
   "feature": "corner rust clumps and mid band",
   "by": "qwen3.8-27b"
  },
+ "-2CSTRIKE_WK4ST": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-2CSTRIKE_WR3CC": {
+  "risk": "high",
+  "feature": "exposed brick patches",
+  "by": "qwen3.8-27b"
+ },
+ "-2GRYSTUCCO": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-2IKJUNGW": {
+  "risk": "high",
+  "feature": "tree trunks and foliage clusters",
+  "by": "qwen3.8-27b"
+ },
+ "-2IKROCKA": {
+  "risk": "high",
+  "feature": "cracked rock motif",
+  "by": "qwen3.8-27b"
+ },
+ "-2ROCK": {
+  "risk": "medium",
+  "feature": "mottled rock shading",
+  "by": "qwen3.8-27b"
+ },
+ "-2SAND": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-2SANDROCK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-2WLSTUCCO": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-3AZDIRT": {
+  "risk": "medium",
+  "feature": "faint oval depressions",
+  "by": "qwen3.8-27b"
+ },
+ "-3CSTRIKE_FR4GR": {
+  "risk": "medium",
+  "feature": "crack pattern",
+  "by": "qwen3.8-27b"
+ },
+ "-3CSTRIKE_MA1BL": {
+  "risk": "medium",
+  "feature": "teal paint patches",
+  "by": "qwen3.8-27b"
+ },
  "-3CSTRIKE_ME1PL": {
   "risk": "high",
   "feature": "rust holes and stains",
+  "by": "qwen3.8-27b"
+ },
+ "-3CSTRIKE_WA5OR": {
+  "risk": "high",
+  "feature": "white oval patch",
+  "by": "qwen3.8-27b"
+ },
+ "-3CSTRIKE_WR3CC": {
+  "risk": "high",
+  "feature": "white square patch",
+  "by": "qwen3.8-27b"
+ },
+ "-3ROCK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-3SAND": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "-3WLSTUCCO": {
+  "risk": "medium",
+  "feature": "vertical grime streaks",
+  "by": "qwen3.8-27b"
+ },
+ "-4CSTRIKE_MA1BL": {
+  "risk": "high",
+  "feature": "vertical crack / scratch mark",
   "by": "qwen3.8-27b"
  },
  "-4CSTRIKE_ME1PL": {
@@ -49,9 +524,24 @@
   "feature": "vertical rust streaks",
   "by": "qwen3.8-27b"
  },
+ "-4CSTRIKE_WA5OR": {
+  "risk": "high",
+  "feature": "hole with exposed brick",
+  "by": "qwen3.8-27b"
+ },
+ "-4CSTRIKE_WR3CC": {
+  "risk": "medium",
+  "feature": "dark smudge blotches on blocks",
+  "by": "qwen3.8-27b"
+ },
  "-5CSTRIKE_ME1PL": {
   "risk": "high",
   "feature": "rust stains on riveted metal plate",
+  "by": "qwen3.8-27b"
+ },
+ "-5CSTRIKE_WR3CC": {
+  "risk": "high",
+  "feature": "white plaster / paint patch",
   "by": "qwen3.8-27b"
  },
  "-6CSTRIKE_ME1PL": {
@@ -59,14 +549,304 @@
   "feature": "heavy rust patches on corroded plate",
   "by": "qwen3.8-27b"
  },
+ "256WHITE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "64CRATE0": {
+  "risk": "high",
+  "feature": "diagonal wooden brace on each crate panel",
+  "by": "qwen3.8-27b"
+ },
+ "64CRATE1": {
+  "risk": "high",
+  "feature": "diagonal brace plus red mark in same spot per tile",
+  "by": "qwen3.8-27b"
+ },
+ "64CRATETOP": {
+  "risk": "medium",
+  "feature": "rust smudges / shading repeating at tile size",
+  "by": "qwen3.8-27b"
+ },
+ "747BR": {
+  "risk": "high",
+  "feature": "male & female restroom signs (and wall vent)",
+  "by": "qwen3.8-27b"
+ },
+ "747BRM": {
+  "risk": "high",
+  "feature": "single male restroom sign per tile",
+  "by": "qwen3.8-27b"
+ },
+ "747BRW": {
+  "risk": "high",
+  "feature": "single female restroom sign per tile",
+  "by": "qwen3.8-27b"
+ },
+ "747BR_X4": {
+  "risk": "high",
+  "feature": "restroom signs and wall switch",
+  "by": "qwen3.8-27b"
+ },
+ "747DOOR": {
+  "risk": "high",
+  "feature": "wall switch and vent grille",
+  "by": "qwen3.8-27b"
+ },
+ "747INV_BLOCK": {
+  "risk": "high",
+  "feature": "breaker box and warning signs",
+  "by": "qwen3.8-27b"
+ },
+ "747INV_BLOCK2": {
+  "risk": "high",
+  "feature": "breaker box and warning signs",
+  "by": "qwen3.8-27b"
+ },
+ "747INV_LINE": {
+  "risk": "high",
+  "feature": "breaker box and warning signs",
+  "by": "qwen3.8-27b"
+ },
+ "747INV_LINE2": {
+  "risk": "high",
+  "feature": "breaker box and warning signs",
+  "by": "qwen3.8-27b"
+ },
+ "747LNV": {
+  "risk": "high",
+  "feature": "breaker box with red no-symbol",
+  "by": "qwen3.8-27b"
+ },
+ "747LNV2": {
+  "risk": "high",
+  "feature": "breaker box with red no-symbol",
+  "by": "qwen3.8-27b"
+ },
+ "747OVERHEAD": {
+  "risk": "high",
+  "feature": "cabinet door with handle",
+  "by": "qwen3.8-27b"
+ },
+ "747PLANEBANK_X4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "747PLANEBLANK": {
+  "risk": "high",
+  "feature": "electrical box with warning sign",
+  "by": "qwen3.8-27b"
+ },
+ "747WALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "747WALL_X4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "AD_POPDOG": {
+  "risk": "high",
+  "feature": "red pop-dog ad with dog logo",
+  "by": "qwen3.8-27b"
+ },
+ "AIRCARPET": {
+  "risk": "medium",
+  "feature": "pixelated red/blue color patches",
+  "by": "qwen3.8-27b"
+ },
+ "AIRCARPET_256": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "ASPHALT01": {
   "risk": "low",
   "feature": "",
   "by": "qwen3.8-27b"
  },
+ "ASPHALT02": {
+  "risk": "high",
+  "feature": "dark cracked stain blotch",
+  "by": "qwen3.8-27b"
+ },
+ "ASPHALTDIRTY01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "ASPHALTDIRTY02": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "AZGRASS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "AZGRND": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "AZROAD": {
+  "risk": "medium",
+  "feature": "cracked plaster with vertical grime streaks",
+  "by": "qwen3.8-27b"
+ },
+ "AZSTATA": {
+  "risk": "high",
+  "feature": "framed bas-relief carving panel",
+  "by": "qwen3.8-27b"
+ },
+ "AZSTATB": {
+  "risk": "high",
+  "feature": "framed bas-relief carving panel",
+  "by": "qwen3.8-27b"
+ },
+ "AZSTATC": {
+  "risk": "high",
+  "feature": "carved relief figures",
+  "by": "qwen3.8-27b"
+ },
+ "AZTRIM": {
+  "risk": "medium",
+  "feature": "ornate egg-and-dart molding band",
+  "by": "qwen3.8-27b"
+ },
+ "BABTECH_BLOCK4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BABTECH_CEIL01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BAKERYWINDOW": {
+  "risk": "high",
+  "feature": "bakery window with sign",
+  "by": "qwen3.8-27b"
+ },
+ "BASEBEAMTOP": {
+  "risk": "high",
+  "feature": "rust patches and skull marks",
+  "by": "qwen3.8-27b"
+ },
+ "BCONTAINER1": {
+  "risk": "high",
+  "feature": "metal door panel with vent and hinges",
+  "by": "qwen3.8-27b"
+ },
+ "BCONTAINER2": {
+  "risk": "high",
+  "feature": "white circular stencil logo",
+  "by": "qwen3.8-27b"
+ },
  "BCONTAINER3": {
   "risk": "low",
   "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BIGCRATE0": {
+  "risk": "high",
+  "feature": "diagonal brace and red stencil text",
+  "by": "qwen3.8-27b"
+ },
+ "BIGCRATE1": {
+  "risk": "high",
+  "feature": "diagonal wooden support brace",
+  "by": "qwen3.8-27b"
+ },
+ "BIGCRATE2": {
+  "risk": "high",
+  "feature": "diagonal brace and red stencil text",
+  "by": "qwen3.8-27b"
+ },
+ "BIGCRATETOP": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BLACK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BLUEBACK_X3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BLUEBACK_X4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BLUEHANGINGRUG": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BLUERUG": {
+  "risk": "medium",
+  "feature": "soft mottled shading",
+  "by": "qwen3.8-27b"
+ },
+ "BRDLY3_BACK1": {
+  "risk": "high",
+  "feature": "metal vent panel",
+  "by": "qwen3.8-27b"
+ },
+ "BRDLY3_BTILE1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRDLY3_FRNT1": {
+  "risk": "high",
+  "feature": "hatch with hanging chain",
+  "by": "qwen3.8-27b"
+ },
+ "BRDLY3_SIDE1": {
+  "risk": "high",
+  "feature": "armored plate with round hatch",
+  "by": "qwen3.8-27b"
+ },
+ "BRDLY3_TOP1": {
+  "risk": "high",
+  "feature": "octagonal metal panel",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK02-2": {
+  "risk": "medium",
+  "feature": "dark horizontal edge band",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK03-2": {
+  "risk": "high",
+  "feature": "graffiti tags",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK04": {
+  "risk": "medium",
+  "feature": "dark grime streaks",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK04_SM": {
+  "risk": "medium",
+  "feature": "reddish grime blotches",
   "by": "qwen3.8-27b"
  },
  "BRICK05": {
@@ -129,12 +909,372 @@
   "feature": "red rust stain and grime bands",
   "by": "qwen3.8-27b"
  },
+ "BRICK05B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK05_SM": {
+  "risk": "medium",
+  "feature": "vertical weathering streaks",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK06": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK06_SM": {
+  "risk": "medium",
+  "feature": "soft grime blotches / vertical shading bands",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK07": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK08": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK09": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK10": {
+  "risk": "medium",
+  "feature": "weathering patches / soft stains",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK11": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK12": {
+  "risk": "medium",
+  "feature": "weathered white paint blotches",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK13": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK13B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICK13C": {
+  "risk": "high",
+  "feature": "arched windows",
+  "by": "qwen3.8-27b"
+ },
+ "BRICKGRASS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BRICKPATH": {
+  "risk": "medium",
+  "feature": "peeling white paint patches",
+  "by": "qwen3.8-27b"
+ },
+ "BSTUCCOBRDR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BSTUCCOPOST": {
+  "risk": "high",
+  "feature": "pinned posters and photos",
+  "by": "qwen3.8-27b"
+ },
+ "BSTUCCOTRIM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "BSTUCCOWIDEPOST": {
+  "risk": "high",
+  "feature": "pinned photos and posters",
+  "by": "qwen3.8-27b"
+ },
+ "BSTUCCOWND": {
+  "risk": "high",
+  "feature": "window",
+  "by": "qwen3.8-27b"
+ },
+ "C3A2A_W3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C3A2A_W3_X2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CALENDAR1": {
+  "risk": "high",
+  "feature": "calendar poster of a woman",
+  "by": "qwen3.8-27b"
+ },
+ "CAMLENS": {
+  "risk": "high",
+  "feature": "round vent grille and red indicator light",
+  "by": "qwen3.8-27b"
+ },
+ "CARPET": {
+  "risk": "medium",
+  "feature": "soft mottled concrete shading",
+  "by": "qwen3.8-27b"
+ },
+ "CARPET2": {
+  "risk": "medium",
+  "feature": "dirt / stone blotches",
+  "by": "qwen3.8-27b"
+ },
+ "CARPET2_256": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CARPET_256": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CASEEND": {
+  "risk": "high",
+  "feature": "radioactive warning sign",
+  "by": "qwen3.8-27b"
+ },
+ "CASESIDE": {
+  "risk": "high",
+  "feature": "radiation symbol on metal bar",
+  "by": "qwen3.8-27b"
+ },
+ "CASETOP": {
+  "risk": "high",
+  "feature": "mirrored radioactive sign strip",
+  "by": "qwen3.8-27b"
+ },
+ "CASTCRNL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CASTCRNR": {
+  "risk": "medium",
+  "feature": "vertical lighter stone bands",
+  "by": "qwen3.8-27b"
+ },
+ "CASTFLT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CASTLEBGARCH": {
+  "risk": "high",
+  "feature": "brick arches",
+  "by": "qwen3.8-27b"
+ },
+ "CASTLEBGARCHFNG": {
+  "risk": "high",
+  "feature": "arches with green moss band",
+  "by": "qwen3.8-27b"
+ },
+ "CASTLESMARCH": {
+  "risk": "high",
+  "feature": "pointed-arch arcade",
+  "by": "qwen3.8-27b"
+ },
+ "CASTLEWINDOW": {
+  "risk": "high",
+  "feature": "paired arched windows",
+  "by": "qwen3.8-27b"
+ },
+ "CASTLEWINDOW2": {
+  "risk": "high",
+  "feature": "barred rectangular windows",
+  "by": "qwen3.8-27b"
+ },
+ "CASTLEWINDOW3": {
+  "risk": "high",
+  "feature": "windows on stone wall",
+  "by": "qwen3.8-27b"
+ },
+ "CASTSIGN1": {
+  "risk": "high",
+  "feature": "blue visitor entrance sign",
+  "by": "qwen3.8-27b"
+ },
+ "CASTSIGN1B": {
+  "risk": "high",
+  "feature": "blue opening times sign",
+  "by": "qwen3.8-27b"
+ },
+ "CASTSIGN2": {
+  "risk": "high",
+  "feature": "purple gift shop hours sign",
+  "by": "qwen3.8-27b"
+ },
+ "CASTSIGN3": {
+  "risk": "high",
+  "feature": "red exhibit closed sign",
+  "by": "qwen3.8-27b"
+ },
+ "CASTSIGNFOOD": {
+  "risk": "high",
+  "feature": "white snack menu sign",
+  "by": "qwen3.8-27b"
+ },
+ "CASTSIGNSM1": {
+  "risk": "high",
+  "feature": "row of three dark rectangles with text block",
+  "by": "qwen3.8-27b"
+ },
+ "CASTSIGNSM2": {
+  "risk": "high",
+  "feature": "\"ENTRANCE\" sign text",
+  "by": "qwen3.8-27b"
+ },
+ "CASTSIGNSM3": {
+  "risk": "high",
+  "feature": "\"CHAMBER\" sign text",
+  "by": "qwen3.8-27b"
+ },
+ "CASTSIGNSM4": {
+  "risk": "high",
+  "feature": "brown corner stain and torn edge",
+  "by": "qwen3.8-27b"
+ },
+ "CASTYUMMY": {
+  "risk": "high",
+  "feature": "Walls ice cream logo",
+  "by": "qwen3.8-27b"
+ },
+ "CCWALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CEILING": {
+  "risk": "medium",
+  "feature": "soft mottled shading",
+  "by": "qwen3.8-27b"
+ },
+ "CEILING01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CF_M_WIN1": {
+  "risk": "high",
+  "feature": "vertical rusty pipes",
+  "by": "qwen3.8-27b"
+ },
+ "CF_ROOF02": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CHAIR1_X2": {
+  "risk": "high",
+  "feature": "zigzag crack line",
+  "by": "qwen3.8-27b"
+ },
+ "CHAIR1_X3": {
+  "risk": "high",
+  "feature": "zigzag crack line",
+  "by": "qwen3.8-27b"
+ },
+ "CHAIR1_X4": {
+  "risk": "high",
+  "feature": "wavy horizontal wire",
+  "by": "qwen3.8-27b"
+ },
+ "CHAIR2_X2": {
+  "risk": "high",
+  "feature": "wavy horizontal wire",
+  "by": "qwen3.8-27b"
+ },
+ "CHAIR2_X3": {
+  "risk": "high",
+  "feature": "wavy horizontal wire",
+  "by": "qwen3.8-27b"
+ },
+ "CHAIR2_X4": {
+  "risk": "high",
+  "feature": "wavy horizontal wire",
+  "by": "qwen3.8-27b"
+ },
+ "CHESTDRAWERS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "CINDERBLOCK01": {
   "risk": "low",
   "feature": "",
   "by": "qwen3.8-27b"
  },
+ "CINDERBLOCK01A": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CINDERBLOCK02": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CINDERBLOCK03": {
+  "risk": "medium",
+  "feature": "gray grime streaks",
+  "by": "qwen3.8-27b"
+ },
+ "CINDERBLOCK04": {
+  "risk": "high",
+  "feature": "horizontal concrete beam/pipe",
+  "by": "qwen3.8-27b"
+ },
+ "CLAYROOFSIDE": {
+  "risk": "high",
+  "feature": "red scalloped trim stripe",
+  "by": "qwen3.8-27b"
+ },
+ "CLAYTILE1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CLAYTILE2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CLAYTILE3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "COCKPITGADGETS": {
+  "risk": "high",
+  "feature": "control gauges and switch panels",
+  "by": "qwen3.8-27b"
+ },
  "CONC33": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CONCRETE": {
   "risk": "low",
   "feature": "",
   "by": "qwen3.8-27b"
@@ -144,9 +1284,414 @@
   "feature": "",
   "by": "qwen3.8-27b"
  },
+ "CONCRETE01-2": {
+  "risk": "high",
+  "feature": "blue KRAZE graffiti tag",
+  "by": "qwen3.8-27b"
+ },
  "CONCRETE02": {
   "risk": "medium",
   "feature": "vertical water-stain streaks",
+  "by": "qwen3.8-27b"
+ },
+ "CONCRETE02A": {
+  "risk": "medium",
+  "feature": "vertical water streaks and stains",
+  "by": "qwen3.8-27b"
+ },
+ "CONNECTOR": {
+  "risk": "high",
+  "feature": "embossed metal emblem with bolt row",
+  "by": "qwen3.8-27b"
+ },
+ "CONRETETRIM": {
+  "risk": "medium",
+  "feature": "mottled concrete block weathering",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_020": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_023": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_026": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_027": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_028": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_036": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_040": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_051": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_054": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_055": {
+  "risk": "medium",
+  "feature": "horizontal shading band",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_059": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_061": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_066": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_067": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_086": {
+  "risk": "high",
+  "feature": "arched louvered shutter panels",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_090": {
+  "risk": "high",
+  "feature": "metal door with window and handle",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_093": {
+  "risk": "high",
+  "feature": "window with horizontal blinds",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_111": {
+  "risk": "medium",
+  "feature": "mottled plaster blotches",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_117": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_120": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_135": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_136": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_141": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_142": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_143": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_144": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_151": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_152": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_153": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_173": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_192": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_198": {
+  "risk": "high",
+  "feature": "window grid",
+  "by": "qwen3.8-27b"
+ },
+ "CORE_URBAN_204": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CPMONITOR": {
+  "risk": "high",
+  "feature": "monitor panels",
+  "by": "qwen3.8-27b"
+ },
+ "CPMONITOR2": {
+  "risk": "medium",
+  "feature": "horizontal shading bands",
+  "by": "qwen3.8-27b"
+ },
+ "CPMONITOR20001": {
+  "risk": "high",
+  "feature": "dark window/opening with light beam",
+  "by": "qwen3.8-27b"
+ },
+ "CPMONITOR3": {
+  "risk": "high",
+  "feature": "blue monitor screen",
+  "by": "qwen3.8-27b"
+ },
+ "CPUCASE": {
+  "risk": "high",
+  "feature": "slatted wall vent grille",
+  "by": "qwen3.8-27b"
+ },
+ "CRATE02": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CRATEBOX": {
+  "risk": "medium",
+  "feature": "blotchy wood grain panel",
+  "by": "qwen3.8-27b"
+ },
+ "CRATEBOXLABEL": {
+  "risk": "high",
+  "feature": "Astoria Vino logo sign",
+  "by": "qwen3.8-27b"
+ },
+ "CRATESIDE01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CRATESIDE02": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CRATESIDE03": {
+  "risk": "high",
+  "feature": "yellow radiation trefoil symbol",
+  "by": "qwen3.8-27b"
+ },
+ "CRATETOP01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CRATETOP02": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CRDBRDSDE1": {
+  "risk": "medium",
+  "feature": "faint lighter square patches",
+  "by": "qwen3.8-27b"
+ },
+ "CRDBRDSDE2": {
+  "risk": "medium",
+  "feature": "faint smudges and light patches",
+  "by": "qwen3.8-27b"
+ },
+ "CRDBRDTOP": {
+  "risk": "high",
+  "feature": "red UP stamp",
+  "by": "qwen3.8-27b"
+ },
+ "CRED": {
+  "risk": "high",
+  "feature": "red text watermark",
+  "by": "qwen3.8-27b"
+ },
+ "CRED1": {
+  "risk": "high",
+  "feature": "red text watermark",
+  "by": "qwen3.8-27b"
+ },
+ "CRETE33": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CROSSOVER04": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSBLASTDOOR": {
+  "risk": "high",
+  "feature": "red DANGER blast-doors sign",
+  "by": "qwen3.8-27b"
+ },
+ "CSDOOR": {
+  "risk": "high",
+  "feature": "wooden panel with three black bolts",
+  "by": "qwen3.8-27b"
+ },
+ "CSSANDWALL2": {
+  "risk": "high",
+  "feature": "red graffiti tag on brick",
+  "by": "qwen3.8-27b"
+ },
+ "CSTLCBBL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTLCNCR": {
+  "risk": "medium",
+  "feature": "mottled concrete streaks and blotches",
+  "by": "qwen3.8-27b"
+ },
+ "CSTLDR1": {
+  "risk": "high",
+  "feature": "arched wooden window/door",
+  "by": "qwen3.8-27b"
+ },
+ "CSTLDR2": {
+  "risk": "high",
+  "feature": "studded wooden door panels with small vent",
+  "by": "qwen3.8-27b"
+ },
+ "CSTLDR2BIG": {
+  "risk": "high",
+  "feature": "studded wooden door panels with small vent",
+  "by": "qwen3.8-27b"
+ },
+ "CSTLDR3": {
+  "risk": "high",
+  "feature": "arched lattice window in brick wall",
+  "by": "qwen3.8-27b"
+ },
+ "CSTLDR4": {
+  "risk": "high",
+  "feature": "metal door with yellow graffiti and knob",
+  "by": "qwen3.8-27b"
+ },
+ "CSTLGRASS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTLMLD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRAIN0": {
+  "risk": "high",
+  "feature": "ARMOURY metal sign plate",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRAIN1": {
+  "risk": "high",
+  "feature": "CTTC Tactical Training sign",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRAIN10": {
+  "risk": "high",
+  "feature": "EXPLOSIVES metal sign plate",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRAIN2": {
+  "risk": "high",
+  "feature": "CTTC Zone 1 sign",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRAIN3": {
+  "risk": "high",
+  "feature": "CTTC Zone 3 sign",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRAIN4": {
+  "risk": "high",
+  "feature": "CTTC Zone 2 sign",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRAIN5": {
+  "risk": "high",
+  "feature": "CTTC armoury store sign",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRAIN6": {
+  "risk": "high",
+  "feature": "CTTC blast pit sign",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRAIN7": {
+  "risk": "high",
+  "feature": "CTTC zone 4 sign",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRAIN8": {
+  "risk": "high",
+  "feature": "CTTC explosives sign",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_AIRPL1": {
+  "risk": "medium",
+  "feature": "mottled shading and faint oval dents",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_AIRPL2": {
+  "risk": "low",
+  "feature": "",
   "by": "qwen3.8-27b"
  },
  "CSTRIKE_CE2XCNG": {
@@ -154,7 +1699,92 @@
   "feature": "",
   "by": "human: play test #34 liked the truss ceiling (model said high: X-braced panel)"
  },
+ "CSTRIKE_CH3TILE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_CJ2BEAM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_CR2PLN": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_DE6HORZ": {
+  "risk": "high",
+  "feature": "riveted metal plate",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_DE6VERT": {
+  "risk": "high",
+  "feature": "riveted plate with paint drips",
+  "by": "qwen3.8-27b"
+ },
  "CSTRIKE_DJ2OLD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FE2GTNG": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FE2SQRS": {
+  "risk": "medium",
+  "feature": "rust stains on riveted plates",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FE4CRGD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FH4WTTL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FJ2DOCK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FP2DARK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FP2LGHT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FP2MED": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FT2DIRT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FT2MUD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FT3GRAS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_FT4APHT": {
   "risk": "low",
   "feature": "",
   "by": "qwen3.8-27b"
@@ -169,9 +1799,19 @@
   "feature": "",
   "by": "qwen3.8-27b"
  },
+ "CSTRIKE_ME2DRST": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "CSTRIKE_ME2RSTW": {
   "risk": "medium",
   "feature": "rusty mottled shading",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_ME4DCLN": {
+  "risk": "low",
+  "feature": "",
   "by": "qwen3.8-27b"
  },
  "CSTRIKE_ME4GREB": {
@@ -184,9 +1824,124 @@
   "feature": "mottled rust stains",
   "by": "qwen3.8-27b"
  },
+ "CSTRIKE_ME4RADR": {
+  "risk": "medium",
+  "feature": "vertical grime streaks",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_ME7CAUT": {
+  "risk": "high",
+  "feature": "rust stain on hazard stripes",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_MJ3SHRU": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_OE1BXSD": {
+  "risk": "high",
+  "feature": "panel bracket / seam plate",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_OE1BXTP": {
+  "risk": "high",
+  "feature": "circular valve hub with bolts",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_OE1LGBM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_OE1SMBM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_OE2STRR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_OE2VENT": {
+  "risk": "high",
+  "feature": "rusty vent grilles",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_OE4FNVT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "CSTRIKE_OE4PNL": {
   "risk": "low",
   "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_OE4PNLH": {
+  "risk": "high",
+  "feature": "metal hatch panels",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WB6CLMN": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WB6FRAM": {
+  "risk": "high",
+  "feature": "metal-framed brick panels",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WB6HEDR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WB6PLN1": {
+  "risk": "high",
+  "feature": "raised brick courses forming a grid",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WB6PLN2": {
+  "risk": "high",
+  "feature": "vertical wooden beams/pipes",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WB6PLN3": {
+  "risk": "medium",
+  "feature": "faint grime / shading blotches",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WB6PLN4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WB6WND": {
+  "risk": "high",
+  "feature": "windows with cracked glass",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WB6WND2": {
+  "risk": "high",
+  "feature": "windows",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WE2PPWL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WE2RIBD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WG1OFCE": {
+  "risk": "high",
+  "feature": "window panes with blinds",
   "by": "qwen3.8-27b"
  },
  "CSTRIKE_WR4CCDR": {
@@ -214,9 +1969,2184 @@
   "feature": "shuttered windows",
   "by": "qwen3.8-27b"
  },
+ "CSTRIKE_WR4RGH": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WR7PLN": {
+  "risk": "medium",
+  "feature": "stained concrete bands",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRIKE_WR7PLNF": {
+  "risk": "high",
+  "feature": "circular wall vents",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRUCKDOOR": {
+  "risk": "high",
+  "feature": "CS graffiti tag on paneled wall",
+  "by": "qwen3.8-27b"
+ },
+ "CSTRUCKDOOR2": {
+  "risk": "high",
+  "feature": "loop graffiti tag on paneled wall",
+  "by": "qwen3.8-27b"
+ },
+ "CUBED": {
+  "risk": "high",
+  "feature": "floral curtain valance with red plaid band",
+  "by": "qwen3.8-27b"
+ },
+ "CUBLDB": {
+  "risk": "high",
+  "feature": "row of windows and doors on weathered facade",
+  "by": "qwen3.8-27b"
+ },
+ "CUBLDC": {
+  "risk": "high",
+  "feature": "shuttered windows and orange doors on yellow facade",
+  "by": "qwen3.8-27b"
+ },
+ "CUBLDE": {
+  "risk": "high",
+  "feature": "arched shuttered windows on terracotta facade",
+  "by": "qwen3.8-27b"
+ },
+ "CUBLDF": {
+  "risk": "high",
+  "feature": "rows of windows on facade",
+  "by": "qwen3.8-27b"
+ },
+ "CUBOOKSA": {
+  "risk": "medium",
+  "feature": "colored book spines",
+  "by": "qwen3.8-27b"
+ },
+ "CUBRUSHA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUCRBA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUCREDITS": {
+  "risk": "high",
+  "feature": "cs_havana map poster / logo",
+  "by": "qwen3.8-27b"
+ },
+ "CUDRA": {
+  "risk": "high",
+  "feature": "wooden door with arch and paint splatter",
+  "by": "qwen3.8-27b"
+ },
+ "CUDRB": {
+  "risk": "high",
+  "feature": "dark blue door with brick rubble",
+  "by": "qwen3.8-27b"
+ },
+ "CUDRD": {
+  "risk": "high",
+  "feature": "green arched window",
+  "by": "qwen3.8-27b"
+ },
+ "CUDRE": {
+  "risk": "high",
+  "feature": "white shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUDRF": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUDRG": {
+  "risk": "high",
+  "feature": "shuttered window with pilaster",
+  "by": "qwen3.8-27b"
+ },
+ "CUDRH": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUDRI": {
+  "risk": "high",
+  "feature": "shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUDRJ": {
+  "risk": "high",
+  "feature": "shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUDUMPSTERB": {
+  "risk": "medium",
+  "feature": "white weathering streaks",
+  "by": "qwen3.8-27b"
+ },
+ "CUDUMPSTERC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUFOUNTAINA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUFRIDGE": {
+  "risk": "medium",
+  "feature": "tan stains on panels",
+  "by": "qwen3.8-27b"
+ },
+ "CUGENA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUGENAB": {
+  "risk": "high",
+  "feature": "painted Cuban flags",
+  "by": "qwen3.8-27b"
+ },
+ "CUGENAP": {
+  "risk": "high",
+  "feature": "torn propaganda posters / stickers",
+  "by": "qwen3.8-27b"
+ },
+ "CUGENB": {
+  "risk": "medium",
+  "feature": "rusty metal patches and stains",
+  "by": "qwen3.8-27b"
+ },
+ "CUGENC": {
+  "risk": "medium",
+  "feature": "white paint drip streaks",
+  "by": "qwen3.8-27b"
+ },
+ "CUGEND": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUGROUNDA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUGROUNDB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUGROUNDD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUGROUNDI": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUICEILA": {
+  "risk": "high",
+  "feature": "bullet holes / pockmarks",
+  "by": "qwen3.8-27b"
+ },
+ "CUICEILB": {
+  "risk": "medium",
+  "feature": "cracks and stains",
+  "by": "qwen3.8-27b"
+ },
+ "CUIFLRA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUIFLRB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUIFLRC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUIFLRD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUIFLRE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUIFLRF": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUIWLLC": {
+  "risk": "high",
+  "feature": "white paint chips / specks",
+  "by": "qwen3.8-27b"
+ },
+ "CUIWLLD": {
+  "risk": "high",
+  "feature": "white paint chips / specks",
+  "by": "qwen3.8-27b"
+ },
+ "CUIWLLE": {
+  "risk": "medium",
+  "feature": "mottled paint splotches",
+  "by": "qwen3.8-27b"
+ },
+ "CUIWLLF": {
+  "risk": "medium",
+  "feature": "mottled paint splotches",
+  "by": "qwen3.8-27b"
+ },
+ "CUIWLLG": {
+  "risk": "high",
+  "feature": "dirt drip streaks and stains",
+  "by": "qwen3.8-27b"
+ },
+ "CULIGHTA": {
+  "risk": "medium",
+  "feature": "light-to-dark vertical gradient",
+  "by": "qwen3.8-27b"
+ },
+ "CULIGHTB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CULIGHTC": {
+  "risk": "medium",
+  "feature": "weathered streaks and blotches",
+  "by": "qwen3.8-27b"
+ },
+ "CUNUMBERS": {
+  "risk": "high",
+  "feature": "colored numbered tiles",
+  "by": "qwen3.8-27b"
+ },
+ "CUPICTA": {
+  "risk": "high",
+  "feature": "framed portrait of bearded man",
+  "by": "qwen3.8-27b"
+ },
+ "CUPICTB": {
+  "risk": "high",
+  "feature": "framed harpist painting",
+  "by": "qwen3.8-27b"
+ },
+ "CUPICTC": {
+  "risk": "high",
+  "feature": "framed portrait of woman",
+  "by": "qwen3.8-27b"
+ },
+ "CUPLLRA": {
+  "risk": "high",
+  "feature": "fluted pilaster with molding band",
+  "by": "qwen3.8-27b"
+ },
+ "CUPLLRB": {
+  "risk": "high",
+  "feature": "fluted pilaster with molding band",
+  "by": "qwen3.8-27b"
+ },
+ "CURAMP": {
+  "risk": "medium",
+  "feature": "vertical shade bands on slats",
+  "by": "qwen3.8-27b"
+ },
+ "CURDA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CURTAIN1": {
+  "risk": "medium",
+  "feature": "soft diamond dimples / stripes",
+  "by": "qwen3.8-27b"
+ },
+ "CURTAIN1_256": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CURTAIN2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CURTAIN3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CURTAIN4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUSDWLKA": {
+  "risk": "medium",
+  "feature": "rust streaks and pockmarks on concrete blocks",
+  "by": "qwen3.8-27b"
+ },
+ "CUSOLIDA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUSOLIDB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUSTAIRSA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUSTOVEFRONT": {
+  "risk": "high",
+  "feature": "stainless steel oven",
+  "by": "qwen3.8-27b"
+ },
+ "CUSTOVETOP": {
+  "risk": "high",
+  "feature": "gas cooktop with burners",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRASHA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRASHB": {
+  "risk": "high",
+  "feature": "round hatch full of rubble",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRKFRNT": {
+  "risk": "high",
+  "feature": "rusty truck front",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRKRR": {
+  "risk": "high",
+  "feature": "red truck cab (front view)",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRKSD": {
+  "risk": "high",
+  "feature": "red pickup truck",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRKT": {
+  "risk": "high",
+  "feature": "tank hull / armored vehicle side",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRMA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRMB": {
+  "risk": "medium",
+  "feature": "white-capped mottled brick rows",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRMC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRMD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRME": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRMF": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUTRMG": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLA": {
+  "risk": "medium",
+  "feature": "rust mottling",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLB": {
+  "risk": "medium",
+  "feature": "weathered plaster blotches",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLD": {
+  "risk": "high",
+  "feature": "vertical pipes and brick rubble strip",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLF": {
+  "risk": "medium",
+  "feature": "peeling paint patches over brick",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLG": {
+  "risk": "medium",
+  "feature": "yellow-and-gray horizontal banding",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLGB": {
+  "risk": "high",
+  "feature": "painted graffiti slogans",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLH": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLHC": {
+  "risk": "high",
+  "feature": "face posters",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLJ": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLN": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLO": {
+  "risk": "high",
+  "feature": "peeling plaster patches",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLP": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLT": {
+  "risk": "medium",
+  "feature": "weathered plaster bands",
+  "by": "qwen3.8-27b"
+ },
+ "CUWLLU": {
+  "risk": "medium",
+  "feature": "exposed brick strip",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDA": {
+  "risk": "high",
+  "feature": "arched windows",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDB": {
+  "risk": "high",
+  "feature": "arched shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDC": {
+  "risk": "high",
+  "feature": "rectangular shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDD": {
+  "risk": "high",
+  "feature": "pair of dark shutters",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDE": {
+  "risk": "high",
+  "feature": "small green shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDF": {
+  "risk": "high",
+  "feature": "twin arched blue shutters",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDG": {
+  "risk": "high",
+  "feature": "arched green shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDH": {
+  "risk": "high",
+  "feature": "shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDI": {
+  "risk": "high",
+  "feature": "blue shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDIB": {
+  "risk": "high",
+  "feature": "blue shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDJ": {
+  "risk": "high",
+  "feature": "small barred window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDK": {
+  "risk": "high",
+  "feature": "white shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDL": {
+  "risk": "high",
+  "feature": "barred window with shutters",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDM": {
+  "risk": "high",
+  "feature": "rectangular multi-pane window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDN": {
+  "risk": "high",
+  "feature": "arched fanlight grille window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDO": {
+  "risk": "high",
+  "feature": "shuttered window between pilasters",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDP": {
+  "risk": "high",
+  "feature": "blue louvered shutter",
+  "by": "qwen3.8-27b"
+ },
+ "CUWNDQ": {
+  "risk": "high",
+  "feature": "small green louvered window",
+  "by": "qwen3.8-27b"
+ },
+ "CUWOODM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBARRELA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBOOKSA": {
+  "risk": "medium",
+  "feature": "row of book spines",
+  "by": "qwen3.8-27b"
+ },
+ "CXBOOKSB": {
+  "risk": "high",
+  "feature": "framed poster with text block",
+  "by": "qwen3.8-27b"
+ },
+ "CXBOOKSC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBOOKSD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRCKA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRCKC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKETRIMA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKF": {
+  "risk": "medium",
+  "feature": "faint plaster mottling",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFARCH": {
+  "risk": "high",
+  "feature": "blind stone arches",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFARCHIV": {
+  "risk": "high",
+  "feature": "arched niches with ivy",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFBRKN": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFCRK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFDOOR": {
+  "risk": "high",
+  "feature": "ornate arched wooden doors",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFDOORB": {
+  "risk": "high",
+  "feature": "tall rectangular glass windows",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFDOORC": {
+  "risk": "high",
+  "feature": "rectangular windows with coats of arms",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFTRIM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFTRIMC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFTRIMD": {
+  "risk": "high",
+  "feature": "diagonal stone balustrade",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFTRIMIV": {
+  "risk": "high",
+  "feature": "hanging ivy vines",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFWDWA": {
+  "risk": "high",
+  "feature": "arched windows with carved pediments",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFWDWB": {
+  "risk": "high",
+  "feature": "pairs of rectangular sash windows",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFWDWC": {
+  "risk": "high",
+  "feature": "arched barred windows",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFWDWD": {
+  "risk": "high",
+  "feature": "green arched windows",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFWDWDIV": {
+  "risk": "high",
+  "feature": "ivy-covered arched window",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFWDWF": {
+  "risk": "high",
+  "feature": "boarded-up window with ivy band",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFWDWFRM": {
+  "risk": "medium",
+  "feature": "vertical wooden beam stripes",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKFWDWH": {
+  "risk": "high",
+  "feature": "letter B logo on panel",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKH": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKHMRTR": {
+  "risk": "medium",
+  "feature": "horizontal white concrete band",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKI": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKIEND": {
+  "risk": "high",
+  "feature": "vertical stone block columns",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKJ": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKJARCH": {
+  "risk": "high",
+  "feature": "painted white arches",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKJFLR": {
+  "risk": "medium",
+  "feature": "horizontal mossy weathered bands",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKKTRIMA": {
+  "risk": "high",
+  "feature": "ornate floral molding band",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRICKTRIM": {
+  "risk": "medium",
+  "feature": "mottled concrete light patches / streaks",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRUSHA": {
+  "risk": "medium",
+  "feature": "dark horizontal shading bands in foliage",
+  "by": "qwen3.8-27b"
+ },
+ "CXBRUSHB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXCLNGA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXCNSTRCTTARP": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXCNSTRCTTARPB": {
+  "risk": "medium",
+  "feature": "wavy tarp folds and stitch marks",
+  "by": "qwen3.8-27b"
+ },
+ "CXCNSTRCTWOODA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXCNSTRCTWOODB": {
+  "risk": "high",
+  "feature": "metal scaffold cross-brace frame with bolts",
+  "by": "qwen3.8-27b"
+ },
+ "CXCRPTB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXCRPTC": {
+  "risk": "high",
+  "feature": "framed rosette wall panel",
+  "by": "qwen3.8-27b"
+ },
+ "CXCRPTD": {
+  "risk": "high",
+  "feature": "red inset wall panel",
+  "by": "qwen3.8-27b"
+ },
+ "CXDECWDC": {
+  "risk": "medium",
+  "feature": "dark wood knots / grain blotches",
+  "by": "qwen3.8-27b"
+ },
+ "CXDECWDD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXDOORTRIM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXDRC": {
+  "risk": "high",
+  "feature": "cabinet drawers with keyholes and knobs",
+  "by": "qwen3.8-27b"
+ },
+ "CXDRD": {
+  "risk": "high",
+  "feature": "ornate door panels with knockers",
+  "by": "qwen3.8-27b"
+ },
+ "CXFLRD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXGROUNDC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXGROUNDD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXGROUNDF": {
+  "risk": "high",
+  "feature": "ornate square tiles",
+  "by": "qwen3.8-27b"
+ },
+ "CXGROUNDH": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXGROUNDI": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXGROUNDJ": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXGROUNDJORNA": {
+  "risk": "high",
+  "feature": "circular carpet medallion",
+  "by": "qwen3.8-27b"
+ },
+ "CXGROUNDJTRIMA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXGROUNDL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXLIGHTA": {
+  "risk": "medium",
+  "feature": "vertical light-to-dark gradient band",
+  "by": "qwen3.8-27b"
+ },
+ "CXLOGA": {
+  "risk": "medium",
+  "feature": "mossy green bands with specks",
+  "by": "qwen3.8-27b"
+ },
+ "CXLOGB": {
+  "risk": "high",
+  "feature": "round reddish stone paver",
+  "by": "qwen3.8-27b"
+ },
+ "CXMAP": {
+  "risk": "high",
+  "feature": "de_chateau map plan with logo and text",
+  "by": "qwen3.8-27b"
+ },
+ "CXMARBLEC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXMARBLEE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXMOATA": {
+  "risk": "medium",
+  "feature": "horizontal mossy green bands",
+  "by": "qwen3.8-27b"
+ },
+ "CXPNTGA": {
+  "risk": "high",
+  "feature": "portrait of a man holding an object",
+  "by": "qwen3.8-27b"
+ },
+ "CXPOTA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXPOTB": {
+  "risk": "high",
+  "feature": "green octagonal holes",
+  "by": "qwen3.8-27b"
+ },
+ "CXROCKF": {
+  "risk": "medium",
+  "feature": "rock face blotches",
+  "by": "qwen3.8-27b"
+ },
+ "CXROCKFBASE": {
+  "risk": "medium",
+  "feature": "moss band and tan stains",
+  "by": "qwen3.8-27b"
+ },
+ "CXROOFA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXRUGA": {
+  "risk": "high",
+  "feature": "ornate carpet medallions",
+  "by": "qwen3.8-27b"
+ },
+ "CXSOLIDA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXSOLIDB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXSOLIDC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXSTAIRSA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXSTAIRSB": {
+  "risk": "medium",
+  "feature": "streaky shadow mottling",
+  "by": "qwen3.8-27b"
+ },
+ "CXSTAIRSC": {
+  "risk": "high",
+  "feature": "sun medallion tile",
+  "by": "qwen3.8-27b"
+ },
+ "CXSTAIRSD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXSTAIRSE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXSTAIRSF": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXSTCOA": {
+  "risk": "medium",
+  "feature": "crack pattern with horizontal shadow bands",
+  "by": "qwen3.8-27b"
+ },
+ "CXTAPA": {
+  "risk": "high",
+  "feature": "framed painting",
+  "by": "qwen3.8-27b"
+ },
+ "CXTAPB": {
+  "risk": "high",
+  "feature": "framed painting",
+  "by": "qwen3.8-27b"
+ },
+ "CXTAPC": {
+  "risk": "high",
+  "feature": "framed painting",
+  "by": "qwen3.8-27b"
+ },
+ "CXTAPD": {
+  "risk": "high",
+  "feature": "framed tapestry of robed figure",
+  "by": "qwen3.8-27b"
+ },
+ "CXTAPE": {
+  "risk": "high",
+  "feature": "framed mural of robed figure",
+  "by": "qwen3.8-27b"
+ },
+ "CXWALLTRIMA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXWDWAIN": {
+  "risk": "high",
+  "feature": "wooden plaque / small window",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLBOOKSA": {
+  "risk": "high",
+  "feature": "bookshelf section with rows of books",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLC": {
+  "risk": "medium",
+  "feature": "mottled plaster blotches",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLEPNL": {
+  "risk": "medium",
+  "feature": "weathered horizontal wood beams",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLEPNLEND": {
+  "risk": "high",
+  "feature": "vertical cracks and wood beams",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLESTAIRS": {
+  "risk": "high",
+  "feature": "diagonal stair-step cracks",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLETRIM": {
+  "risk": "medium",
+  "feature": "blue ornate border stripe",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLF": {
+  "risk": "medium",
+  "feature": "horizontal wood trim on red plaster",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLFEND": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLG": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLGEND": {
+  "risk": "high",
+  "feature": "vertical rust streaks",
+  "by": "qwen3.8-27b"
+ },
+ "CXWLLH": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXWOODB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXWOODD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXWOODF": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXWOODH": {
+  "risk": "medium",
+  "feature": "diagonal light streaks",
+  "by": "qwen3.8-27b"
+ },
+ "CXWOODI": {
+  "risk": "high",
+  "feature": "nail heads / dark specks",
+  "by": "qwen3.8-27b"
+ },
+ "CXWOODJ": {
+  "risk": "high",
+  "feature": "nail heads and diagonal light streaks",
+  "by": "qwen3.8-27b"
+ },
+ "CXWOODK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXWOODL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "CXWOODM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C_BLDG1_2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C_BLDG1_3": {
+  "risk": "high",
+  "feature": "windows",
+  "by": "qwen3.8-27b"
+ },
+ "C_BLDG2_1": {
+  "risk": "high",
+  "feature": "shuttered windows",
+  "by": "qwen3.8-27b"
+ },
+ "C_BLDG2_2": {
+  "risk": "medium",
+  "feature": "vertical water stains",
+  "by": "qwen3.8-27b"
+ },
+ "C_BLDG2_BRCK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C_BLDG3_1": {
+  "risk": "high",
+  "feature": "row of dark windows",
+  "by": "qwen3.8-27b"
+ },
+ "C_BLDG3_2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C_BLDG4_1": {
+  "risk": "high",
+  "feature": "window in brick wall",
+  "by": "qwen3.8-27b"
+ },
+ "C_BLDG4_2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C_BLDG_4": {
+  "risk": "high",
+  "feature": "tall window column",
+  "by": "qwen3.8-27b"
+ },
+ "C_ROCKWALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C_SIDEWLK1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C_SIGN_BLARCO": {
+  "risk": "high",
+  "feature": "yellow supply depot sign text",
+  "by": "qwen3.8-27b"
+ },
+ "C_STONE1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C_STONE1_WNDOW": {
+  "risk": "high",
+  "feature": "dark arched window opening",
+  "by": "qwen3.8-27b"
+ },
+ "C_TNNL_CCRETE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C_VIEWSCREEN1": {
+  "risk": "high",
+  "feature": "framed cityscape screen image",
+  "by": "qwen3.8-27b"
+ },
+ "C_VIEWSCREEN2": {
+  "risk": "high",
+  "feature": "window, pillar and red light",
+  "by": "qwen3.8-27b"
+ },
+ "C_VIEWSCREEN3": {
+  "risk": "high",
+  "feature": "faucet and window grid",
+  "by": "qwen3.8-27b"
+ },
+ "DAANKLAMP": {
+  "risk": "high",
+  "feature": "glowing round vent",
+  "by": "qwen3.8-27b"
+ },
+ "DAANK_GRASS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DAANK_GRASS_RD": {
+  "risk": "medium",
+  "feature": "vertical dark soil streaks",
+  "by": "qwen3.8-27b"
+ },
+ "DJCONSTBLOCK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DJCRATESD1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DJCRATESD2": {
+  "risk": "high",
+  "feature": "stencil text and rust stain",
+  "by": "qwen3.8-27b"
+ },
+ "DJCRATESD3": {
+  "risk": "medium",
+  "feature": "rust mottling on left side",
+  "by": "qwen3.8-27b"
+ },
+ "DJCRATESM": {
+  "risk": "medium",
+  "feature": "vertical drip stains",
+  "by": "qwen3.8-27b"
+ },
+ "DJCRATESMTP": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DJCRATETOP": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DOOR01": {
+  "risk": "high",
+  "feature": "rusty metal door with vent and handle",
+  "by": "qwen3.8-27b"
+ },
+ "DOORNO1": {
+  "risk": "high",
+  "feature": "white C.T.T.C 1 stencil logo",
+  "by": "qwen3.8-27b"
+ },
+ "DOORNO2": {
+  "risk": "high",
+  "feature": "white C.T.T.C 2 stencil logo",
+  "by": "qwen3.8-27b"
+ },
+ "DOORNO3": {
+  "risk": "high",
+  "feature": "white C.T.T.C 3 stencil logo",
+  "by": "qwen3.8-27b"
+ },
+ "DOORNO4": {
+  "risk": "high",
+  "feature": "white C.T.T.C 4 stencil logo",
+  "by": "qwen3.8-27b"
+ },
+ "DOORNO5": {
+  "risk": "high",
+  "feature": "white C.T.T.C 5 stencil logo",
+  "by": "qwen3.8-27b"
+ },
+ "DOORNO6": {
+  "risk": "high",
+  "feature": "white CTTC text and number 6",
+  "by": "qwen3.8-27b"
+ },
+ "DOORNO7": {
+  "risk": "high",
+  "feature": "white CTTC text and number 7",
+  "by": "qwen3.8-27b"
+ },
+ "DRKBORDER": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKBORDER1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKBOX": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKBX": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKCIEL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKCRETE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKDOOR": {
+  "risk": "high",
+  "feature": "arched wooden door panels",
+  "by": "qwen3.8-27b"
+ },
+ "DRKMTLT_BORD12": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKWL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKWL2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKWL2_B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKWL2_T1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKWL2_T2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DRKWL2_W": {
+  "risk": "high",
+  "feature": "row of small windows",
+  "by": "qwen3.8-27b"
+ },
+ "DRKWLRCH": {
+  "risk": "high",
+  "feature": "dark arched opening",
+  "by": "qwen3.8-27b"
+ },
+ "DRKWOOD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DUMPSTERFRONT": {
+  "risk": "high",
+  "feature": "metal door with label and vent",
+  "by": "qwen3.8-27b"
+ },
+ "DUMPSTERSIDE": {
+  "risk": "high",
+  "feature": "panel with white label and rusty pipe",
+  "by": "qwen3.8-27b"
+ },
+ "EASTDOOR1": {
+  "risk": "high",
+  "feature": "wooden arched door / barrel shape",
+  "by": "qwen3.8-27b"
+ },
+ "EDGE": {
+  "risk": "medium",
+  "feature": "soft horizontal shading band",
+  "by": "qwen3.8-27b"
+ },
+ "EMERGLIGHTB": {
+  "risk": "high",
+  "feature": "glowing purple light square",
+  "by": "qwen3.8-27b"
+ },
+ "EMERGLIGHTB2": {
+  "risk": "high",
+  "feature": "glowing purple light square",
+  "by": "qwen3.8-27b"
+ },
+ "EMERGLIGHTC": {
+  "risk": "high",
+  "feature": "green light panel",
+  "by": "qwen3.8-27b"
+ },
+ "ENGINE": {
+  "risk": "high",
+  "feature": "hazard stripe band",
+  "by": "qwen3.8-27b"
+ },
+ "FIRRANGE": {
+  "risk": "high",
+  "feature": "firing range sign",
+  "by": "qwen3.8-27b"
+ },
+ "FISHBOX": {
+  "risk": "high",
+  "feature": "fish on ice",
+  "by": "qwen3.8-27b"
+ },
+ "FLOORWD128F": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "FLOORWD256A": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "FLOWEREDWINDOW": {
+  "risk": "high",
+  "feature": "window with red flower box",
+  "by": "qwen3.8-27b"
+ },
+ "FORUM_SIG": {
+  "risk": "high",
+  "feature": "text sign and blue mailbox",
+  "by": "qwen3.8-27b"
+ },
+ "FREEZER_BX3": {
+  "risk": "high",
+  "feature": "fruit crate label logo",
+  "by": "qwen3.8-27b"
+ },
+ "FREEZER_BX3_X4": {
+  "risk": "high",
+  "feature": "fruit crate label logo",
+  "by": "qwen3.8-27b"
+ },
+ "FREEZER_BX5": {
+  "risk": "high",
+  "feature": "cheez-it boxes on shelf",
+  "by": "qwen3.8-27b"
+ },
+ "FREEZER_BX5_X2": {
+  "risk": "high",
+  "feature": "cheez-it boxes on shelf",
+  "by": "qwen3.8-27b"
+ },
+ "FREEZER_BX9": {
+  "risk": "high",
+  "feature": "shelf of red soda cans",
+  "by": "qwen3.8-27b"
+ },
+ "FREEZER_BX9_X16": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "GATE02": {
+  "risk": "high",
+  "feature": "concrete slab with formwork holes",
+  "by": "qwen3.8-27b"
+ },
+ "GRAPH": {
+  "risk": "high",
+  "feature": "stock market chart panel",
+  "by": "qwen3.8-27b"
+ },
+ "GRASS01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "GRAVEL01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "GRAVEL02": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "GRAVELGRASS01": {
+  "risk": "high",
+  "feature": "vertical gravel bands and grass tufts",
+  "by": "qwen3.8-27b"
+ },
+ "GRAVELGRASS02": {
+  "risk": "high",
+  "feature": "vertical gravel bands and grass tufts",
+  "by": "qwen3.8-27b"
+ },
+ "GRAVELGRASS03": {
+  "risk": "high",
+  "feature": "vertical gravel bands and grass tufts",
+  "by": "qwen3.8-27b"
+ },
+ "GRAVELGRASS04": {
+  "risk": "high",
+  "feature": "vertical gravel bands and grass tufts",
+  "by": "qwen3.8-27b"
+ },
+ "GROUTTILES": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "GRYSTUCCOBRDR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "GRYSTUCCOSPADE": {
+  "risk": "high",
+  "feature": "row of small emblem squares",
+  "by": "qwen3.8-27b"
+ },
+ "GRYSTUCCOTRIM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "HANGINGLIGHT01": {
+  "risk": "high",
+  "feature": "glowing circular light",
+  "by": "qwen3.8-27b"
+ },
+ "HOBROCK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "HOTSHEEP": {
+  "risk": "high",
+  "feature": "sheep silhouette and HOTSHEEP text",
+  "by": "qwen3.8-27b"
+ },
+ "IKBARLS1": {
+  "risk": "medium",
+  "feature": "vertical rust streaks",
+  "by": "qwen3.8-27b"
+ },
+ "IKBARLS2": {
+  "risk": "medium",
+  "feature": "vertical rust streaks",
+  "by": "qwen3.8-27b"
+ },
+ "IKBARLS3": {
+  "risk": "medium",
+  "feature": "rust stains and notches",
+  "by": "qwen3.8-27b"
+ },
+ "IKBARLS4": {
+  "risk": "high",
+  "feature": "white rust blotch",
+  "by": "qwen3.8-27b"
+ },
+ "IKBARLT1": {
+  "risk": "high",
+  "feature": "round plate with bolt",
+  "by": "qwen3.8-27b"
+ },
+ "IKBARLT2": {
+  "risk": "high",
+  "feature": "round plate with bolt",
+  "by": "qwen3.8-27b"
+ },
+ "IKBARLT3": {
+  "risk": "high",
+  "feature": "riveted round metal plate",
+  "by": "qwen3.8-27b"
+ },
+ "IKBARLT4": {
+  "risk": "high",
+  "feature": "rusty round metal plate",
+  "by": "qwen3.8-27b"
+ },
+ "IKCONCA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKCONCB": {
+  "risk": "medium",
+  "feature": "mossy concrete blotches",
+  "by": "qwen3.8-27b"
+ },
  "IKCONCC": {
   "risk": "medium",
   "feature": "vertical drip streaks",
+  "by": "qwen3.8-27b"
+ },
+ "IKCONCD": {
+  "risk": "medium",
+  "feature": "stained horizontal slab seam",
+  "by": "qwen3.8-27b"
+ },
+ "IKCONCE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKCRATEA": {
+  "risk": "high",
+  "feature": "dark knot / bullet hole and rusty rail",
+  "by": "qwen3.8-27b"
+ },
+ "IKCRATEB": {
+  "risk": "medium",
+  "feature": "green moss band at bottom",
+  "by": "qwen3.8-27b"
+ },
+ "IKCRATEC": {
+  "risk": "medium",
+  "feature": "dark moss band at top",
+  "by": "qwen3.8-27b"
+ },
+ "IKCRATED": {
+  "risk": "medium",
+  "feature": "moss bands top and bottom",
+  "by": "qwen3.8-27b"
+ },
+ "IKCRATEE": {
+  "risk": "high",
+  "feature": "rusty frame border and knots",
+  "by": "qwen3.8-27b"
+ },
+ "IKCRATEF": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKCRATEG": {
+  "risk": "high",
+  "feature": "red A letter and PLANT HERE sign",
+  "by": "qwen3.8-27b"
+ },
+ "IKCRATEH": {
+  "risk": "high",
+  "feature": "red B letter and PLANT HERE sign",
+  "by": "qwen3.8-27b"
+ },
+ "IKFTANKS": {
+  "risk": "high",
+  "feature": "checkered patch on rusted metal panel",
+  "by": "qwen3.8-27b"
+ },
+ "IKFTANKT": {
+  "risk": "high",
+  "feature": "round riveted metal hatch",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDJ": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDJR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDJT": {
+  "risk": "high",
+  "feature": "green moss/vegetation band",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDRK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDRT": {
+  "risk": "medium",
+  "feature": "vertical weathering bands",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDRW": {
+  "risk": "medium",
+  "feature": "faint stains and crackle",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDT": {
+  "risk": "high",
+  "feature": "vertical drip streaks",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDT2": {
+  "risk": "medium",
+  "feature": "vertical grime streaks",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDT3": {
+  "risk": "medium",
+  "feature": "diagonal wear blotch",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDTE": {
+  "risk": "high",
+  "feature": "short scratch marks",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDTE2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKGRNDTE3": {
+  "risk": "medium",
+  "feature": "streaks and diagonal shading",
+  "by": "qwen3.8-27b"
+ },
+ "IKJUNGW": {
+  "risk": "high",
+  "feature": "green ferns and ivy",
+  "by": "qwen3.8-27b"
+ },
+ "IKJUNGWG": {
+  "risk": "medium",
+  "feature": "moss clumps and dirt bands",
+  "by": "qwen3.8-27b"
+ },
+ "IKMETLA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKMETLB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKMETLC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKROCKV": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKROCKVT": {
+  "risk": "medium",
+  "feature": "cracked earth and rock patches",
+  "by": "qwen3.8-27b"
+ },
+ "IKROCKVT2": {
+  "risk": "high",
+  "feature": "strip of bare ground/rock at tile edge",
+  "by": "qwen3.8-27b"
+ },
+ "IKROCKVT3": {
+  "risk": "medium",
+  "feature": "faint horizontal dirt shading",
+  "by": "qwen3.8-27b"
+ },
+ "IKSTUCA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IKVINES": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IVY01": {
+  "risk": "medium",
+  "feature": "mottled light/dark patches",
+  "by": "qwen3.8-27b"
+ },
+ "IVY01A": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "IVY02": {
+  "risk": "high",
+  "feature": "vertical ivy stripes on brick",
+  "by": "qwen3.8-27b"
+ },
+ "IVY03": {
+  "risk": "high",
+  "feature": "moss bands and small marks on concrete panels",
+  "by": "qwen3.8-27b"
+ },
+ "IVY04": {
+  "risk": "high",
+  "feature": "vertical ivy stripes on brick",
+  "by": "qwen3.8-27b"
+ },
+ "IVY05": {
+  "risk": "high",
+  "feature": "horizontal ivy bands on concrete",
+  "by": "qwen3.8-27b"
+ },
+ "IVY06": {
+  "risk": "high",
+  "feature": "ivy clumps at tile corners",
+  "by": "qwen3.8-27b"
+ },
+ "JBROCKA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "KATIE_POSTER": {
+  "risk": "high",
+  "feature": "framed portrait of a woman",
+  "by": "qwen3.8-27b"
+ },
+ "KEYBOARD_WHITE": {
+  "risk": "medium",
+  "feature": "rows of small windows/vents",
+  "by": "qwen3.8-27b"
+ },
+ "LANTERNLIT": {
+  "risk": "high",
+  "feature": "pair of glowing vent slits",
+  "by": "qwen3.8-27b"
+ },
+ "LOADINGBAY01": {
+  "risk": "high",
+  "feature": "arched window on white brick",
+  "by": "qwen3.8-27b"
+ },
+ "LOADINGBAY02": {
+  "risk": "high",
+  "feature": "green-arched shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "LOADINGBAY02A": {
+  "risk": "high",
+  "feature": "green-arched shuttered window",
+  "by": "qwen3.8-27b"
+ },
+ "LOADINGBAY03": {
+  "risk": "high",
+  "feature": "arched window with brown shutters",
+  "by": "qwen3.8-27b"
+ },
+ "LOADINGBAY04": {
+  "risk": "high",
+  "feature": "arched window with blue panels and mesh",
+  "by": "qwen3.8-27b"
+ },
+ "LOADINGBAY05": {
+  "risk": "high",
+  "feature": "arched window on dark brick",
+  "by": "qwen3.8-27b"
+ },
+ "LOADINGBAY05A": {
+  "risk": "high",
+  "feature": "arched window on dark brick",
+  "by": "qwen3.8-27b"
+ },
+ "LTHR_CCH": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "LTHR_CCH2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "LTHR_CCH3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "LTHR_CCH4": {
+  "risk": "medium",
+  "feature": "dark mottled patch centered on each block",
+  "by": "qwen3.8-27b"
+ },
+ "MADE_BY_ME": {
+  "risk": "high",
+  "feature": "credit banner with hazard stripe and text",
+  "by": "qwen3.8-27b"
+ },
+ "MAGCOVER1": {
+  "risk": "high",
+  "feature": "PHISH Entertainment magazine cover",
+  "by": "qwen3.8-27b"
+ },
+ "MAGCOVER2": {
+  "risk": "high",
+  "feature": "Playboy magazine cover",
+  "by": "qwen3.8-27b"
+ },
+ "MAGCOVER3": {
+  "risk": "high",
+  "feature": "TIME magazine cover",
+  "by": "qwen3.8-27b"
+ },
+ "MAGCOVER4": {
+  "risk": "high",
+  "feature": "magazine cover (face + 'allure' logo)",
+  "by": "qwen3.8-27b"
+ },
+ "MAGHANGINGRUG": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "MATT_CASE": {
+  "risk": "high",
+  "feature": "metal panel with handle/latch",
+  "by": "qwen3.8-27b"
+ },
+ "MATT_CRATE": {
+  "risk": "high",
+  "feature": "wooden panel with diagonal braces",
+  "by": "qwen3.8-27b"
+ },
+ "MATT_OUTWOODEN": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "MATT_STNWALL": {
+  "risk": "medium",
+  "feature": "plate seams, rivets and vertical shading band",
+  "by": "qwen3.8-27b"
+ },
+ "MEW": {
+  "risk": "high",
+  "feature": "fluffy cat face behind bars",
+  "by": "qwen3.8-27b"
+ },
+ "MKTFLOOR": {
+  "risk": "high",
+  "feature": "square decorative frame",
+  "by": "qwen3.8-27b"
+ },
+ "MLTRYCRTESD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "MLTRYCRTESD2": {
+  "risk": "medium",
+  "feature": "hazard stripe bands",
+  "by": "qwen3.8-27b"
+ },
+ "MLTRYCRTETP": {
+  "risk": "high",
+  "feature": "star-shaped emblem/vent",
+  "by": "qwen3.8-27b"
+ },
+ "MONKET": {
+  "risk": "high",
+  "feature": "monkey holding sign by palm tree",
+  "by": "qwen3.8-27b"
+ },
+ "MONKET2": {
+  "risk": "high",
+  "feature": "title and credits text block",
+  "by": "qwen3.8-27b"
+ },
+ "MOSEYPLYWOOD01": {
+  "risk": "medium",
+  "feature": "streaky weathering and horizontal seam line",
+  "by": "qwen3.8-27b"
+ },
+ "MSNMOSSFULL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "MURALARC": {
+  "risk": "high",
+  "feature": "arched painting",
+  "by": "qwen3.8-27b"
+ },
+ "MURALBSTUCCO": {
+  "risk": "high",
+  "feature": "framed painting of standing figures",
+  "by": "qwen3.8-27b"
+ },
+ "MURALLONG": {
+  "risk": "high",
+  "feature": "framed painting of seated women",
+  "by": "qwen3.8-27b"
+ },
+ "OAKDOOR": {
+  "risk": "high",
+  "feature": "red double doors",
+  "by": "qwen3.8-27b"
+ },
+ "OF_BILLBOARD": {
+  "risk": "high",
+  "feature": "AD SPACE FOR SALE poster",
+  "by": "qwen3.8-27b"
+ },
+ "OF_CRATE01A": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "OF_CRATE01B": {
+  "risk": "high",
+  "feature": "blue graffiti tag",
+  "by": "qwen3.8-27b"
+ },
+ "OF_CRATE01C": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "OF_CRATE01D": {
+  "risk": "high",
+  "feature": "red sticker label",
+  "by": "qwen3.8-27b"
+ },
+ "OF_CRATE02A": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "OF_CRATE02B": {
+  "risk": "medium",
+  "feature": "diagonal smudge in each recessed panel",
+  "by": "qwen3.8-27b"
+ },
+ "OF_CRATE03A": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "OF_CRATE03B": {
+  "risk": "high",
+  "feature": "red sign sticker",
+  "by": "qwen3.8-27b"
+ },
+ "OF_CRATE03C": {
+  "risk": "high",
+  "feature": "red sign and yellow warning stickers",
+  "by": "qwen3.8-27b"
+ },
+ "OF_CRATE03D": {
+  "risk": "high",
+  "feature": "yellow warning stickers",
+  "by": "qwen3.8-27b"
+ },
+ "OF_CRATE03TOP": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "OF_GOT_MILK": {
+  "risk": "high",
+  "feature": "MILK soldier poster",
+  "by": "qwen3.8-27b"
+ },
+ "OLDDOOR": {
+  "risk": "high",
+  "feature": "framed wood panel with grime band",
+  "by": "qwen3.8-27b"
+ },
+ "OLDMAP3": {
+  "risk": "high",
+  "feature": "framed city map",
+  "by": "qwen3.8-27b"
+ },
+ "OLDRADIO": {
+  "risk": "high",
+  "feature": "barred window/door with light streak",
+  "by": "qwen3.8-27b"
+ },
+ "OLDWOOD": {
+  "risk": "low",
+  "feature": "",
   "by": "qwen3.8-27b"
  },
  "OUT_ROOF2B": {
@@ -254,9 +4184,2374 @@
   "feature": "red valve wheels",
   "by": "qwen3.8-27b"
  },
+ "OVERHEAD_X4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING01": {
+  "risk": "high",
+  "feature": "vase of sunflowers",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING02": {
+  "risk": "high",
+  "feature": "self-portrait face",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING03": {
+  "risk": "high",
+  "feature": "bedroom with bed and window",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING04": {
+  "risk": "high",
+  "feature": "iris field with white butterfly",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING05": {
+  "risk": "high",
+  "feature": "cypress tree in wheat field",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING06": {
+  "risk": "high",
+  "feature": "seated man holding a glowing candle",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING07": {
+  "risk": "high",
+  "feature": "portrait of standing man and seated woman",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING08": {
+  "risk": "high",
+  "feature": "skeleton playing a guitar",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING09": {
+  "risk": "high",
+  "feature": "windmill in a red field under clouds",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING1": {
+  "risk": "high",
+  "feature": "sunset over water with a ship silhouette",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING10": {
+  "risk": "high",
+  "feature": "ballerinas dancing in a studio",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING11": {
+  "risk": "high",
+  "feature": "yellow house with spire",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING12": {
+  "risk": "high",
+  "feature": "hillside town landscape",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING13": {
+  "risk": "high",
+  "feature": "flowers in white vase",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING14": {
+  "risk": "high",
+  "feature": "seated nude man on chair",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING15": {
+  "risk": "high",
+  "feature": "portrait of robed scholar",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING16": {
+  "risk": "high",
+  "feature": "madonna holding child",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING17": {
+  "risk": "high",
+  "feature": "Mona Lisa face",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING18": {
+  "risk": "high",
+  "feature": "robed figure in crowd",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING19": {
+  "risk": "high",
+  "feature": "angels by window",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING2": {
+  "risk": "high",
+  "feature": "cypress tree in field",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING20": {
+  "risk": "high",
+  "feature": "muscular male figures",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING4": {
+  "risk": "high",
+  "feature": "woman holding child",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING5": {
+  "risk": "high",
+  "feature": "faded fresco of figures",
+  "by": "qwen3.8-27b"
+ },
+ "PAINTING6": {
+  "risk": "high",
+  "feature": "Madonna-and-child icon",
+  "by": "qwen3.8-27b"
+ },
+ "PANELWOOD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PB_BAG_B5": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PEBBLECOBBLE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PILEOLEMONS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PILEOTOMATOES": {
+  "risk": "high",
+  "feature": "fruit crate / window grid of apples",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ARCHT128": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ARCHT128B": {
+  "risk": "medium",
+  "feature": "white paint patches on pilasters",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ARCHT256": {
+  "risk": "medium",
+  "feature": "white paint patches on pilasters",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ARCHT32": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ARCHT32B": {
+  "risk": "high",
+  "feature": "nail specks and paint patches",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ARCHT64": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ARCHT64B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ART1": {
+  "risk": "high",
+  "feature": "framed picture",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ART2": {
+  "risk": "high",
+  "feature": "framed picture",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ART3": {
+  "risk": "high",
+  "feature": "framed picture",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ART4": {
+  "risk": "high",
+  "feature": "framed picture",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BARREL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BARRELT": {
+  "risk": "high",
+  "feature": "round metal portholes",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BCASE": {
+  "risk": "high",
+  "feature": "bookshelf window panels",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BIGBRK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BIGBRK2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BIGBRK2B": {
+  "risk": "medium",
+  "feature": "green moss band",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BIGBRK2B2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BIGBRKB": {
+  "risk": "medium",
+  "feature": "weathered stone smudges",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BIGBRKB2": {
+  "risk": "high",
+  "feature": "vertical light-brick pilasters",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BIGBRKP": {
+  "risk": "high",
+  "feature": "vertical light-brick columns",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BIGDOOR": {
+  "risk": "high",
+  "feature": "arched wooden panels and beams",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BIGTRIM": {
+  "risk": "high",
+  "feature": "arched windows and niches",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BOATFLOOR": {
+  "risk": "high",
+  "feature": "ornate arched window grille",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BOATREARCAP": {
+  "risk": "high",
+  "feature": "oval porthole vents",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BOATSIDEIN": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BOATSIDEOUT": {
+  "risk": "high",
+  "feature": "draped chain garland with red light strip",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BOATSIDEREAR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BRUSHA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BRUSHB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BUCKETS": {
+  "risk": "medium",
+  "feature": "diagonal metal shading",
+  "by": "qwen3.8-27b"
+ },
+ "PI_BUCKETT": {
+  "risk": "high",
+  "feature": "round porthole vents",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CHAIRLEG": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CHAIRTOP": {
+  "risk": "high",
+  "feature": "square recessed panels",
+  "by": "qwen3.8-27b"
+ },
+ "PI_COBBLES": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_COBBLES1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CORBEL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CRATEBIG": {
+  "risk": "high",
+  "feature": "wood knots and dashed rails",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CRATEBIG2": {
+  "risk": "high",
+  "feature": "green moss patch at bottom",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CRATEBIGT": {
+  "risk": "high",
+  "feature": "rusty frame border per panel",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CRATERE": {
+  "risk": "high",
+  "feature": "light frame border per panel",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CRATERET": {
+  "risk": "high",
+  "feature": "framed wood panel with rust spot",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CRATESM": {
+  "risk": "high",
+  "feature": "vent slits and rust spot",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CRATESMT": {
+  "risk": "high",
+  "feature": "raised wood panel with rust spot",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CRATESR": {
+  "risk": "high",
+  "feature": "metal posts, vents, rust spot",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CRATESRT": {
+  "risk": "high",
+  "feature": "framed wood panel with rust spot",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CURB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_CURBB": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORST1": {
+  "risk": "high",
+  "feature": "dark square plates/vents",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORST1G": {
+  "risk": "high",
+  "feature": "green corner markers",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORST2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORST2G": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORST3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORST3D": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORST4": {
+  "risk": "high",
+  "feature": "white scuff/crack marks on checkerboard tiles",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORST4G": {
+  "risk": "high",
+  "feature": "white symbol/logo stamped on floor tiles",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORST5": {
+  "risk": "high",
+  "feature": "green moss specks in grout lines",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORWD1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORWD2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_FLOORWD3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_GRNMETAL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_GRNMETALP": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_GRNMETALT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_GROUND": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_GROUNDT": {
+  "risk": "medium",
+  "feature": "horizontal dirt bands in grass",
+  "by": "qwen3.8-27b"
+ },
+ "PI_GROUNDW": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_HTRIM32": {
+  "risk": "high",
+  "feature": "rust stains and nail marks on planks",
+  "by": "qwen3.8-27b"
+ },
+ "PI_INWALL1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_INWALL1B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_INWALL1C": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_INWALL2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_INWALL2B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_LANTERN": {
+  "risk": "high",
+  "feature": "glowing wall lanterns",
+  "by": "qwen3.8-27b"
+ },
+ "PI_MOTOR": {
+  "risk": "high",
+  "feature": "sign / logo text panel",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ORRERY04": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ORRERY05": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ORRERY06": {
+  "risk": "high",
+  "feature": "circular gear vents",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ORRERY07": {
+  "risk": "high",
+  "feature": "wooden X-brace frame",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL1B": {
+  "risk": "medium",
+  "feature": "strip of green vegetation",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL2B": {
+  "risk": "medium",
+  "feature": "strip of green vegetation",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL2T": {
+  "risk": "high",
+  "feature": "horizontal metal pipe",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL2TB": {
+  "risk": "high",
+  "feature": "green ivy stripe and concrete ledge",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL3B": {
+  "risk": "high",
+  "feature": "green ivy stripe",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL3T": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL3TB": {
+  "risk": "high",
+  "feature": "green ivy stripe",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL3TC": {
+  "risk": "high",
+  "feature": "green ivy stripe",
+  "by": "qwen3.8-27b"
+ },
+ "PI_OUTWALL4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_PAVEMENT": {
+  "risk": "medium",
+  "feature": "radial cobblestone swirls",
+  "by": "qwen3.8-27b"
+ },
+ "PI_PILLAR": {
+  "risk": "medium",
+  "feature": "marble streaks and metal trim bands",
+  "by": "qwen3.8-27b"
+ },
+ "PI_POTA": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_POTB": {
+  "risk": "high",
+  "feature": "green octagonal holes",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ROAD": {
+  "risk": "medium",
+  "feature": "vertical light streaks",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ROCKBASE": {
+  "risk": "medium",
+  "feature": "mossy rock patches",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ROOF": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_ROOFEDGE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_RUG1": {
+  "risk": "high",
+  "feature": "oval wallpaper medallion",
+  "by": "qwen3.8-27b"
+ },
+ "PI_RUG2": {
+  "risk": "high",
+  "feature": "ornate rectangular damask panel",
+  "by": "qwen3.8-27b"
+ },
+ "PI_RUG3": {
+  "risk": "high",
+  "feature": "square ornamental tile motif",
+  "by": "qwen3.8-27b"
+ },
+ "PI_RUG4": {
+  "risk": "high",
+  "feature": "carpet medallion",
+  "by": "qwen3.8-27b"
+ },
+ "PI_RUG5": {
+  "risk": "high",
+  "feature": "vertical rug motif",
+  "by": "qwen3.8-27b"
+ },
+ "PI_RUG6": {
+  "risk": "high",
+  "feature": "damask floral medallion",
+  "by": "qwen3.8-27b"
+ },
+ "PI_RUST": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SCAFFOLD2": {
+  "risk": "high",
+  "feature": "diagonal cross bracing",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SECRETF": {
+  "risk": "high",
+  "feature": "wooden cabinet with glass doors",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SECRETS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGN01": {
+  "risk": "high",
+  "feature": "ticket office / guided tours sign",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGN02": {
+  "risk": "high",
+  "feature": "blue parking P sign with left arrow",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGN03": {
+  "risk": "high",
+  "feature": "white ticket office sign",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGN04": {
+  "risk": "high",
+  "feature": "Villa Piranesi museum hours sign",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEX1": {
+  "risk": "high",
+  "feature": "blue/purple directional icon sign",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEX10": {
+  "risk": "high",
+  "feature": "A/B markers and arrow signs",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEX11": {
+  "risk": "high",
+  "feature": "green leaf-and-arrow exit sign",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEX2": {
+  "risk": "high",
+  "feature": "leaf and door directional signs",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEX3": {
+  "risk": "high",
+  "feature": "window and antenna directional signs",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEX4": {
+  "risk": "high",
+  "feature": "antenna icon with left-arrow sign",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEX5": {
+  "risk": "high",
+  "feature": "door icon with right-arrow sign",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEX6": {
+  "risk": "high",
+  "feature": "red sign with left arrow and rook emblem",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEX7": {
+  "risk": "high",
+  "feature": "blue portrait sign over red rook sign",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEX8": {
+  "risk": "high",
+  "feature": "gray sign with left arrow and crown emblem",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEX9": {
+  "risk": "high",
+  "feature": "gray crown sign over gold globe sign",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEXA": {
+  "risk": "high",
+  "feature": "blue Piranesi poster with portrait",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEXB": {
+  "risk": "high",
+  "feature": "purple 18th-century chair poster",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEXC": {
+  "risk": "high",
+  "feature": "sundial museum sign",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SIGNEXD": {
+  "risk": "high",
+  "feature": "orrery museum sign",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SMDOOR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_STEP1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_STEPTOP1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_STEPTOP1D": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SUNDIAL": {
+  "risk": "high",
+  "feature": "round bronze medallions with corner crack",
+  "by": "qwen3.8-27b"
+ },
+ "PI_SUNDIALBASE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_TICKETWND": {
+  "risk": "high",
+  "feature": "sunburst arch motif at tile base",
+  "by": "qwen3.8-27b"
+ },
+ "PI_WOOD1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_WOOD2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_WOOD3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_WOOD4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_WOOD5": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PI_WOODCEIL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PLANE1": {
+  "risk": "high",
+  "feature": "window and danger sign",
+  "by": "qwen3.8-27b"
+ },
+ "PLANE1_X4": {
+  "risk": "high",
+  "feature": "vent slot and danger sign",
+  "by": "qwen3.8-27b"
+ },
+ "PLANE2": {
+  "risk": "high",
+  "feature": "hatch window and danger sign",
+  "by": "qwen3.8-27b"
+ },
+ "PLANE2_X4": {
+  "risk": "high",
+  "feature": "locker doors with windows",
+  "by": "qwen3.8-27b"
+ },
+ "PLANECHAIR1": {
+  "risk": "high",
+  "feature": "crack / hanging wire",
+  "by": "qwen3.8-27b"
+ },
+ "PLANECHAIR2": {
+  "risk": "high",
+  "feature": "crack / hanging wire",
+  "by": "qwen3.8-27b"
+ },
+ "PLANECHAIRBACK1": {
+  "risk": "high",
+  "feature": "sign plate and dark vent",
+  "by": "qwen3.8-27b"
+ },
+ "PLANECHAIRBACK2": {
+  "risk": "high",
+  "feature": "sign plate and dark vent",
+  "by": "qwen3.8-27b"
+ },
+ "PLANEGEN1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PLANERED": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PLANESEATSIDEBA": {
+  "risk": "high",
+  "feature": "wall corner piece with pipe",
+  "by": "qwen3.8-27b"
+ },
+ "PLANESEATSIDENO": {
+  "risk": "high",
+  "feature": "wall corner piece with pipe",
+  "by": "qwen3.8-27b"
+ },
+ "PLANEST1": {
+  "risk": "high",
+  "feature": "wall corner piece with pipe",
+  "by": "qwen3.8-27b"
+ },
+ "PLANEST2": {
+  "risk": "high",
+  "feature": "wall corner piece with pipe",
+  "by": "qwen3.8-27b"
+ },
+ "PLANEWALKWAY1": {
+  "risk": "high",
+  "feature": "vertical pipes and light spots",
+  "by": "qwen3.8-27b"
+ },
+ "PLANEWALKWAY2": {
+  "risk": "high",
+  "feature": "glowing orange lights on vertical pipes",
+  "by": "qwen3.8-27b"
+ },
+ "PLANEWHITE": {
+  "risk": "medium",
+  "feature": "faint circular marks",
+  "by": "qwen3.8-27b"
+ },
+ "PLANEWING": {
+  "risk": "high",
+  "feature": "angled white-and-blue duct",
+  "by": "qwen3.8-27b"
+ },
+ "PLANEWINGLEFT": {
+  "risk": "high",
+  "feature": "angled white-and-blue duct",
+  "by": "qwen3.8-27b"
+ },
+ "PL_BAD_S2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_BAGGAGE": {
+  "risk": "high",
+  "feature": "graffiti tag with skull",
+  "by": "qwen3.8-27b"
+ },
+ "PL_BAG_5": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_BAG_B": {
+  "risk": "high",
+  "feature": "black vent grilles",
+  "by": "qwen3.8-27b"
+ },
+ "PL_BAG_B2": {
+  "risk": "high",
+  "feature": "black screen vents",
+  "by": "qwen3.8-27b"
+ },
+ "PL_BAG_B3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_BAG_S": {
+  "risk": "high",
+  "feature": "hatch panel with handle",
+  "by": "qwen3.8-27b"
+ },
+ "PL_BLACK_SQ": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_BLUE_SQ": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_BRD1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_BRD2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_CARPET": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_CARPET2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_CARPET3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_CUPB1": {
+  "risk": "high",
+  "feature": "framed rectangular hatch/plate outline",
+  "by": "qwen3.8-27b"
+ },
+ "PL_FOOD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_FOOD_BLOCK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_MOV2": {
+  "risk": "high",
+  "feature": "star-shaped crack/scratch mark",
+  "by": "qwen3.8-27b"
+ },
+ "PL_OUT_SHELL1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_OUT_SHELL2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_OUT_SHELL3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_OUT_SHELL4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_OUT_SHELL4A": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_OUT_SHELL5": {
+  "risk": "medium",
+  "feature": "horizontal shading bands",
+  "by": "qwen3.8-27b"
+ },
+ "PL_OUT_SHELL_DR": {
+  "risk": "high",
+  "feature": "embossed logo plaques",
+  "by": "qwen3.8-27b"
+ },
+ "PL_OUT_TAIL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_OUT_TAILA": {
+  "risk": "high",
+  "feature": "circular 'ga' logo on white poster",
+  "by": "qwen3.8-27b"
+ },
+ "PL_OUT_TAILLEFT": {
+  "risk": "high",
+  "feature": "circular 'ga' logo on white poster",
+  "by": "qwen3.8-27b"
+ },
+ "PL_OUT_WING1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_REDC_4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_RRW": {
+  "risk": "medium",
+  "feature": "crack pattern / asphalt blotches",
+  "by": "qwen3.8-27b"
+ },
+ "PL_RRW_STRIPE": {
+  "risk": "high",
+  "feature": "yellow road lane lines",
+  "by": "qwen3.8-27b"
+ },
+ "PL_RUBBER": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_RW": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_RW2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_RW_2": {
+  "risk": "high",
+  "feature": "yellow number-2 plate",
+  "by": "qwen3.8-27b"
+ },
+ "PL_RW_3": {
+  "risk": "high",
+  "feature": "painted lane stripes",
+  "by": "qwen3.8-27b"
+ },
+ "PL_RW_STRIPE": {
+  "risk": "high",
+  "feature": "vertical stripe with green light",
+  "by": "qwen3.8-27b"
+ },
+ "PL_SEAT_B": {
+  "risk": "high",
+  "feature": "white bottle/canister shapes",
+  "by": "qwen3.8-27b"
+ },
+ "PL_SEAT_F": {
+  "risk": "high",
+  "feature": "white blocky pipe segments",
+  "by": "qwen3.8-27b"
+ },
+ "PL_SEAT_S": {
+  "risk": "high",
+  "feature": "faint bracket outlines",
+  "by": "qwen3.8-27b"
+ },
+ "PL_SEAT_T": {
+  "risk": "high",
+  "feature": "zigzag crack with two specks",
+  "by": "qwen3.8-27b"
+ },
+ "PL_STAIRS1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_WIND_I4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_WND_I": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "PL_WND_I2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "POPDOG_FRONT_B": {
+  "risk": "high",
+  "feature": "Pop Dog vending machine",
+  "by": "qwen3.8-27b"
+ },
+ "POPDOG_FRONT_RE": {
+  "risk": "high",
+  "feature": "Pop Dog vending machine",
+  "by": "qwen3.8-27b"
+ },
+ "POPDOG_LEFT_B": {
+  "risk": "high",
+  "feature": "Snoopy dog graphic",
+  "by": "qwen3.8-27b"
+ },
+ "POPDOG_LEFT_RED": {
+  "risk": "high",
+  "feature": "Snoopy dog graphic",
+  "by": "qwen3.8-27b"
+ },
+ "POPDOG_RIGHT_B": {
+  "risk": "high",
+  "feature": "pop dog logo and bubbles",
+  "by": "qwen3.8-27b"
+ },
+ "POPDOG_RIGHT_RE": {
+  "risk": "high",
+  "feature": "pop dog logo and bubbles",
+  "by": "qwen3.8-27b"
+ },
+ "REDBACK_X3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "REDBACK_X4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "REDHANGINGRUG": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "REDRUG": {
+  "risk": "medium",
+  "feature": "wavy fold shading",
+  "by": "qwen3.8-27b"
+ },
+ "RIP": {
+  "risk": "high",
+  "feature": "R.I.P. inscriptions",
+  "by": "qwen3.8-27b"
+ },
+ "ROCKWALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "ROPE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "RUG160256A": {
+  "risk": "high",
+  "feature": "carpet medallion",
+  "by": "qwen3.8-27b"
+ },
+ "RUG160256B": {
+  "risk": "high",
+  "feature": "carpet medallion",
+  "by": "qwen3.8-27b"
+ },
+ "RUG160256C": {
+  "risk": "high",
+  "feature": "carpet medallion",
+  "by": "qwen3.8-27b"
+ },
+ "RUG192256A": {
+  "risk": "high",
+  "feature": "framed floral carpet panel",
+  "by": "qwen3.8-27b"
+ },
+ "RUG192256B": {
+  "risk": "high",
+  "feature": "framed patterned carpet panel",
+  "by": "qwen3.8-27b"
+ },
+ "RUG192256C": {
+  "risk": "high",
+  "feature": "ornate medallion carpet panel",
+  "by": "qwen3.8-27b"
+ },
+ "RWALLGBRICK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "SANDCCRETE": {
+  "risk": "medium",
+  "feature": "faint plaster mottling",
+  "by": "qwen3.8-27b"
+ },
+ "SANDCRTLRGSD": {
+  "risk": "high",
+  "feature": "X-braced wooden gate panel",
+  "by": "qwen3.8-27b"
+ },
+ "SANDCRTLRGTP": {
+  "risk": "medium",
+  "feature": "faint light wear stains on wood",
+  "by": "qwen3.8-27b"
+ },
+ "SANDCRTSMSD": {
+  "risk": "high",
+  "feature": "framed slat panels (crates)",
+  "by": "qwen3.8-27b"
+ },
+ "SANDCRTSMTP": {
+  "risk": "high",
+  "feature": "rows of dark grain specks",
+  "by": "qwen3.8-27b"
+ },
+ "SANDROAD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "SANDROADTGT": {
+  "risk": "high",
+  "feature": "painted red crosses",
+  "by": "qwen3.8-27b"
+ },
+ "SANDROADTGTA": {
+  "risk": "high",
+  "feature": "red stick-figure symbols",
+  "by": "qwen3.8-27b"
+ },
+ "SANDROADTGTB": {
+  "risk": "high",
+  "feature": "red X spray-paint marks",
+  "by": "qwen3.8-27b"
+ },
+ "SANDTRIM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "SANDWLLDOOR": {
+  "risk": "high",
+  "feature": "wooden arched double door",
+  "by": "qwen3.8-27b"
+ },
+ "SANDWLLDOOR2": {
+  "risk": "high",
+  "feature": "arched door with NO EXIT spray",
+  "by": "qwen3.8-27b"
+ },
+ "SANDWLLWNDW": {
+  "risk": "high",
+  "feature": "small arched window",
+  "by": "qwen3.8-27b"
+ },
+ "SANDWLLWNDW2": {
+  "risk": "high",
+  "feature": "graffiti-tagged arched window",
+  "by": "qwen3.8-27b"
+ },
+ "SANDWLLWNDW3": {
+  "risk": "high",
+  "feature": "arched windows with graffiti tags",
+  "by": "qwen3.8-27b"
+ },
+ "SCROLL_WATER": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "SEAT2X": {
+  "risk": "high",
+  "feature": "white block and zigzag stripe",
+  "by": "qwen3.8-27b"
+ },
+ "SEAT4X": {
+  "risk": "high",
+  "feature": "white block and zigzag stripe",
+  "by": "qwen3.8-27b"
+ },
+ "SEATBK2": {
+  "risk": "high",
+  "feature": "white rectangular panels",
+  "by": "qwen3.8-27b"
+ },
+ "SEATBK4": {
+  "risk": "high",
+  "feature": "white crenellated blocks",
+  "by": "qwen3.8-27b"
+ },
+ "SEATFRNT2": {
+  "risk": "high",
+  "feature": "white arched window shapes",
+  "by": "qwen3.8-27b"
+ },
+ "SEATFRONT4": {
+  "risk": "high",
+  "feature": "white cross/window motifs",
+  "by": "qwen3.8-27b"
+ },
+ "SHEEPKING": {
+  "risk": "high",
+  "feature": "religious painting with sheep",
+  "by": "qwen3.8-27b"
+ },
+ "SHUTTEREDWINDOW": {
+  "risk": "high",
+  "feature": "window with white curtains",
+  "by": "qwen3.8-27b"
+ },
+ "SIDELIGHT": {
+  "risk": "high",
+  "feature": "glowing yellow panel",
+  "by": "qwen3.8-27b"
+ },
+ "SIDELOGO": {
+  "risk": "high",
+  "feature": "blue graffiti tag",
+  "by": "qwen3.8-27b"
+ },
+ "SIDELOGOLEFT": {
+  "risk": "high",
+  "feature": "blue graffiti tag",
+  "by": "qwen3.8-27b"
+ },
+ "SIGN_PRDGYINC": {
+  "risk": "high",
+  "feature": "'Prodigy Inc.' sign text",
+  "by": "qwen3.8-27b"
+ },
+ "SIGN_PRSDNT": {
+  "risk": "high",
+  "feature": "'President' sign text",
+  "by": "qwen3.8-27b"
+ },
+ "SMOE_CURTAIN": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "SMOE_DOORS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "SMOE_LTHR_CCH4": {
+  "risk": "medium",
+  "feature": "soft square shading / vignette",
+  "by": "qwen3.8-27b"
+ },
+ "SMOE_RCKWALL": {
+  "risk": "medium",
+  "feature": "horizontal grime band and mottling",
+  "by": "qwen3.8-27b"
+ },
+ "SMOE_RUG1": {
+  "risk": "high",
+  "feature": "rug medallion and border",
+  "by": "qwen3.8-27b"
+ },
+ "SMOE_RUG2": {
+  "risk": "high",
+  "feature": "carpet medallion and border",
+  "by": "qwen3.8-27b"
+ },
+ "SMOE_RUG3": {
+  "risk": "high",
+  "feature": "bordered carpet with corner rosettes",
+  "by": "qwen3.8-27b"
+ },
+ "SMOE_RUG4": {
+  "risk": "high",
+  "feature": "carpet medallion and border",
+  "by": "qwen3.8-27b"
+ },
+ "SMOE_SPEAKER_S": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "SMOE_URBAN_059": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "SNDCBLSTONE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "SNOW": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "SNOW_ROCKCLIFF4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "SPADISH": {
+  "risk": "high",
+  "feature": "fleur-de-lis emblem",
+  "by": "qwen3.8-27b"
+ },
+ "SPECIAL_THANKS": {
+  "risk": "high",
+  "feature": "credits text block",
+  "by": "qwen3.8-27b"
+ },
+ "STONEWALL": {
+  "risk": "high",
+  "feature": "rusty horizontal pipe strip",
+  "by": "qwen3.8-27b"
+ },
+ "STUCCO256B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "S_TRAINYARDA": {
+  "risk": "high",
+  "feature": "\"Trainyard A\" sign text",
+  "by": "qwen3.8-27b"
+ },
+ "S_TRAINYARDB": {
+  "risk": "high",
+  "feature": "\"Trainyard B\" sign text",
+  "by": "qwen3.8-27b"
+ },
+ "TAILWING": {
+  "risk": "high",
+  "feature": "white-and-blue angled wall panel",
+  "by": "qwen3.8-27b"
+ },
+ "TAILWINGLEFT": {
+  "risk": "high",
+  "feature": "white-and-blue angled wall panel",
+  "by": "qwen3.8-27b"
+ },
+ "TELEPHONEPOLE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "THANKS": {
+  "risk": "high",
+  "feature": "white dedication text on blue",
+  "by": "qwen3.8-27b"
+ },
+ "TK_ARCH2": {
+  "risk": "high",
+  "feature": "arched window and double door",
+  "by": "qwen3.8-27b"
+ },
+ "TK_ARCHES": {
+  "risk": "high",
+  "feature": "fan-shaped brick arches",
+  "by": "qwen3.8-27b"
+ },
+ "TK_ARCHESSTATUE": {
+  "risk": "high",
+  "feature": "fan arches with carved heads",
+  "by": "qwen3.8-27b"
+ },
+ "TK_ARCHGEN": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_BARREL2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_BARREL20001": {
+  "risk": "high",
+  "feature": "round gravel-filled hole",
+  "by": "qwen3.8-27b"
+ },
+ "TK_BARREL3": {
+  "risk": "high",
+  "feature": "round straw-filled hole",
+  "by": "qwen3.8-27b"
+ },
+ "TK_BARRELSIDE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_BARRELTOP": {
+  "risk": "high",
+  "feature": "round wooden hatch cover",
+  "by": "qwen3.8-27b"
+ },
+ "TK_BLUCOBBLE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_BLUEDOOR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_BOLTEDDOOR": {
+  "risk": "high",
+  "feature": "locker doors with handles and fan vents",
+  "by": "qwen3.8-27b"
+ },
+ "TK_BOMB1": {
+  "risk": "high",
+  "feature": "yellow stripes and oval vent holes",
+  "by": "qwen3.8-27b"
+ },
+ "TK_BOMB2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_BURNTWALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CEILING": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CLAYROOF": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CLOSEDSHUT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_COLUMN": {
+  "risk": "high",
+  "feature": "ornate carved panels",
+  "by": "qwen3.8-27b"
+ },
+ "TK_COLUMNBASE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CONCYEL": {
+  "risk": "medium",
+  "feature": "weathered mottling and horizontal streaks",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CONCYELPEEL": {
+  "risk": "high",
+  "feature": "rust / orange paint patches",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CONCYELSML": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CONCYELWIN1": {
+  "risk": "high",
+  "feature": "single window",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CONCYELWIN2": {
+  "risk": "high",
+  "feature": "pair of windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CONCYELWIN4": {
+  "risk": "high",
+  "feature": "window pair with peeling paint",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CONCYELWIN5": {
+  "risk": "high",
+  "feature": "window pair and paint blotch",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CONCYELWIN6": {
+  "risk": "high",
+  "feature": "pair of windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CONCYELWIN7": {
+  "risk": "high",
+  "feature": "pairs of windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CRATE1": {
+  "risk": "high",
+  "feature": "diagonal wooden brace",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CRATE2": {
+  "risk": "high",
+  "feature": "X-shaped cross bracing",
+  "by": "qwen3.8-27b"
+ },
+ "TK_CRAZYPAVING": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_DOOR4": {
+  "risk": "high",
+  "feature": "green paneled doors",
+  "by": "qwen3.8-27b"
+ },
+ "TK_DOOR5": {
+  "risk": "high",
+  "feature": "paneled doors with knobs",
+  "by": "qwen3.8-27b"
+ },
+ "TK_DOOR6": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_DOOR7": {
+  "risk": "high",
+  "feature": "wooden door with window panes",
+  "by": "qwen3.8-27b"
+ },
+ "TK_DOOR8": {
+  "risk": "high",
+  "feature": "cabinet doors with handles and keyholes",
+  "by": "qwen3.8-27b"
+ },
+ "TK_DOORBLUE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_DOORBURN": {
+  "risk": "high",
+  "feature": "rusty torn corner and iron scrollwork",
+  "by": "qwen3.8-27b"
+ },
+ "TK_DOORPANEL": {
+  "risk": "high",
+  "feature": "window frames with glass panes",
+  "by": "qwen3.8-27b"
+ },
+ "TK_DOORREFLECT": {
+  "risk": "high",
+  "feature": "window with frame",
+  "by": "qwen3.8-27b"
+ },
+ "TK_DOORSTUDS": {
+  "risk": "high",
+  "feature": "metal crossbar and rivets",
+  "by": "qwen3.8-27b"
+ },
+ "TK_DOUBLEDOOR2": {
+  "risk": "high",
+  "feature": "cabinet doors with knobs",
+  "by": "qwen3.8-27b"
+ },
+ "TK_EMBERS": {
+  "risk": "medium",
+  "feature": "fire patches",
+  "by": "qwen3.8-27b"
+ },
+ "TK_EVILEYE": {
+  "risk": "high",
+  "feature": "evil eye medallion",
+  "by": "qwen3.8-27b"
+ },
+ "TK_FABRIC": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_FABRICBLU": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_FABRICLTBRN": {
+  "risk": "high",
+  "feature": "dark cross-shaped stains",
+  "by": "qwen3.8-27b"
+ },
+ "TK_GREENCOBBLE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_GREENSHUTSID": {
+  "risk": "medium",
+  "feature": "faint light smudges",
+  "by": "qwen3.8-27b"
+ },
+ "TK_GREYBRICK": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_GREYROOF": {
+  "risk": "medium",
+  "feature": "vertical dirt streaks",
+  "by": "qwen3.8-27b"
+ },
+ "TK_HEREKERUG": {
+  "risk": "high",
+  "feature": "ornate carpet medallion",
+  "by": "qwen3.8-27b"
+ },
+ "TK_KAYSERIRUG": {
+  "risk": "high",
+  "feature": "carpet rosette medallion",
+  "by": "qwen3.8-27b"
+ },
+ "TK_KAZAKRUG": {
+  "risk": "high",
+  "feature": "geometric carpet motif",
+  "by": "qwen3.8-27b"
+ },
+ "TK_LAMP": {
+  "risk": "high",
+  "feature": "glowing light panel",
+  "by": "qwen3.8-27b"
+ },
+ "TK_LAMPOUT": {
+  "risk": "high",
+  "feature": "dim glowing panel",
+  "by": "qwen3.8-27b"
+ },
+ "TK_LIONFOUNTAIN": {
+  "risk": "high",
+  "feature": "carved lion head relief",
+  "by": "qwen3.8-27b"
+ },
+ "TK_LITECRATE1": {
+  "risk": "high",
+  "feature": "diagonal wooden brace on crate",
+  "by": "qwen3.8-27b"
+ },
+ "TK_LITECRATE3": {
+  "risk": "high",
+  "feature": "stencil logo and text on crate",
+  "by": "qwen3.8-27b"
+ },
+ "TK_MOD-WOOD": {
+  "risk": "medium",
+  "feature": "scratchy vertical shading / dark bands",
+  "by": "qwen3.8-27b"
+ },
+ "TK_MOD-WOODDRK": {
+  "risk": "medium",
+  "feature": "scratchy vertical shading / dark bands",
+  "by": "qwen3.8-27b"
+ },
+ "TK_OPENCRATE1": {
+  "risk": "high",
+  "feature": "stencil logo and text on crate",
+  "by": "qwen3.8-27b"
+ },
+ "TK_OPENCRATE3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_OPENCRATE4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_PILLAR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_PIPE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_PLANTBOX": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_POOLTILE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_PURPLEDOOR": {
+  "risk": "high",
+  "feature": "wooden doors with latches and keyholes",
+  "by": "qwen3.8-27b"
+ },
+ "TK_RAILINGGEN": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_REDGRNDOOR": {
+  "risk": "high",
+  "feature": "green double doors",
+  "by": "qwen3.8-27b"
+ },
+ "TK_REDSHUTSIDE": {
+  "risk": "medium",
+  "feature": "reddish rust blotches",
+  "by": "qwen3.8-27b"
+ },
+ "TK_REDSHUTTER": {
+  "risk": "high",
+  "feature": "wooden door panels with diagonal brace",
+  "by": "qwen3.8-27b"
+ },
+ "TK_RUBBLEWALL": {
+  "risk": "medium",
+  "feature": "cracked plaster patches",
+  "by": "qwen3.8-27b"
+ },
+ "TK_RUST": {
+  "risk": "medium",
+  "feature": "rust diamond spots",
+  "by": "qwen3.8-27b"
+ },
+ "TK_SIGN": {
+  "risk": "high",
+  "feature": "ornate cherub medallion relief",
+  "by": "qwen3.8-27b"
+ },
+ "TK_SIGNATATURK": {
+  "risk": "high",
+  "feature": "Atat\u00fcrk Caddesi street sign",
+  "by": "qwen3.8-27b"
+ },
+ "TK_SIGNBAHCELIE": {
+  "risk": "high",
+  "feature": "Bah\u00e7elievler painted name text",
+  "by": "qwen3.8-27b"
+ },
+ "TK_SIGNCUMHURIY": {
+  "risk": "high",
+  "feature": "Cumhuriyet Meydan\u0131 plank sign",
+  "by": "qwen3.8-27b"
+ },
+ "TK_SIGNISTIKLAL": {
+  "risk": "high",
+  "feature": "\u0130stiklal Cad. weathered strip text",
+  "by": "qwen3.8-27b"
+ },
+ "TK_SIGNKAHRAMAN": {
+  "risk": "high",
+  "feature": "Kahraman Caddesi wooden sign panel",
+  "by": "qwen3.8-27b"
+ },
+ "TK_SIGNSOKAK": {
+  "risk": "high",
+  "feature": "SOKAK 3 street sign",
+  "by": "qwen3.8-27b"
+ },
+ "TK_SIGNSOKAK7": {
+  "risk": "high",
+  "feature": "SOKAK 7 sign with bullet holes and rust stains",
+  "by": "qwen3.8-27b"
+ },
+ "TK_SLATE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STONEFL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STONEFLOOR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STONEWALLHI": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STUCCO3THIN": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STUCCO3WINL": {
+  "risk": "high",
+  "feature": "row of windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STUCCO3WINL2": {
+  "risk": "high",
+  "feature": "row of windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STUCCOCURTBM": {
+  "risk": "high",
+  "feature": "row of windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STUCCOSHUTT": {
+  "risk": "high",
+  "feature": "row of curtained windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STUCCOWIN": {
+  "risk": "high",
+  "feature": "boarded and glass windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STUCCOWINWD": {
+  "risk": "high",
+  "feature": "windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STUCCSHUTTTH": {
+  "risk": "high",
+  "feature": "ornamental molding with rosettes",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STUCCWINTHIN": {
+  "risk": "medium",
+  "feature": "horizontal dentil cornice band",
+  "by": "qwen3.8-27b"
+ },
+ "TK_STUCSMLTHIN": {
+  "risk": "medium",
+  "feature": "decorative diamond frieze strip",
+  "by": "qwen3.8-27b"
+ },
+ "TK_TARGETSQUARE": {
+  "risk": "high",
+  "feature": "white circle-and-cross symbol",
+  "by": "qwen3.8-27b"
+ },
+ "TK_TARGETTEMPLE": {
+  "risk": "high",
+  "feature": "white circle-and-cross symbol on dark plates",
+  "by": "qwen3.8-27b"
+ },
+ "TK_TEMPLEDETAIL": {
+  "risk": "high",
+  "feature": "circular star medallions",
+  "by": "qwen3.8-27b"
+ },
+ "TK_TEMPLEFLOOR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_TEMPLESLATE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_TEMPLESLATE2": {
+  "risk": "medium",
+  "feature": "horizontal brown bands",
+  "by": "qwen3.8-27b"
+ },
+ "TK_TEMPLEWALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_TORNMAP": {
+  "risk": "high",
+  "feature": "map posters / signs",
+  "by": "qwen3.8-27b"
+ },
+ "TK_TREAD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_TRUCKWINDOW": {
+  "risk": "high",
+  "feature": "bullet holes and diagonal crack",
+  "by": "qwen3.8-27b"
+ },
+ "TK_VANBACK": {
+  "risk": "high",
+  "feature": "red indicator lights / panel markers",
+  "by": "qwen3.8-27b"
+ },
+ "TK_VANFRONTLEFT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_VANFRONTRIGH": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_VANGRILL": {
+  "risk": "high",
+  "feature": "headlights and grille panel",
+  "by": "qwen3.8-27b"
+ },
+ "TK_VANHEAD": {
+  "risk": "medium",
+  "feature": "wavy grain with light patch",
+  "by": "qwen3.8-27b"
+ },
+ "TK_VANHOOD": {
+  "risk": "medium",
+  "feature": "horizontal light band and scratches",
+  "by": "qwen3.8-27b"
+ },
+ "TK_VANSIDE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_VANUNDER": {
+  "risk": "high",
+  "feature": "two wheels and frame",
+  "by": "qwen3.8-27b"
+ },
+ "TK_VANWHEEL": {
+  "risk": "high",
+  "feature": "wheel",
+  "by": "qwen3.8-27b"
+ },
+ "TK_VANWHIN": {
+  "risk": "high",
+  "feature": "wheel",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WALLDETBLULR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WALLYELLOW": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WHITEBRICKLR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WHITEBRICKSH": {
+  "risk": "high",
+  "feature": "windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WHITEBRKWDTR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WHITEBRLRTHI": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WHITESTUCCOL": {
+  "risk": "medium",
+  "feature": "horizontal grime streaks",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WHTBRKWDTRM": {
+  "risk": "high",
+  "feature": "pairs of windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WHTBRKWDTRM2": {
+  "risk": "high",
+  "feature": "single and double windows",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WICKER2TP": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WICKER3TP": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WICKEROPN1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WICKEROPN2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WICKEROPN3": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WINDOW": {
+  "risk": "high",
+  "feature": "window with curtain and slanted object behind glass",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WINDOW1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WINDOW12": {
+  "risk": "high",
+  "feature": "open vent/window section in pane grid",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WINDOW2SHUT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WINDOWGRATE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WINDOWSML": {
+  "risk": "high",
+  "feature": "six-pane window",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WOODBRD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TK_WOODDARKSLAT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TRACK1": {
+  "risk": "high",
+  "feature": "red numeral 1 plate",
+  "by": "qwen3.8-27b"
+ },
+ "TRACK2": {
+  "risk": "high",
+  "feature": "red numeral 2 plate",
+  "by": "qwen3.8-27b"
+ },
+ "TRACK3": {
+  "risk": "high",
+  "feature": "red painted digit 3",
+  "by": "qwen3.8-27b"
+ },
+ "TRACK4": {
+  "risk": "high",
+  "feature": "red painted digit 4",
+  "by": "qwen3.8-27b"
+ },
+ "TRACK5": {
+  "risk": "high",
+  "feature": "red painted digit 5",
+  "by": "qwen3.8-27b"
+ },
+ "TRACK6": {
+  "risk": "high",
+  "feature": "red painted digit 6",
+  "by": "qwen3.8-27b"
+ },
+ "TRACKS01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TRACKS02": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TRAINEND01": {
+  "risk": "high",
+  "feature": "red ladder and small vent on container",
+  "by": "qwen3.8-27b"
+ },
+ "TRAINEND02": {
+  "risk": "high",
+  "feature": "red ladder and small vent on container",
+  "by": "qwen3.8-27b"
+ },
+ "TRAININGDOOR": {
+  "risk": "high",
+  "feature": "circular hatch / vent panel in metal plate",
+  "by": "qwen3.8-27b"
+ },
+ "TRAINSIDE01-1": {
+  "risk": "high",
+  "feature": "container ID text and graffiti tag",
+  "by": "qwen3.8-27b"
+ },
+ "TRAINSIDE01-2": {
+  "risk": "high",
+  "feature": "rusty ladder and small white vent",
+  "by": "qwen3.8-27b"
+ },
+ "TRAINSIDE01-2A": {
+  "risk": "high",
+  "feature": "'pop dog' logo and cartoon graphic",
+  "by": "qwen3.8-27b"
+ },
+ "TRAINSIDE02-1": {
+  "risk": "high",
+  "feature": "white graffiti tags on container",
+  "by": "qwen3.8-27b"
+ },
+ "TRAINSIDE02-2": {
+  "risk": "high",
+  "feature": "blue/white graffiti tags on container",
+  "by": "qwen3.8-27b"
+ },
+ "TRAINSTOPPER": {
+  "risk": "high",
+  "feature": "diagonal rusted beam with vent box",
+  "by": "qwen3.8-27b"
+ },
+ "TRAINSTOPPERTOP": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TRAINTOP01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TRAINTOP02": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSBGVENT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSCABLES": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "TSCAUTION": {
   "risk": "high",
   "feature": "rust smears / stains",
+  "by": "qwen3.8-27b"
+ },
+ "TSCPRFLR": {
+  "risk": "medium",
+  "feature": "dirt stains on panels",
+  "by": "qwen3.8-27b"
+ },
+ "TSCRTESD": {
+  "risk": "high",
+  "feature": "metal beams and brackets",
+  "by": "qwen3.8-27b"
+ },
+ "TSCRTETP": {
+  "risk": "high",
+  "feature": "star-shaped fixtures",
   "by": "qwen3.8-27b"
  },
  "TSDOOR4": {
@@ -264,9 +6559,29 @@
   "feature": "round vent with rust streaks",
   "by": "qwen3.8-27b"
  },
+ "TSFLRGRT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "TSHULL1": {
   "risk": "medium",
   "feature": "vertical rust streaks",
+  "by": "qwen3.8-27b"
+ },
+ "TSHULL1A": {
+  "risk": "high",
+  "feature": "vent slot and small window",
+  "by": "qwen3.8-27b"
+ },
+ "TSHULL2": {
+  "risk": "high",
+  "feature": "small grille vent",
+  "by": "qwen3.8-27b"
+ },
+ "TSHULL4": {
+  "risk": "high",
+  "feature": "bolted beam and block panel",
   "by": "qwen3.8-27b"
  },
  "TSHULL5": {
@@ -279,9 +6594,44 @@
   "feature": "",
   "by": "qwen3.8-27b"
  },
+ "TSHULL8": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSHULL9": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "TSIBEAM": {
   "risk": "low",
   "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSMACMAN": {
+  "risk": "high",
+  "feature": "MacMan logo plate",
+  "by": "qwen3.8-27b"
+ },
+ "TSMOSS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSNOSKD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSNOSWIM": {
+  "risk": "high",
+  "feature": "swim warning sign",
+  "by": "qwen3.8-27b"
+ },
+ "TSOILY": {
+  "risk": "high",
+  "feature": "circular medallion with slit",
   "by": "qwen3.8-27b"
  },
  "TSPLAINRED": {
@@ -289,9 +6639,284 @@
   "feature": "",
   "by": "qwen3.8-27b"
  },
+ "TSRFGRVL": {
+  "risk": "medium",
+  "feature": "mottled concrete blotches",
+  "by": "qwen3.8-27b"
+ },
  "TSROOF": {
   "risk": "low",
   "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSSHUTTERS": {
+  "risk": "high",
+  "feature": "louvered shutter window",
+  "by": "qwen3.8-27b"
+ },
+ "TSSPTS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "TSSPTSMSS": {
+  "risk": "high",
+  "feature": "grass strip along tile base",
+  "by": "qwen3.8-27b"
+ },
+ "TSVENT": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "T_CRATE07": {
+  "risk": "medium",
+  "feature": "weathered stains and cracks",
+  "by": "qwen3.8-27b"
+ },
+ "T_CRATE08": {
+  "risk": "medium",
+  "feature": "worn slat wear and gap pattern",
+  "by": "qwen3.8-27b"
+ },
+ "T_CRATE09": {
+  "risk": "high",
+  "feature": "circular wooden disc with center hole",
+  "by": "qwen3.8-27b"
+ },
+ "T_CRATE10": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "T_CRATE200001": {
+  "risk": "high",
+  "feature": "white sticker on green panels",
+  "by": "qwen3.8-27b"
+ },
+ "T_CRATE210001": {
+  "risk": "high",
+  "feature": "white sign and dark vent",
+  "by": "qwen3.8-27b"
+ },
+ "T_DOOR09": {
+  "risk": "high",
+  "feature": "rectangular vents",
+  "by": "qwen3.8-27b"
+ },
+ "T_DOOR10": {
+  "risk": "high",
+  "feature": "horizontal metal bar",
+  "by": "qwen3.8-27b"
+ },
+ "T_WALL26": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "T_WALL570001": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "T_WOOD01": {
+  "risk": "high",
+  "feature": "printed label text on planks",
+  "by": "qwen3.8-27b"
+ },
+ "T_WOOD02": {
+  "risk": "medium",
+  "feature": "chipboard speckle blotches",
+  "by": "qwen3.8-27b"
+ },
+ "VERT_TAG": {
+  "risk": "high",
+  "feature": "map credit text block",
+  "by": "qwen3.8-27b"
+ },
+ "WALKWAY1_X4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WALKWAY2_X4": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WALLGRIT01": {
+  "risk": "medium",
+  "feature": "vertical weathering streaks",
+  "by": "qwen3.8-27b"
+ },
+ "WALLGRIT02": {
+  "risk": "medium",
+  "feature": "diagonal mineral veins",
+  "by": "qwen3.8-27b"
+ },
+ "WAREHOUSEDOOR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WATER": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WBARRELSIDE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WBARRELTOP": {
+  "risk": "high",
+  "feature": "circular wooden wheel",
+  "by": "qwen3.8-27b"
+ },
+ "WDDOOR": {
+  "risk": "high",
+  "feature": "wooden double door",
+  "by": "qwen3.8-27b"
+ },
+ "WDGRAIN128B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDGRAIN256A": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDGRAIN256C": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDMOSSV32": {
+  "risk": "medium",
+  "feature": "green moss/algae streaks on planks",
+  "by": "qwen3.8-27b"
+ },
+ "WDNDRAWERS": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDPLANKS128F": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDPLANKS256D": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDPLANKS256E": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDPLANKS256F": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDROOF128D": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDTRIMH128B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDTRIMH64C": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDTRIMH64F": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDTRIMV128B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDTRIMV64B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDTRIMV64D": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDWALL12864": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDWALL256256B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WDWALL64256B": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WHEELEND01": {
+  "risk": "high",
+  "feature": "pipe valve with gauge",
+  "by": "qwen3.8-27b"
+ },
+ "WHEELEND02": {
+  "risk": "high",
+  "feature": "pipe valve with gauge",
+  "by": "qwen3.8-27b"
+ },
+ "WHEELSIDE01": {
+  "risk": "high",
+  "feature": "vented metal bracket",
+  "by": "qwen3.8-27b"
+ },
+ "WHEELSIDE02": {
+  "risk": "high",
+  "feature": "vented metal bracket",
+  "by": "qwen3.8-27b"
+ },
+ "WHITE": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WHITEROCKWALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOW01": {
+  "risk": "high",
+  "feature": "window",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOW01-1": {
+  "risk": "high",
+  "feature": "window",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOW01A": {
+  "risk": "high",
+  "feature": "window",
   "by": "qwen3.8-27b"
  },
  "WINDOW03A": {
@@ -309,9 +6934,109 @@
   "feature": "windows with curtains",
   "by": "qwen3.8-27b"
  },
+ "WINDOW04": {
+  "risk": "high",
+  "feature": "window",
+  "by": "qwen3.8-27b"
+ },
  "WINDOW04A": {
   "risk": "high",
   "feature": "barred window on brick",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOW05": {
+  "risk": "high",
+  "feature": "rectangular barred window",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOW06": {
+  "risk": "high",
+  "feature": "rectangular barred window",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOW07": {
+  "risk": "high",
+  "feature": "small arched window",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOW2X": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOWHALF": {
+  "risk": "high",
+  "feature": "paned window with railing",
+  "by": "qwen3.8-27b"
+ },
+ "WINDOWWHITE": {
+  "risk": "high",
+  "feature": "paned window",
+  "by": "qwen3.8-27b"
+ },
+ "WLPAPER": {
+  "risk": "medium",
+  "feature": "red floral wallpaper motif",
+  "by": "qwen3.8-27b"
+ },
+ "WLPAPER1": {
+  "risk": "medium",
+  "feature": "blue flower sprig pattern",
+  "by": "qwen3.8-27b"
+ },
+ "WLSTUCCOBRDR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WLSTUCCOTRIM": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WLSTUCCOWND": {
+  "risk": "high",
+  "feature": "arched window",
+  "by": "qwen3.8-27b"
+ },
+ "WOOD01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "WOODCRATELID": {
+  "risk": "medium",
+  "feature": "wood grain and pale stains",
+  "by": "qwen3.8-27b"
+ },
+ "WOODCRATELIDSM": {
+  "risk": "high",
+  "feature": "dark specks / nail holes",
+  "by": "qwen3.8-27b"
+ },
+ "WOODCRATESD": {
+  "risk": "high",
+  "feature": "crate panel with X brace",
+  "by": "qwen3.8-27b"
+ },
+ "WOODCRATESDSM": {
+  "risk": "high",
+  "feature": "framed crate panel with slats",
+  "by": "qwen3.8-27b"
+ },
+ "WOODEDWINDOW": {
+  "risk": "high",
+  "feature": "arched window",
+  "by": "qwen3.8-27b"
+ },
+ "YELLOWBOARD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "YELLOWCONRETE": {
+  "risk": "high",
+  "feature": "vertical vent/panel mark with dark specks",
   "by": "qwen3.8-27b"
  }
 }

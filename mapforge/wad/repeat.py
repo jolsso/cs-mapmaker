@@ -312,9 +312,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--rate", action="store_true", help="rate unrated textures (local model)")
     ap.add_argument("--force", action="store_true", help="with --rate: rate the named again")
     ap.add_argument("--wads", nargs="*", default=[], help="every texture in these WAD files")
+    ap.add_argument("--names-from", type=Path, help="texture names in a file (for -0NAME ones)")
     args = ap.parse_args(argv)
     cfg = load_config()
     names = {n.upper() for n in args.names}
+    if args.names_from:
+        names |= {n.upper() for n in args.names_from.read_text(encoding="utf-8").split()}
     if args.map:
         mf = read_map(cfg.path("maps_dir") / args.map / "src" / f"{args.map}.map")
         names |= {f.texture.upper() for b in mf.brushes() for f in b.faces}
