@@ -120,7 +120,7 @@ def _new_name(items: Any, base: str) -> str:
     return name
 
 
-def _corridor_ends(
+def corridor_ends(
     a: list[int], b: list[int], wall: int, grid: int
 ) -> tuple[list[int], list[int], list[list[int]]]:
     """`from`/`to` of an angled corridor between two areas: the middles of their facing walls,
@@ -413,7 +413,7 @@ def _apply_one(lay: CommentedMap, change: dict[str, Any]) -> str:
             if n not in rects:
                 raise ValueError(f"no area named {n!r}")
         (w,) = _vec(p.get("width", 160), 1, grid, "width")
-        start, end, via = _corridor_ends(
+        start, end, via = corridor_ends(
             rects[a_name], rects[b_name], int(lay.get("wall", 16)), grid
         )
         if p.get("via"):

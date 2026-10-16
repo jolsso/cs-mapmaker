@@ -77,7 +77,13 @@
     const direct = walkable().some(e => { const r = [N.get(e.a).role, N.get(e.b).role]; return r.includes("site") && (r.includes("t_spawn") || r.includes("ct_spawn")); });
     out.push({ok: direct ? "bad" : "ok", t: "Ingen dør direkte fra spawn til site"});
     for (const [k, s] of [["A", A], ["B", B]]) { const n = entrances(s); out.push({ok: n >= 2 && n <= 3 ? "ok" : "bad", t: `2–3 indgange til ${k}`, v: `${n}`}); }
-    const ctSide = new Set([ctId, ...nb.get(ctId)]);
+    // CT side: the spawn, its neighbours and on through corridor rooms, never through a site (as mapforge.topology.ct_reach)
+    const ctSide = new Set([ctId]), todo = [ctId];
+    while (todo.length) for (const m of nb.get(todo.pop()) || []) {
+      const r = (N.get(m) || {}).role;
+      if (ctSide.has(m) || r === "site") continue;
+      ctSide.add(m); if (r === "corridor") todo.push(m);
+    }
     for (const [k, s] of [["A", A], ["B", B]]) out.push({ok: [...nb.get(s)].some(v => ctSide.has(v)) ? "ok" : "bad", t: `CT har en retake-vej til ${k}`});
     const four = T.nodes.filter(n => !["site", "t_spawn", "ct_spawn"].includes(n.role) && nb.get(n.id).size >= 4).map(n => n.id);
     out.push({ok: four.length ? "bad" : "ok", t: "Ingen 4-vejskryds", v: four.join(", ")});

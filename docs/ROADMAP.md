@@ -228,7 +228,9 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [ ] Dashboard-editor: lag-faner, niveau-vælger, værktøjer pr. lag, lås pr. element, fortryd
 - [ ] Live graf-lint: topologi, timings pr. site og regelbrud vises og opdateres, mens man tegner
 - [ ] Parse: sketch → `topology.yaml` + rå `layout.yaml`; tvetydige kryds i `parse_report.json`, vist før Fit
+  - [x] Graf-udgaven (2026-10-16, rykket frem på menneskets ønske): `./mf fromgraph MAP=…` – godkendt editor-graf → rum (størrelse, niveau, ude/inde) + korridorer (lige eller L, dørpladser fordelt langs væggen, ingen krydsninger), chokes som smalle døre, beskrivelser som `notes:`; `fromgraph_report.json`
 - [ ] Fit: global skala → lokal tilpasning (SA/CMA-ES på 8b-evaluatoren) → snap; faste elementer er hårde constraints; topologiændringer kun som forslag
+  - [x] Enkel Fit i fromgraph (2026-10-16): rum skubbes fra hinanden, korte korridorer får et U-sving, kanter > 10 % fra editorens estimat nævnes i rapporten
 - [ ] `fit_report.json` (hver ændring med årsag) + overlay-render (skitse oven på resultat); varianter ved fidelity 0,9 / 0,6 / 0,3
 
 **Accept:** En håndtegnet testskitse med tre niveauer (kælder, gade, 1. sal), en lem og en rampe → tre fit-varianter, der compiler med 0 errors og består Review. Ingen `fixed`-elementer flyttet i nogen variant; ændringslisten forklarer alle afvigelser > 64 units.

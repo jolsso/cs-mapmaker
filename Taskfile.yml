@@ -118,6 +118,13 @@ tasks:
     cmds:
       - uv run python -m mapforge.topology --map {{.MAP}} {{.CLI_ARGS}}
 
+  fromgraph:
+    desc: An approved editor graph (maps/<map>/graph.json) -> maps/<map>/layout.yaml + build/<map>/fromgraph_report.json (MAP=<name>; -- --force replaces a layout)
+    requires:
+      vars: [MAP]
+    cmds:
+      - uv run python -m mapforge.fromgraph --map {{.MAP}} {{.CLI_ARGS}}
+
   refgraphs:
     desc: Topologies of all de_ reference maps from their BSP (walk graph -> rooms) -> build/topologies/refmap/ (-- --map NAME)
     cmds:

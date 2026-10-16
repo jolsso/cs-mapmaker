@@ -247,9 +247,11 @@ def layout_graph(layout: dict[str, Any]) -> dict[str, Any]:
         for k, a in site_areas.items()
     }
     ct_areas = {a for a, x in areas.items() if x.get("role") == "ct_spawn"}
-    # a site's CT entrance: a door to an area that CT reaches without crossing the site (direct
-    # neighbour of the CT spawn area or the spawn itself)
-    ct_side = set(ct_areas) | {n for c in ct_areas for n in neighbours[c]}
+    # a site's CT entrance: a door to an area that CT reaches without crossing a site (the CT
+    # spawn, its neighbours, and on through corridor areas: a bent corridor is several areas)
+    from mapforge.topology import ct_reach
+
+    ct_side = ct_reach(set(ct_areas), neighbours, {n: a.get("role", "") for n, a in areas.items()})
     ct_entrance = {k: bool(neighbours.get(a, set()) & ct_side) for k, a in site_areas.items()}
     junction = {
         n: d

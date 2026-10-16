@@ -252,6 +252,21 @@ def to_yaml_dict(topo: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def ct_reach(ct: set[str], nb: dict[str, set[str]], role: dict[str, str]) -> set[str]:
+    """The CT side of the map: the CT spawn, its neighbours, and on through corridor rooms (a
+    corridor with a bend is several rooms, but still CT's own way in). Never through a site."""
+    seen, todo = set(ct), list(ct)
+    while todo:
+        k = todo.pop()
+        for m in nb.get(k, ()):
+            if m in seen or role.get(m) == "site":
+                continue
+            seen.add(m)
+            if role.get(m) == "corridor":
+                todo.append(m)
+    return seen
+
+
 def stats(topo: dict[str, Any]) -> dict[str, Any]:
     """The same topology numbers as layout_graph(): site entrances, CT entrance, junctions."""
     walk = [(e["a"], e["b"]) for e in topo["edges"] if e["kind"] != "window"]
@@ -270,7 +285,7 @@ def stats(topo: dict[str, Any]) -> dict[str, Any]:
         for k, a in sites.items()
     }
     ct = {n for n in ids if role[n] == "ct_spawn"}
-    ct_side = ct | {m for c in ct for m in nb[c]}
+    ct_side = ct_reach(ct, nb, role)
     junction = {n: d for n, d in degree.items() if role[n] not in SPECIAL}
     return {
         "site_entrances": entrances,
