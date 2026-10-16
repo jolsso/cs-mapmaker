@@ -137,3 +137,26 @@ def test_ct_reaches_both_sites_through_bent_corridors():
 
     lay, _ = fromgraph.build_layout(graph())
     assert stats(extract(lay))["site_ct_entrance"] == {"A": True, "B": True}
+
+
+def test_a_short_corridor_between_levels_is_not_too_steep():
+    g = graph()
+    g["nodes"].append(_n("loft", "room", (0, 900), level=1))  # 900 above mid: a short corridor
+    g["edges"].append({"a": "mid", "b": "loft"})
+    lay, report = fromgraph.build_layout(g)
+    try_generate(lay)  # no "ramp needs rise <= length / 2"
+    c = next(c for c in lay["corridors"] if c["name"] == "c_mid_loft")
+    pts = [c["from"], *c.get("via", []), c["to"]]
+    length = sum(abs(p[0] - q[0]) + abs(p[1] - q[1]) for p, q in zip(pts, pts[1:], strict=False))
+    assert c.get("rise") == 0 or length >= 2 * 160
+
+
+def test_no_free_route_still_avoids_rooms():
+    # x and y straight across each other with a room in between and a corridor around it taken
+    rects = {"x": [0, 0, 640, 640], "y": [2000, 0, 2640, 640], "wall": [900, -400, 1700, 1100]}
+    placed = [[640, -4000, 2000, 4000]]  # corridors fill the whole gap between x and y
+    route, free = fromgraph._route({"a": "x", "b": "y"}, rects, 160, {}, placed)
+    assert not free
+    pts = route[4]
+    boxes = [fromgraph._seg_box(p, q, 160) for p, q in zip(pts, pts[1:], strict=False)]
+    assert not any(fromgraph._overlap(b, rects["wall"], 16) for b in boxes)

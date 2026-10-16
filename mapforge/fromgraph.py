@@ -55,15 +55,16 @@ def _overlap(a: list[int], b: list[int], gap: int) -> bool:
     return a[0] < b[2] + gap and b[0] < a[2] + gap and a[1] < b[3] + gap and b[1] < a[3] + gap
 
 
-def _separate(rects: dict[str, list[int]], levels: dict[str, int]) -> list[dict[str, Any]]:
-    """Push rooms on the same level apart until MIN_GAP separates them (≤ 40 rounds)."""
+def _separate(rects: dict[str, list[int]]) -> list[dict[str, Any]]:
+    """Push rooms apart until MIN_GAP separates them (≤ 40 rounds). fromgraph does not stack
+    rooms: a level is a floor height, so rooms on different levels need their own floor plan."""
     moved: dict[str, list[int]] = {}
     ids = list(rects)
     for _ in range(40):
         clash = False
         for i, a in enumerate(ids):
             for b in ids[i + 1 :]:
-                if levels[a] != levels[b] or not _overlap(rects[a], rects[b], MIN_GAP):
+                if not _overlap(rects[a], rects[b], MIN_GAP):  # every level: rooms are not stacked
                     continue
                 clash = True
                 ra, rb = rects[a], rects[b]
@@ -160,6 +161,23 @@ def _candidates(a: list[int], b: list[int], width: int):
                     ls.append((sa, ta, sb, tb, [pa, knee, pb]))
     yield from straight
     yield from ls
+    # around: out of both rooms on the same side, along beyond both (and what lies between),
+    # back in - for rooms that face each other across something in the way
+    for side in ("N", "S", "E", "W"):
+        for k in range(2, 12):
+            off = k * 128
+            ta, tb = _slots(a, side, width)[:1], _slots(b, side, width)[:1]
+            if not ta or not tb:
+                continue
+            pa, pb = _door_point(a, side, ta[0]), _door_point(b, side, tb[0])
+            if side in ("N", "S"):
+                y = max(a[3], b[3]) + off if side == "N" else min(a[1], b[1]) - off
+                pts = [pa, [pa[0], y], [pb[0], y], pb]
+            else:
+                x = max(a[2], b[2]) + off if side == "E" else min(a[0], b[0]) - off
+                pts = [pa, [x, pa[1]], [x, pb[1]], pb]
+            if abs(pts[1][0] - pts[2][0]) + abs(pts[1][1] - pts[2][1]) >= width + 96:
+                yield side, ta[0], side, tb[0], pts
 
 
 def _free(pts, width, rects, ends, placed) -> bool:
@@ -178,16 +196,20 @@ def _free(pts, width, rects, ends, placed) -> bool:
 
 
 def _route(e, rects, width, used, placed):
-    """The first free route for an edge (or the first candidate at all, flagged)."""
-    first = None
+    """The first free route for an edge. Without one: a route that crosses another corridor
+    (an extra junction) but no room; only then the first candidate at all. -> (route, free)."""
+    first = no_room = None
     for sa, ta, sb, tb, pts in _candidates(rects[e["a"]], rects[e["b"]], width):
-        first = first or (sa, ta, sb, tb, pts)
+        route = (sa, ta, sb, tb, pts)
+        first = first or route
         taken = any(abs(ta - t) < width + 64 for t in used.get((e["a"], sa), [])) or any(
             abs(tb - t) < width + 64 for t in used.get((e["b"], sb), [])
         )
         if not taken and _free(pts, width, rects, (e["a"], e["b"]), placed):
-            return (sa, ta, sb, tb, pts), True
-    return first, False
+            return route, True
+        if no_room is None and _free(pts, width, rects, (e["a"], e["b"]), []):
+            no_room = route
+    return no_room or first, False
 
 
 def _detour(pts, extra, width, rects, ends, placed):
@@ -219,8 +241,7 @@ def build_layout(
         raise ValueError("only an approved graph becomes a layout (approve it in the editor)")
     nodes = {n["id"]: n for n in g["nodes"]}
     rects = {k: _rect(n) for k, n in nodes.items()}
-    levels = {k: n["level"] for k, n in nodes.items()}
-    report: dict[str, Any] = {"moved": _separate(rects, levels), "edges": [], "notes": []}
+    report: dict[str, Any] = {"moved": _separate(rects), "edges": [], "notes": []}
 
     areas = []
     for k, n in nodes.items():
@@ -257,6 +278,19 @@ def build_layout(
             longer = _detour(pts, target - walk, width, rects, (e["a"], e["b"]), placed)
             if longer:
                 pts, walk = longer, walk_of(longer)
+        rise = abs(a["level"] - b["level"]) * gr.LEVEL_FLOOR
+
+        def ramp_len(path: list[list[int]], width=width) -> float:  # knee rooms carry no ramp
+            return _path_len(path) - (len(path) - 2) * (width + 96)
+
+        steep = bool(rise) and ramp_len(pts) < 2 * rise  # ramps: rise <= length / 2 (YaPB)
+        if steep and len(pts) == 2:
+            longer = _detour(
+                pts, 2 * rise - _path_len(pts) + 64, width, rects, (e["a"], e["b"]), placed
+            )
+            if longer:
+                pts, walk = longer, walk_of(longer)
+                steep = ramp_len(pts) < 2 * rise
         used.setdefault((e["a"], sa), []).append(ta)
         used.setdefault((e["b"], sb), []).append(tb)
         placed += [_seg_box(p, q, width) for p, q in zip(pts, pts[1:], strict=False)]
@@ -268,7 +302,13 @@ def build_layout(
                              "height": 192, "between": [e["a"], e["b"]]}  # fmt: skip
         if len(pts) > 2:
             c["via"] = pts[1:-1]
-        if e["kind"] == "drop":
+        if steep:  # no room for a walkable ramp: a ledge, one can only drop down it
+            c["rise"] = 0
+            report["notes"].append(
+                f"{name}: too short for a ramp between the levels; built as a drop from the "
+                "upper room (move the rooms apart for a ramp)"
+            )
+        elif e["kind"] == "drop":
             if b["level"] < a["level"]:  # stays at the source floor: a ledge into the target
                 c["rise"] = 0
             else:
