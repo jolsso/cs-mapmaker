@@ -122,3 +122,8 @@ def test_changes_on_a_frozen_map_wait_for_the_human(maps, monkeypatch):
     code, wish = call(collector.maps_api, "POST", "/api/maps/de_test01/changes",
                       {"before": graph(), "after": after})  # fmt: skip
     assert code == 201 and wish["status"] == "needs_human" and "locked" in wish["resolution"]
+
+
+def test_graph_put_on_an_unknown_map_is_404(maps):
+    code, _ = call(collector.maps_api, "PUT", "/api/maps/de_ghost01/graph", {"graph": graph()})
+    assert code == 404 and not (maps / "maps" / "de_ghost01").exists()

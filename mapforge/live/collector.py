@@ -239,6 +239,9 @@ async def maps_api(
     if parts and not brief.NAME.match(parts[0]):
         _respond(writer, 404, {"error": "unknown map"}, allow)
         return
+    if parts[1:] and not (MAPS_DIR / parts[0]).is_dir():  # graph, changes, images: an existing map
+        _respond(writer, 404, {"error": "unknown map"}, allow)
+        return
     try:
         if method == "GET" and parts[1:] == ["graph"]:
             g = gr.load(MAPS_DIR, parts[0])

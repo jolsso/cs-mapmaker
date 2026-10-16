@@ -88,8 +88,9 @@ def _page(title: str, body: str, depth: int, active: str, maps: list[str]) -> st
              f"<a href='{up}live.html' class='{'on' if active == 'live' else ''}'>● Live</a>",
              f"<a href='{up}architecture.html' class='{'on' if active == 'arch' else ''}'>"
              "Arkitektur &amp; roadmap</a>",
-             f"<a href='{up}graph.html' class='{'on' if active == 'graph' else ''}'>Graf</a>"]  # fmt: skip
-    if active not in ("home", "arch", "live", "graph"):
+             f"<a href='{up}graph.html' class='{'on' if active == 'graph' else ''}'>Graf</a>",
+             f"<a href='{up}editor.html' class='{'on' if active == 'editor' else ''}'>Editor</a>"]  # fmt: skip
+    if active not in ("home", "arch", "live", "graph", "editor"):
         links.append(f"<span class='crumb'>›</span><a class='on'>{e(active)}</a>")
     return (
         f"<!doctype html><html lang='da'><head><meta charset='utf-8'>"
@@ -1219,6 +1220,16 @@ def build_site(cfg: Config) -> Path:
     topos = graph_page.topologies(cfg, maps)
     (out / "graph.html").write_text(
         _page("MapForge – graf", graph_page.graph_body(topos), 0, "graph", maps), encoding="utf-8"
+    )
+    from mapforge.site import editor as editor_page
+
+    for name in ("editor.js", "editor.css"):
+        shutil.copy2(Path(__file__).with_name(name), out / name)
+    (out / "refgraphs.json").write_text(
+        json.dumps(editor_page.refgraphs(cfg, maps), separators=(",", ":")), encoding="utf-8"
+    )
+    (out / "editor.html").write_text(
+        _page("MapForge – editor", editor_page.editor_body(), 0, "editor", maps), encoding="utf-8"
     )
     (out / "new.html").write_text(_page("MapForge – nyt map", new_page(), 0, "nyt map", maps),
                                   encoding="utf-8")  # fmt: skip

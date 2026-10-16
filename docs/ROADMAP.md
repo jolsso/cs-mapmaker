@@ -226,7 +226,9 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 ### 8c – Avanceret mode: lag-tegning, Parse og Fit
 - [ ] `sketch.json` (niveauer, lagene struktur/forbindelser/detaljer/intention, lås `fixed|flexible|hint`)
 - [ ] Dashboard-editor: lag-faner, niveau-vælger, værktøjer pr. lag, lås pr. element, fortryd
+  - [x] Graf-editoren (2026-10-16, rykket frem på menneskets ønske; `editor.html`, spec `docs/superpowers/specs/2026-10-16-graph-editor-design.md`): spawns, sites, rum og forbindelser (korridor, chokepoint, drop, stige/trapper) med inspektør for alle egenskaber og beskrivelser, skabeloner fra egne maps og alle 45 referencemaps, gem/godkend (`graph.json`) og "Send som ændring" til et kørende map
 - [ ] Live graf-lint: topologi, timings pr. site og regelbrud vises og opdateres, mens man tegner
+  - [x] I graf-editoren (2026-10-16): timings, CT-forspring, rotation, indgange, retake, 4-vejskryds, samlet afstand fra båndene med ▲/▼, nærmeste referencemaps (struktur + layout) og forslag (accepter/afvis, forhåndsvisning; valgene logges i `graph.json` som træningsdata)
 - [ ] Parse: sketch → `topology.yaml` + rå `layout.yaml`; tvetydige kryds i `parse_report.json`, vist før Fit
   - [x] Graf-udgaven (2026-10-16, rykket frem på menneskets ønske): `./mf fromgraph MAP=…` – godkendt editor-graf → rum (størrelse, niveau, ude/inde) + korridorer (lige eller L, dørpladser fordelt langs væggen, ingen krydsninger), chokes som smalle døre, beskrivelser som `notes:`; `fromgraph_report.json`
 - [ ] Fit: global skala → lokal tilpasning (SA/CMA-ES på 8b-evaluatoren) → snap; faste elementer er hårde constraints; topologiændringer kun som forslag
