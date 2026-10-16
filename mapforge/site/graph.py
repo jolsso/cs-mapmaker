@@ -23,7 +23,8 @@ DEFAULT_MAP = "de_cistern01"
 
 
 def topologies(cfg: Config, maps: list[str]) -> dict[str, dict[str, Any]]:
-    """Topology per map that has a layout.yaml; a layout that fails to expand is skipped."""
+    """Topology per own map with a layout.yaml (one that fails to expand is skipped), then the
+    reference maps (`tier` A/B) that `./mf refgraphs` wrote."""
     out = {}
     for m in maps:
         src = cfg.path("maps_dir") / m / "layout.yaml"
@@ -33,6 +34,9 @@ def topologies(cfg: Config, maps: list[str]) -> dict[str, dict[str, Any]]:
             out[m] = extract(yaml.safe_load(src.read_text(encoding="utf-8")))
         except Exception:  # the site is a view; one broken layout must not hide the others
             continue
+    for f in sorted((cfg.path("build_dir") / "topologies" / "refmap").glob("*.json")):
+        if f.stem not in out:  # reference maps from `./mf refgraphs` (BSP walk graph)
+            out[f.stem] = json.loads(f.read_text(encoding="utf-8"))
     return out
 
 

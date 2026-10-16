@@ -213,8 +213,9 @@ Hurtigere end realtid: ✅ ReHLDS `sys_timescale` (målt ≈ 4× ved timescale 4
 - [ ] WL-hash (dubletter) og rolle-bevidst graf-edit-distance
 - [ ] Round-trip-test på alle egne maps: layout → topologi → samme nøgletal som i dag
 - [ ] Graf-niveau-evaluator: timings, rotation, indgange, kryds, kompleksitet C, groft sigtelinje-estimat – uden compile
-- [ ] Referencemap-tiers: **A** = de 15 officielle de_-maps (navneliste i `config/pipeline.yaml` → `refmaps.tiers`, ikke ud fra mappe, da custom maps ofte ligger i `cstrike/maps`), **B** = community-maps; override pr. map
-- [ ] BSP → topologi for alle referencemaps (walk-graf-segmentering; rykket frem fra 8g): `./mf refgraphs` → `build/topologies/refmap/`
+- [x] Referencemap-tiers: **A** = de 15 officielle de_-maps (navneliste i `config/pipeline.yaml` → `reference_maps.tiers`, ikke ud fra mappe, da custom maps ofte ligger i `cstrike/maps`), **B** = community-maps; override pr. map (2026-10-16)
+- [x] BSP → topologi for alle referencemaps (walk-graf-segmentering; rykket frem fra 8g): `./mf refgraphs` → `build/topologies/refmap/` – `mapforge/refgraph.py`: walk-graf → 32-units gulvfelter → watershed på vægafstand (rum = steder mellem indsnævringer), sites/spawns fra entities (et rum med både spawn og site deles), trigger_hurt fjernes; 45/45 de_-referencemaps (15 tier A, 30 tier B) på Graf-siden (2026-10-16)
+  - Gennemgået af fire subagenter (`build/topologies/refmap/review/`): dust2, torn, mirage, tuscan, cpl_strike og forge "good", de fleste "usable"; chateau, train og vertigo samt store åbne community-maps (de_mon, westwood) "poor". Kendte svagheder: store åbne gårde bliver ét hub-rum med mange kanter, stablede niveauer giver falske hubs, A/B er ikke navngivet i nogen BSP (rækkefølge-gæt, rettes i `reference_maps.site_letters`). Facit-annotering (næste punkt) er rettesnoren
 - [ ] Facit: topologier annoteret i hånden på alle 15 tier A + 5–10 tier B, valgt så de spænder bredt (stablede, asymmetriske, store udendørs)
 - [ ] Kalibrering af graf-evaluatoren mod BSP-walk (`design_stats`) på egne maps, loop-historikken og alle referencemaps; afvigelser i `docs/CALIBRATION.md`
 - [ ] Genkalibrering af DESIGN_GUIDE-tærskler: bånd sættes på tier A, tier B bruges som kontrol (rapportér begge fordelinger)

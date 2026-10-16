@@ -30,7 +30,8 @@ def test_loop_does_not_run_on_a_closed_map(tmp_path, monkeypatch):
 
     cfg = load_config()
     data = copy.deepcopy(cfg.data)
-    data["paths"]["maps_dir"] = str(tmp_path)
+    # build_dir too: the loop rebuilds the site when it stops (never the real build/site)
+    data["paths"].update(maps_dir=str(tmp_path), build_dir=str(tmp_path / "build"))
     (tmp_path / "de_x").mkdir()
     project.set_state(tmp_path, "de_x", "closed")
     loop = Loop(Config(root=cfg.root, data=data), "de_x")

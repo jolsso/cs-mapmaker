@@ -118,6 +118,11 @@ tasks:
     cmds:
       - uv run python -m mapforge.topology --map {{.MAP}} {{.CLI_ARGS}}
 
+  refgraphs:
+    desc: Topologies of all de_ reference maps from their BSP (walk graph -> rooms) -> build/topologies/refmap/ (-- --map NAME)
+    cmds:
+      - uv run python -m mapforge.refgraph {{.CLI_ARGS}}
+
   sketch:
     desc: Strokes drawn on a map (path annotations) -> angled corridors + knee rooms as layout YAML (MAP=<name>, ID=<annotation>)
     requires:

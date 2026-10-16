@@ -70,6 +70,7 @@ Producér maps der er **teknisk fejlfri, rimeligt balancerede, velbelyste og vis
 ./mf brief MAP=<navn> [-- --answer]   # Interpreter (fase 8a): brief.json v2 + billeder → intent_prompt.md → subagent → maps/<navn>/intent.json ("Sådan har jeg forstået dig")
 ./mf repeats MAP=<navn> [-- --rate]   # gentagelsesrisiko pr. tekstur (3x3-fliser → lokal vision-model) → config/texture_risk.json; generate bytter selv højrisiko-teksturer på store flader til en rolig søskende
 ./mf topology MAP=<navn>    # topologi (rum og forbindelser) → build/<map>/topology.yaml; vises også på websitets Graf-side
+./mf refgraphs [-- --map <navn>]   # alle de_-referencemaps (BSP → walk-graf → rum) → build/topologies/refmap/ (tier A/B), også på Graf-siden
 ./mf sketch MAP=<navn> [ID=<n>]  # skitsestreger (path-annotationer) → skrå korridorer + knæ-rum som layout-YAML
 ./mf site                     # genbyg lokalt website build/site/ (sker også automatisk efter validate/render/review/decide)
 docker compose up -d site     # PÅ VÆRTEN: serverer websitet på http://localhost:8080 (kun 127.0.0.1)

@@ -182,7 +182,8 @@
       if (n.site) rows.push(["site", n.site]);
       rows.push(["level", n.level], ["size", n.size]);
       const facts = [["Niveau", `${LEVEL_DA[n.level] || ""} (${n.level})`], ["Forbindelser", `${nb.get(n.id).size}`]];
-      if (n._members.length > 1) facts.push(["Lagt sammen af", n._members.map(m => m.name).join(", ")]);
+      const parts = [...new Set(n._members.map(m => m.name))];
+      if (parts.length > 1) facts.push(["Lagt sammen af", parts.join(", ")]);
       if (n._deck) facts.push(["Bro", "eget niveau over rummet under den"]);
       if (n.role === "site") {
         facts.push(["Indgange", `${entrances(n.id)}`]);
@@ -266,7 +267,7 @@
     const site = T.nodes.find(n => n.site === "B") || T.nodes[0];
     state.sel = {type: "node", id: site.id};
     $("g-map").value = name;
-    $("g-concept").textContent = T._concept || "";
+    $("g-concept").textContent = T._concept || (T.source === "bsp" ? "Udtrukket fra BSP'en (walk-graf, rum mellem indsnævringer) – ikke mapperens egne rum." : "");
     $("g-count").textContent = `${T.nodes.length} rum og ${T.edges.length} forbindelser`;
     build(); dictionary(); levelChips();
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -274,7 +275,11 @@
     else draw();
   }
 
-  $("g-map").innerHTML = names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  const GROUPS = [[undefined, "Egne maps"], ["A", "Officielle (tier A)"], ["B", "Community (tier B)"]];
+  $("g-map").innerHTML = GROUPS.map(([t, label]) => {
+    const ns = names.filter(n => DATA.maps[n].tier === t);
+    return ns.length ? `<optgroup label="${label}">${ns.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("")}</optgroup>` : "";
+  }).join("");
   $("g-map").addEventListener("change", ev => { history.replaceState(null, "", "#" + ev.target.value); load(ev.target.value, true); });
   document.querySelectorAll("[data-g-view]").forEach(b => b.addEventListener("click", () => { state.view = b.dataset.gView; draw(); }));
   document.querySelectorAll("[data-g-route]").forEach(b => b.addEventListener("click", () => {

@@ -149,6 +149,18 @@ reference_maps:
   dirs:
     - build/refmaps
     - /refmaps/hl/cstrike/maps
+  # Tiers (docs/MAPMAKER.md -> "Referencemaps: tiers"): A = the 15 official de_ maps (by name,
+  # not by folder: custom maps often sit in cstrike/maps too), B = every other de_ reference map.
+  # A tier is a weight, not a verdict: `override` moves a map, e.g. {A: [de_mirage]}.
+  tiers:
+    A: [de_airstrip, de_aztec, de_cbble, de_chateau, de_dust, de_dust2, de_inferno, de_nuke,
+        de_piranesi, de_prodigy, de_storm, de_survivor, de_torn, de_train, de_vertigo]
+    override: {}
+  # Bomb targets without a "site_<X>" targetname get A/B in entity order; correct it here
+  # (letters per site in that order). `./mf refgraphs` marks maps whose sites are unnamed.
+  site_letters:
+    de_dust2: [B, A]   # CT spawn sits next to A (dust2's radar)
+    de_dust2_christmas: [B, A]   # dust2's layout: the NE site is A (reviewed 2026-10-16)
 
 render:
   camera_size: [1280, 720]
