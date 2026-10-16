@@ -23,7 +23,7 @@ services:
       - .:/work:ro
     ports:
       - "127.0.0.1:8080:8080"
-    command: ["python", "-m", "http.server", "8080", "--directory", "/work/build/site"]
+    command: ["python", "-m", "mapforge.site.serve", "--port", "8080", "--directory", "/work/build/site"]   # no-cache: rebuilt pages show at once
     restart: unless-stopped
 
   # Live collector for running simulations: the tracker plugins send UDP datagrams over the
