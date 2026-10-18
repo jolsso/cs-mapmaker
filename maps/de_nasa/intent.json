@@ -1,0 +1,162 @@
+{
+  "summary": "A medium-sized, dust2-style three-lane map set at a rocket launch site. Terrorists must destroy a new spy satellite before it is launched: bombsite A is the open-air launch pad at the foot of a tall, climbable launch tower with an unreachable rocket beside it, and bombsite B is the satellite itself inside a clean-room lab with a control centre. Mid sits between the tall white warehouses with huge sliding doors, and whoever controls mid can rotate to either site, just like dust2.",
+  "concept": "Stop the launch: the Terrorists plant on the launch pad (A) to destroy the rocket carrying the new spy satellite, or on the satellite itself in the integration lab (B) before it is mounted. CTs defend the launch.",
+  "archetype": "three_lane",
+  "size": "medium",
+  "pace": "medium",
+  "space": {
+    "levels": "some",
+    "inside": "mixed",
+    "density": "open",
+    "stacked_sites": false
+  },
+  "playstyle": {
+    "sightlines": {
+      "long": "some",
+      "cqb": "some"
+    },
+    "site_cover": "mixed"
+  },
+  "sites": {
+    "A": {
+      "character": "Site A is the launch site outside: an open concrete launch pad at the base of the launch tower, with crates, ground-support carts and blast walls as cover. The tower's lower levels can be climbed for a height advantage.",
+      "entrances": 3,
+      "vertical": true
+    },
+    "B": {
+      "character": "Site B is the satellite inside a lab: a tall clean-room hall with the satellite on its stand in the middle, the control centre overlooking it from a raised window/balcony, and close-range fights around equipment racks.",
+      "entrances": 3,
+      "vertical": true
+    }
+  },
+  "mid": "Control of mid opens both routes between A and B, like dust2: a wide yard between the warehouses with a connector toward the lab (B) and one toward the launch pad (A), so the team holding mid can rotate quickly to either site.",
+  "landmarks": [
+    {
+      "name": "Space Launch System. Large tower that reaches into the sky. We can climb through",
+      "where": "A",
+      "space": "medium",
+      "purpose": "Site A's identity and its height play: a red steel lattice launch tower whose first one or two levels are climbable by stairs/ladders, giving a high defensive spot over the pad; above that it is out of reach and continues into the sky.",
+      "image": "/work/maps/de_nasa/brief/inspiration/saturn_v_aerial.jpg"
+    },
+    {
+      "name": "Rocket next to the space launch system. But unavailable to reach and not a part",
+      "where": "A",
+      "space": "medium",
+      "purpose": "Visual landmark only: a white rocket standing against the tower on the pad, blocked off by clip brushes/railings so players cannot climb or stand on it; visible from long distances as the map's orientation point.",
+      "image": "/work/maps/de_nasa/brief/inspiration/saturn_v_aerial.jpg"
+    },
+    {
+      "name": "Satellite in the lab.",
+      "where": "B",
+      "space": "medium",
+      "purpose": "Site B's identity and central cover: the spy satellite on an assembly stand in the middle of the clean room; the bomb target is around it.",
+      "image": ""
+    },
+    {
+      "name": "Control centre in the lab.",
+      "where": "B",
+      "space": "medium",
+      "purpose": "A raised control room with consoles and windows overlooking the satellite hall; a CT-side defensive position and one of the CT entrances to B.",
+      "image": ""
+    },
+    {
+      "name": "Warehouses are tall with large sliding doors that enable a rocket, satelite og s",
+      "where": "mid",
+      "space": "medium",
+      "purpose": "Tall white hangar-style buildings with huge partly open sliding doors framing mid and the T-side lanes; a door gap can act as a chokepoint, and a rocket stage lying on a transporter inside/outside one warehouse gives cover.",
+      "image": "/work/maps/de_nasa/brief/inspiration/images.jpg"
+    }
+  ],
+  "theme": {
+    "setting": "A present-day coastal space launch facility in bright sunshine: launch pad with a lattice tower, white-and-blue assembly hangars with giant sliding doors, an industrial yard with rocket transporters, and a clean, high-tech lab with a control centre.",
+    "tags": [
+      "rockets",
+      "lab",
+      "industrial",
+      "space agency",
+      "launch pad",
+      "hangar",
+      "modern",
+      "sunny"
+    ],
+    "palette": [
+      "hangar white",
+      "agency blue",
+      "launch-tower red-orange",
+      "pale concrete grey",
+      "safety yellow",
+      "rocket-tank orange",
+      "clear sky blue"
+    ],
+    "materials": [
+      "painted corrugated metal panels",
+      "large concrete slabs with expansion joints",
+      "red-painted steel lattice and grating",
+      "white metal sliding doors with blue lower band",
+      "clean-room floor tiles and white wall panels",
+      "control-room consoles and glass",
+      "yellow hazard stripes and transporter steel"
+    ]
+  },
+  "targets": {
+    "t_to_site_s": [
+      16,
+      21
+    ],
+    "ct_lead_s": 5,
+    "longest_sightline": 2400
+  },
+  "must_have": [],
+  "no_go": [
+    "Players reaching the rocket or the upper parts of the launch tower",
+    "Using the real NASA insignia or Artemis branding as textures (use a fictional space-agency logo in the same blue/white/red style instead)"
+  ],
+  "assumptions": [
+    {
+      "field": "pace",
+      "value": "medium",
+      "why": "Not set; a dust2-like three-lane map with open yards suits a medium pace with some long duels and quick mid rotations."
+    },
+    {
+      "field": "stacked_sites",
+      "value": "false",
+      "why": "Not set; A is outside and B is inside a separate lab, so the sites are side by side, not one above the other."
+    },
+    {
+      "field": "sightlines",
+      "value": "long: some, cqb: some",
+      "why": "Not set; the open launch pad and mid yard give a few long AWP lines, while the lab and warehouses give close-quarters fights, which the design guide asks for."
+    },
+    {
+      "field": "site_cover",
+      "value": "mixed",
+      "why": "Not set; A gets sparse crates/carts on an open pad, B gets denser lab equipment around the satellite."
+    },
+    {
+      "field": "sites.A.vertical / sites.B.vertical",
+      "value": "true / true",
+      "why": "The brief wants 'some' height: the climbable lower tower levels at A and the raised control centre at B give each site one high defensive spot."
+    },
+    {
+      "field": "landmarks (tower)",
+      "value": "only the lowest 1-2 tower levels are climbable",
+      "why": "A fully climbable tower would create a dominant sniper perch over the whole map and blow the wpoly budget; the rest stays visual."
+    },
+    {
+      "field": "theme (logo)",
+      "value": "fictional space-agency logo",
+      "why": "The NASA insignia is a protected mark and the project allows no third-party copyrighted assets; a look-alike style keeps the mood without copying it."
+    },
+    {
+      "field": "landmarks (rocket transport)",
+      "value": "a rocket stage lying on a transporter in the warehouse area",
+      "why": "The mood image shows a rocket being moved sideways out of a hangar; it fits the warehouse landmark and doubles as cover in mid or on the T-side lane."
+    }
+  ],
+  "open_questions": [],
+  "meta": {
+    "by": "human",
+    "time": "2026-10-16 05:40",
+    "confirmed": true
+  }
+}

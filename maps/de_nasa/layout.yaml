@@ -1,0 +1,193 @@
+# de_nasa – first blockout from the confirmed intent (maps/de_nasa/intent.json, 2026-10-16).
+# A rocket launch site: T must destroy the new spy satellite (A: on the launch pad, B: in the lab).
+#
+#  b_control(+128)═ct_to_b══════ CT spawn ═ct_to_a═ A: launch pad (tower + rocket)
+#     │ window/balcony                               │      │
+#   B: lab ═b_doors          a_short═╗           long_n    │
+#     │         │                    ║                │      │
+#  b_tunnel_n  mid_to_b          a_short_up      long_mid (pit)
+#     │         │                    ║                │
+#  b_tunnels_mid ═ hangar ═ MID yard ═╝             long_s
+#     │                      │                         │
+#  b_tunnel                mid_s                  a_long_start
+#     │                      │                         │
+#  b_tunnels_s ═ t_to_b ═ T spawn ═ t_to_long ═════════╝
+#
+# Design (DESIGN_GUIDE.md):
+#  - 3 T lanes like dust2: long -> A, mid -> short A or mid -> hangar -> B doors, tunnels -> B.
+#    One chokepoint before each site entrance: long doors, short A, B doors, tunnel mouth.
+#  - Mid is the decision: from the yard T go north-east (short A) or west through the hangar
+#    (B doors, or back into the tunnels). Long has no connector (like dust2). No 4-way junctions.
+#  - CT spawn north, near A (~3 s); the long way to B goes up into the control centre, which
+#    overlooks the lab through a window and drops onto a balcony.
+#  - Tower: only the lowest deck (128) is climbable (no_go: rocket and upper tower out of reach).
+
+name: de_nasa
+grid: 16
+wall: 16
+sky:
+  name: grnplsnt    # clear blue sky with a sun (sunny coastal launch site)
+  sun: {pitch: -45, yaw: 135, color: [255, 244, 225], brightness: 260, ambient: 100}
+lights: {spacing: 320, brightness: 230, color: [240, 244, 255]}
+
+concept: "Stop the launch: hit the rocket on the open launch pad (A) or the satellite in the clean-room lab (B); whoever holds
+  the mid yard between the hangars picks the site."
+archetype: three_lane
+landmarks:
+  - {name: The tower, element: a_tower, zone: a_site, function: "lattice launch tower; its deck (128) is A's high spot; callout"}
+  - {name: The rocket, element: a_rocket, zone: a_site, function: "unreachable rocket beside the tower; seen from far away,
+      the map's orientation point"}
+  - {name: The satellite, element: b_sat, zone: b_site, function: "the spy satellite on its stand in the lab; B's central
+      cover and callout"}
+  - {name: Control, element: b_balcony, zone: b_site, function: "the control centre's balcony over the lab; CT's high spot
+      on B"}
+  - {name: The stage, element: mid_stage, zone: hangar, function: "a rocket stage on its transporter in the hangar; cover
+      and callout"}
+chokes:
+  - {name: Long doors, door: d_long_doors, type: doorway, engagement: long, utility: smoke}
+  - {name: Short, door: d_short_a, type: doorway, engagement: mid, utility: flash}
+  - {name: B doors, door: d_b_doors, type: doorway, engagement: mid, utility: smoke}
+  - {name: Tunnel mouth, door: d_tun_mouth, type: doorway, engagement: close, utility: flash}
+irregularities:
+  - {element: b_balcony, purpose: "raised balcony under the control door gives CT height over the satellite"}
+  - {element: a_tower, purpose: "the tower deck gives A a high defensive spot over the long doors"}
+intended_strategies:
+  T: ["rush B through the tunnels", "take mid, split short A + long", "mid -> hangar -> B doors with a tunnel fake", "long
+        A with smokes on the tower"]
+  CT: ["2-1-2 (A, mid/short, B)", "stack A with a tower player, retake B through control", "AWP long, rotate through CT spawn"]
+
+zones:
+  t: {floor: DEV_FLOOR_SAND, wall: DEV_WALL_SAND, ceiling: DEV_CEIL_SAND}
+  ct: {floor: DEV_FLOOR_BLUE, wall: DEV_WALL_BLUE, ceiling: DEV_CEIL_BLUE}
+  mid: {floor: DEV_FLOOR_GREY, wall: DEV_WALL_GREY, ceiling: DEV_CEIL_GREY}
+  a: {floor: DEV_FLOOR_RED, wall: DEV_WALL_RED, ceiling: DEV_CEIL_RED, cover: DEV_METAL}
+  b: {floor: DEV_FLOOR_GREEN, wall: DEV_WALL_GREEN, ceiling: DEV_CEIL_GREEN, cover: DEV_METAL, light: {color: [235, 245, 
+            255], brightness: 260}}                       # bright clean room
+
+areas:
+  # --- spawns and sites ---
+  - {name: t_spawn, rect: [-512, -2560, 512, -1792], height: 256, outdoor: true, role: t_spawn, zone: t}
+  - {name: ct_spawn, rect: [128, 1408, 896, 2128], height: 256, outdoor: true, role: ct_spawn, zone: ct}
+  - {name: a_site, rect: [1280, 1024, 2304, 2048], height: 512, outdoor: true, role: site, zone: a}   # the launch pad
+  - {name: b_site, rect: [-2304, 1024, -1280, 1856], height: 320, role: site, zone: b}               # the lab
+  - {name: b_control, rect: [-2304, 1872, -1520, 2240], floor: 128, height: 160, role: room, zone: b}   # open onto ct_to_b's raised end: one room
+  # --- mid ---
+  - {name: mid_s, rect: [-192, -1776, 192, -400], height: 256, outdoor: true, role: corridor, zone: mid}
+  - {name: mid, rect: [-448, -384, 448, 384], height: 384, outdoor: true, role: mid, zone: mid}     # yard between the hangars
+  - {name: hangar, rect: [-1264, -256, -464, 256], height: 288, role: room, zone: mid}
+  - {name: mid_to_b, rect: [-1104, 272, -848, 1104], height: 192, role: corridor, zone: b}
+  - {name: b_doors, rect: [-1264, 1120, -848, 1376], height: 192, role: corridor, zone: b}
+  - {name: a_short_up, rect: [464, -128, 720, 1264], height: 192, role: corridor, zone: a}
+  - {name: a_short, rect: [736, 1104, 1264, 1376], height: 192, role: corridor, zone: a}
+  # --- long A ---
+  - {name: t_to_long, rect: [528, -2304, 1264, -1920], height: 192, role: corridor, zone: t}
+  - {name: a_long_start, rect: [1280, -2432, 2048, -1664], height: 288, outdoor: true, role: corridor, zone: t}
+  - {name: long_s, rect: [1664, -1648, 2048, -400], height: 288, outdoor: true, role: corridor, zone: a}
+  - {name: long_mid, rect: [1280, -384, 2304, 384], height: 288, outdoor: true, role: corridor, zone: a}
+  - {name: long_n, rect: [1664, 400, 2048, 1008], height: 288, outdoor: true, role: corridor, zone: a}
+  # --- B tunnels ---
+  - {name: t_to_b, rect: [-1264, -2304, -528, -1920], height: 192, role: corridor, zone: t}
+  - {name: b_tunnels_s, rect: [-1792, -2432, -1280, -1664], height: 160, role: corridor, zone: t}
+  - {name: b_tunnel, rect: [-1856, -1648, -1536, -400], height: 160, role: corridor, zone: t}
+  - {name: b_tunnels_mid, rect: [-2048, -384, -1280, 384], height: 160, role: corridor, zone: t}
+  - {name: b_tunnel_n, rect: [-1792, 400, -1536, 656], height: 144, role: corridor, zone: b}
+  - {name: b_airlock, rect: [-1856, 672, -1440, 1008], height: 128, role: corridor, zone: b}   # the lab's airlock: close fights before the mouth
+  # --- CT ---
+  - {name: ct_to_a, rect: [912, 1536, 1264, 1856], height: 192, role: corridor, zone: ct}
+  - {name: ct_to_b, rect: [-1520, 1872, 112, 2128], height: 288, role: corridor, zone: ct}
+
+doors:
+  # long A
+  - {name: d_t_long, between: [t_spawn, t_to_long], width: 192}
+  - {name: d_long_start, between: [t_to_long, a_long_start], width: 192}
+  - {name: d_long_s, between: [a_long_start, long_s], width: 192}
+  - {name: d_long_1, between: [long_s, long_mid], width: 192, offset: -96}   # staggered: long is not one line
+  - {name: d_long_2, between: [long_mid, long_n], width: 192, offset: 96}
+  - {name: d_long_doors, between: [long_n, a_site], width: 192, offset: -96, protected: true, light: true}   # chokepoint long A
+  # mid
+  - {name: d_t_mid, between: [t_spawn, mid_s], width: 256}
+  - {name: d_mid_s, between: [mid_s, mid], width: 256}
+  - {name: d_mid_short, between: [mid, a_short_up], width: 192, offset: -64}
+  - {name: d_short_turn, between: [a_short_up, a_short], width: 128}
+  - {name: d_short_a, between: [a_short, a_site], width: 160, protected: true, light: true}   # chokepoint short A
+  - {name: d_mid_hangar, between: [mid, hangar], width: 224, height: 224}   # the hangar's half-open sliding door
+  - {name: d_hangar_mtb, between: [hangar, mid_to_b], width: 192}
+  - {name: d_mtb_bdoors, between: [mid_to_b, b_doors], width: 192}
+  - {name: d_b_doors, between: [b_doors, b_site], width: 160, protected: true, light: true}   # chokepoint B doors
+  # B tunnels
+  - {name: d_t_b, between: [t_spawn, t_to_b], width: 192}
+  - {name: d_tun_s, between: [t_to_b, b_tunnels_s], width: 160}
+  - {name: d_tun_1, between: [b_tunnels_s, b_tunnel], width: 160}
+  - {name: d_tun_2, between: [b_tunnel, b_tunnels_mid], width: 160, offset: 64}
+  - {name: d_tun_hangar, between: [b_tunnels_mid, hangar], width: 128}   # lower tunnels -> mid (rotation, not through a choke)
+  - {name: d_tun_3, between: [b_tunnels_mid, b_tunnel_n], width: 160}
+  - {name: d_tun_airlock, between: [b_tunnel_n, b_airlock], width: 128, offset: -64}
+  - {name: d_tun_mouth, between: [b_airlock, b_site], width: 160, offset: 96, protected: true, light: true}   # chokepoint tunnel mouth
+  # CT
+  - {name: d_ct_a1, between: [ct_spawn, ct_to_a], width: 192, offset: 32}
+  - {name: d_ct_a2, between: [ct_to_a, a_site], width: 192, offset: -32}
+  - {name: d_ct_b1, between: [ct_spawn, ct_to_b], width: 192}
+  - {name: d_control_b, between: [b_control, b_site], width: 128, offset: 256}   # onto the balcony
+  - {name: w_control, between: [b_control, b_site], width: 256, offset: -192, kind: window, sill: 64, height: 64, glass: 
+      true}
+
+stairs:
+  - {name: ct_b_steps, area: ct_to_b, axis: -x, rise: 128, step: 16, run: 32, start: 1200, clip: true}   # up to the control centre
+
+cover:
+  # A: the launch pad
+  - {name: a_tower, area: a_site, pos: [2048, 1792], size: [256, 256, 128]}   # the tower's lowest deck (solid base)
+  - {name: a_tower_leg_sw, area: a_site, pos: [1936, 1680], size: [32, 32, 352], z: 128}
+  - {name: a_tower_leg_se, area: a_site, pos: [2160, 1680], size: [32, 32, 352], z: 128}
+  - {name: a_tower_leg_nw, area: a_site, pos: [1936, 1904], size: [32, 32, 352], z: 128}
+  - {name: a_tower_leg_ne, area: a_site, pos: [2160, 1904], size: [32, 32, 352], z: 128}
+  - {name: a_tower_deck2, area: a_site, pos: [2048, 1792], size: [256, 256, 16], z: 320}   # out of reach (192 above the deck)
+  - {name: a_step_1, area: a_site, pos: [1952, 1424], size: [64, 32, 16]}   # stairs up the tower's south side
+  - {name: a_step_2, area: a_site, pos: [1952, 1456], size: [64, 32, 32]}
+  - {name: a_step_3, area: a_site, pos: [1952, 1488], size: [64, 32, 48]}
+  - {name: a_step_4, area: a_site, pos: [1952, 1520], size: [64, 32, 64]}
+  - {name: a_step_5, area: a_site, pos: [1952, 1552], size: [64, 32, 80]}
+  - {name: a_step_6, area: a_site, pos: [1952, 1584], size: [64, 32, 96]}
+  - {name: a_step_7, area: a_site, pos: [1952, 1616], size: [64, 32, 112]}
+  - {name: a_step_8, area: a_site, pos: [1952, 1648], size: [64, 32, 128]}
+  - {name: a_rocket, area: a_site, pos: [1696, 1856], size: [192, 192, 384], shape: cylinder}
+  - {name: a_rocket_nose, area: a_site, pos: [1696, 1856], size: [96, 96, 64], z: 384, shape: cylinder}
+  - {name: a_crates, area: a_site, pos: [1504, 1280], size: [128, 64, 64]}
+  - {name: a_cart, area: a_site, pos: [1600, 1600], size: [128, 96, 48]}
+  - {name: a_blast_wall, area: a_site, pos: [2112, 1280], size: [192, 32, 96]}
+  - {name: a_box, area: a_site, pos: [1440, 1808], size: [64, 64, 64]}
+  # B: the lab
+  - {name: b_stand, area: b_site, pos: [-1792, 1424], size: [192, 192, 32]}
+  - {name: b_sat, area: b_site, pos: [-1792, 1424], size: [128, 128, 128], z: 32}
+  - {name: b_panel_w, area: b_site, pos: [-1952, 1424], size: [128, 32, 8], z: 144}
+  - {name: b_panel_e, area: b_site, pos: [-1632, 1424], size: [128, 32, 8], z: 144}
+  - {name: b_balcony, area: b_site, pos: [-1664, 1792], size: [192, 128, 128]}   # under the control door
+  - {name: b_bal_step_1, area: b_site, pos: [-1968, 1792], size: [32, 128, 16]}   # steps down to the west
+  - {name: b_bal_step_2, area: b_site, pos: [-1936, 1792], size: [32, 128, 32]}
+  - {name: b_bal_step_3, area: b_site, pos: [-1904, 1792], size: [32, 128, 48]}
+  - {name: b_bal_step_4, area: b_site, pos: [-1872, 1792], size: [32, 128, 64]}
+  - {name: b_bal_step_5, area: b_site, pos: [-1840, 1792], size: [32, 128, 80]}
+  - {name: b_bal_step_6, area: b_site, pos: [-1808, 1792], size: [32, 128, 96]}
+  - {name: b_bal_step_7, area: b_site, pos: [-1776, 1792], size: [32, 128, 112]}
+  - {name: b_rack_w, area: b_site, pos: [-2144, 1200], size: [64, 192, 128]}
+  - {name: b_rack_e, area: b_site, pos: [-1440, 1584], size: [64, 128, 128]}
+  - {name: b_crate, area: b_site, pos: [-1424, 1152], size: [64, 64, 64]}
+  - {name: b_console, area: b_control, pos: [-1920, 2192], size: [384, 32, 48]}
+  - {name: mid_stage, area: hangar, pos: [-864, 0], size: [384, 128, 112]}   # rocket stage on its transporter
+  - {name: mid_crate, area: mid, pos: [160, -160], size: [96, 96, 64]}
+  - {name: mid_s_box, area: mid_s, pos: [-64, -1024], size: [96, 64, 64]}
+  - {name: long_box, area: long_mid, pos: [1856, 0], size: [192, 96, 96]}   # breaks the line along long
+  - {name: long_crate, area: long_mid, pos: [1504, 192], size: [64, 64, 64]}
+  - {name: long_start_box, area: a_long_start, pos: [1664, -2048], size: [128, 64, 64]}
+  - {name: tun_wall_1, area: b_tunnel, pos: [-1744, -1200], size: [224, 32, 160]}   # S-bend: close fights in the tunnel
+  - {name: tun_wall_2, area: b_tunnel, pos: [-1648, -800], size: [224, 32, 160]}
+  - {name: tun_pillar_w, area: b_tunnels_mid, pos: [-1856, -160], size: [96, 96, 160]}   # pillars: pockets for close fights
+  - {name: tun_pillar_e, area: b_tunnels_mid, pos: [-1472, 160], size: [96, 96, 160]}
+  - {name: tun_box, area: b_tunnels_mid, pos: [-1664, 128], size: [64, 64, 64]}
+  - {name: mtb_wall, area: mid_to_b, pos: [-1040, 688], size: [128, 32, 128]}
+
+sites: {A: a_site, B: b_site}
+spawns:
+  T: {area: t_spawn, count: 16}
+  CT: {area: ct_spawn, count: 16, offset: [-256, 0]}
+buyzones: true

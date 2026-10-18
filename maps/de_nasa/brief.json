@@ -1,0 +1,53 @@
+{
+  "version": 2,
+  "name": "de_nasa",
+  "description": "Nasa launch site. Site A is the launch site outside. Site B is the satellite inside a lab. We need to destroy the new spy satellite being launched. CT need to defend it.",
+  "mode": "simple",
+  "concept": "We need to destroy the new spy satellite being launched.",
+  "archetype": "three_lane",
+  "size": "medium",
+  "levels": "some",
+  "inside": "mixed",
+  "density": "open",
+  "sites": {
+    "A": "Site A is the launch site outside.",
+    "B": "Site B is the satellite inside a lab."
+  },
+  "mid": "Kontrol over mid åbner for begge veje mellem A og B. Ligesom dust2.",
+  "theme": "Raketter, Lab, Industri",
+  "landmarks": [
+    {
+      "name": "Space Launch System. Large tower that reaches into the sky. We can climb through",
+      "note": "",
+      "space": "medium"
+    },
+    {
+      "name": "Satellite in the lab.",
+      "note": "",
+      "space": "medium"
+    },
+    {
+      "name": "Rocket next to the space launch system. But unavailable to reach and not a part ",
+      "note": "",
+      "space": "medium"
+    },
+    {
+      "name": "Control centre in the lab.",
+      "note": "",
+      "space": "medium"
+    },
+    {
+      "name": "Warehouses are tall with large sliding doors that enable a rocket, satelite og s",
+      "note": "",
+      "space": "medium"
+    }
+  ],
+  "created": "2026-10-16 05:03",
+  "status": "brief",
+  "canvas": [
+    -3072,
+    -3072,
+    3072,
+    3072
+  ]
+}
