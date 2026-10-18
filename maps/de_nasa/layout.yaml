@@ -61,12 +61,12 @@ intended_strategies:
 # light only, the layout is frozen since Gate B. Lessons from de_forge01: players (T tan/brown,
 # CT dark blue) must stand out, so floors and walls are plain, light-to-mid grey, nothing tan or
 # orange on T-facing surfaces, no busy or patterned textures on big faces, no metal floors.
-#  - A (launch pad): light plain concrete pad, cool grey cast-concrete walls, light grey steel cover,
+#  - A (launch pad): light plain concrete pad, cool grey cast-concrete walls, cool grey crates,
 #    the rocket white (HL rocket stage), warning stripes only on the blast wall.
 #  - B (clean-room lab): white tile floor, white wall panels, a luminous white tile ceiling
 #    (texlight) - bright and cool, the opposite of A's sun and concrete; lab racks and consoles
 #    on the racks/console cover. bt: B's green-grey service corridors (doors, airlock).
-#  - mid: grey concrete yard, dark teal-grey block hangar walls, blue containers as cover.
+#  - mid: grey concrete yard, big blue-grey steel-plate hangar walls, blue containers as cover.
 #  - T: dark asphalt floor, plain cool grey concrete walls, grey steel panel cover; CT: grey
 #    pavers, light cool wall panels, cool light. Corridor ceilings: plain grey concrete.
 # Style review 2026-10-18 (FAILED, fixed): T cover TSHULL5 was tan/rust mottled (Ts blend in) ->
@@ -81,17 +81,24 @@ intended_strategies:
 # (117 117 118); mid OUT_WALL3A minty -> OUT_WALL7 teal-grey block (94 101 103); A floor
 # CRETE4_FLR01 warm/mottled -> LAB1_W8A2; ct_to_b light cooler. b_control: no per-area
 # texture key, its open end shares ct_to_b's faces (CT textures, now light grey).
+# Style review round 3 (passed, findings fixed): T walls LAB1_W8A2 mottled granite -> plain
+# CORE_URBAN_023 (117 117 118; BABTECH_BLOCK4 tried, streaky when tiled), T light less warm
+# (250 245 235) so the walls stay grey; T cover/A steps LAB1_GDPNL5A mint+maroon -> grey sibling
+# LAB1_GDPNL5 (136 138 144); mid's small brick OUT_WALL7 busy -> big blue-grey plates C3A1_W1
+# (114 118 124; TNNL_W12D/D2 tried, rust flecks); A cover TSHULL7 beige -> cool grey crate
+# OF_CRATE03A (147 155 156). Left: CONCRETE01's repeating crack (only sibling CONCRETE01-2 has
+# graffiti), CT pavers CORE_URBAN_120 (no cool paver: GROUTTILES checker, the rest metal/dark).
 # 1st render round: T walls CRETE3_WALL01 rendered pink-tan behind T -> C_TNNL_CCRETE; the rust
 # truss ceiling (CSTRIKE_CE2XCNG) was orange in every corridor -> coffered concrete; the lab's
 # purple diamond plate (stand, balcony steps) -> light grey steel like A and CT.
 zones:
-  t: {floor: OUT_PAVE1, wall: LAB1_W8A2, ceiling: CORE_URBAN_023, cover: LAB1_GDPNL5A,
-      light: {color: [255, 240, 215], brightness: 320, spacing: 256}}
+  t: {floor: OUT_PAVE1, wall: CORE_URBAN_023, ceiling: CORE_URBAN_023, cover: LAB1_GDPNL5,
+      light: {color: [250, 245, 235], brightness: 320, spacing: 256}}
   ct: {floor: CORE_URBAN_120, wall: C3A2A_W1, ceiling: CORE_URBAN_023, cover: TSHULL7,
        light: {color: [225, 235, 255], brightness: 250}}
-  mid: {floor: CORE_URBAN_023, wall: OUT_WALL7, ceiling: CORE_URBAN_023, cover: BCONTAINER3,
+  mid: {floor: CORE_URBAN_023, wall: C3A1_W1, ceiling: CORE_URBAN_023, cover: BCONTAINER3,
         light: {color: [245, 245, 240], brightness: 250}}
-  a: {floor: LAB1_W8A2, wall: CONCRETE01, ceiling: CORE_URBAN_023, cover: TSHULL7,
+  a: {floor: LAB1_W8A2, wall: CONCRETE01, ceiling: CORE_URBAN_023, cover: OF_CRATE03A,
       light: {color: [250, 245, 235], brightness: 250}}
   b: {floor: CSTRIKE_FH4WTTL, wall: TSHULL9, ceiling: FIFTIES_CEIL01, cover: TSHULL7,
       light: {color: [235, 245, 255], brightness: 200}}   # bright clean room (+ the ceiling texlight)
@@ -178,14 +185,14 @@ cover:
   - {name: a_tower_leg_nw, area: a_site, pos: [1936, 1904], size: [32, 32, 352], z: 128, texture: GENERIC028}
   - {name: a_tower_leg_ne, area: a_site, pos: [2160, 1904], size: [32, 32, 352], z: 128, texture: GENERIC028}
   - {name: a_tower_deck2, area: a_site, pos: [2048, 1792], size: [256, 256, 16], z: 320, texture: GENERIC028}   # out of reach (192 above the deck)
-  - {name: a_step_1, area: a_site, pos: [1952, 1424], size: [64, 32, 16], texture: LAB1_GDPNL5A}   # stairs up the tower's south side
-  - {name: a_step_2, area: a_site, pos: [1952, 1456], size: [64, 32, 32], texture: LAB1_GDPNL5A}
-  - {name: a_step_3, area: a_site, pos: [1952, 1488], size: [64, 32, 48], texture: LAB1_GDPNL5A}
-  - {name: a_step_4, area: a_site, pos: [1952, 1520], size: [64, 32, 64], texture: LAB1_GDPNL5A}
-  - {name: a_step_5, area: a_site, pos: [1952, 1552], size: [64, 32, 80], texture: LAB1_GDPNL5A}
-  - {name: a_step_6, area: a_site, pos: [1952, 1584], size: [64, 32, 96], texture: LAB1_GDPNL5A}
-  - {name: a_step_7, area: a_site, pos: [1952, 1616], size: [64, 32, 112], texture: LAB1_GDPNL5A}
-  - {name: a_step_8, area: a_site, pos: [1952, 1648], size: [64, 32, 128], texture: LAB1_GDPNL5A}
+  - {name: a_step_1, area: a_site, pos: [1952, 1424], size: [64, 32, 16], texture: LAB1_GDPNL5}   # stairs up the tower's south side
+  - {name: a_step_2, area: a_site, pos: [1952, 1456], size: [64, 32, 32], texture: LAB1_GDPNL5}
+  - {name: a_step_3, area: a_site, pos: [1952, 1488], size: [64, 32, 48], texture: LAB1_GDPNL5}
+  - {name: a_step_4, area: a_site, pos: [1952, 1520], size: [64, 32, 64], texture: LAB1_GDPNL5}
+  - {name: a_step_5, area: a_site, pos: [1952, 1552], size: [64, 32, 80], texture: LAB1_GDPNL5}
+  - {name: a_step_6, area: a_site, pos: [1952, 1584], size: [64, 32, 96], texture: LAB1_GDPNL5}
+  - {name: a_step_7, area: a_site, pos: [1952, 1616], size: [64, 32, 112], texture: LAB1_GDPNL5}
+  - {name: a_step_8, area: a_site, pos: [1952, 1648], size: [64, 32, 128], texture: LAB1_GDPNL5}
   - {name: a_rocket, area: a_site, pos: [1696, 1856], size: [192, 192, 384], shape: cylinder, texture: ROCKETSTAGE1}
   - {name: a_rocket_nose, area: a_site, pos: [1696, 1856], size: [96, 96, 64], z: 384, shape: cylinder, texture: ROCKETSTAGE1}
   - {name: a_crates, area: a_site, pos: [1504, 1280], size: [128, 64, 64]}

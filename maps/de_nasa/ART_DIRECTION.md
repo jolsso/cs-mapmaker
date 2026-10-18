@@ -12,10 +12,10 @@ Theme from the human's brief (2026-10-16): **rocket launch site**. Geometry is f
 ## 2. Zones
 | Zone | Function | Story | Palette | Light mood | Landmark |
 |---|---|---|---|---|---|
-| T spawn (`t`: `t_spawn`, `t_to_long`, `a_long_start`, tunnels) | Service entrance + cable tunnels | Trucks and maintenance come in here | Dark asphalt, plain cool grey concrete, grey steel panels | Neutral sun outside, warm-white tunnels | The tunnel S-bend (`tun_wall_1/2`) |
+| T spawn (`t`: `t_spawn`, `t_to_long`, `a_long_start`, tunnels) | Service entrance + cable tunnels | Trucks and maintenance come in here | Dark asphalt, plain cool grey concrete, grey steel panels | Neutral sun outside, near-neutral white tunnels | The tunnel S-bend (`tun_wall_1/2`) |
 | CT spawn (`ct`: `ct_spawn`, `ct_to_a`, `ct_to_b` with its own light 320) | Admin court by the control centre | Staff car park and walkway | Grey pavers, light cool wall panels | Cool, even | The steps up to control (`ct_b_steps`) |
-| Mid (`mid`: `mid_s`, `mid`, `hangar`) | Yard between the hangars | Logistics: containers and the stage | Grey concrete, dark teal-grey block hangar walls, blue containers | Neutral daylight | The stage (`mid_stage`) |
-| A site (`a`: `a_site`, long, short) | The launch pad outdoors | The rocket is ready to fly | Light plain concrete pad, cool grey cast-concrete walls, light steel tower, white rocket | **Bright sun**, hard shadows | The tower and the rocket (`a_tower`, `a_rocket`) |
+| Mid (`mid`: `mid_s`, `mid`, `hangar`) | Yard between the hangars | Logistics: containers and the stage | Grey concrete, blue-grey steel-plate hangar walls, blue containers | Neutral daylight | The stage (`mid_stage`) |
+| A site (`a`: `a_site`, long, short) | The launch pad outdoors | The rocket is ready to fly | Light plain concrete pad, cool grey cast-concrete walls, cool grey crates, light steel tower, white rocket | **Bright sun**, hard shadows | The tower and the rocket (`a_tower`, `a_rocket`) |
 | B site (`b`: `b_site`, `b_control`) | Clean-room lab indoors | The satellite on its test stand | White tile, white wall panels, luminous ceiling | **Bright, cool white**, shadow-free | The satellite (`b_sat`) |
 | B service (`bt`: `mid_to_b`, `b_doors`, `b_tunnel_n`, `b_airlock`) | Corridors and airlock into the lab | Technical corridors | Green-grey lab panels and floor | Cool, bright | The airlock (`b_airlock`) |
 
@@ -39,15 +39,15 @@ Theme from the human's brief (2026-10-16): **rocket launch site**. Geometry is f
 
 ## 4. Palette and materials
 - **Primary colours:** concrete grey (≈ #8c8a86), lab white (≈ #e8ecee), asphalt (≈ #3c3c44).
-- **Accents (orientation):** A = rocket white + warning yellow (≈ #e8c020, blast wall only), B = clean white + lab green-grey (≈ #7fa29a), mid = teal-grey (≈ #5f8a8a) + container blue (≈ #2a55b0), CT = cool grey.
-- **Materials:** A: poured concrete, plain cast concrete walls, light steel (tower, steps). B: white tile, white panels, ceiling tiles, lab racks. Mid: concrete, block hangar walls, containers. T: asphalt, plain concrete walls, grey steel panel cover, plain concrete ceilings. CT: pavers, light panelled walls.
+- **Accents (orientation):** A = rocket white + warning yellow (≈ #e8c020, blast wall only), B = clean white + lab green-grey (≈ #7fa29a), mid = blue-grey steel (≈ #72767c) + container blue (≈ #2a55b0), CT = cool grey.
+- **Materials:** A: poured concrete, plain cast concrete walls, light steel (tower, steps). B: white tile, white panels, ceiling tiles, lab racks. Mid: concrete, steel-plate hangar walls, containers. A cover: cool grey crates. T: asphalt, plain concrete walls, grey steel panel cover, plain concrete ceilings. CT: pavers, light panelled walls.
 - **Picking textures (style review 2026-10-18):** walls and cover behind players are chosen by the catalog's mean rgb (blue >= red, small channel spread, mean ~110-160), then checked plain on a contact sheet.
 - **Readability rules (from de_forge01):** T clothing is tan/brown/orange, CT dark blue: no tan, rust or orange on big surfaces T stands in front of; plain surfaces over mottled ones; no busy repeating textures on big faces; no metal floors.
-- **Texture rules:** WAD3, 8-bit, multiples of 16, at most **24** unique textures in play areas (today 20). The game's own WADs only (cstrike, valve/halflife), referenced in the map's `wad` key, never embedded.
+- **Texture rules:** WAD3, 8-bit, multiples of 16, at most **24** unique textures in play areas (today 21). The game's own WADs only (cstrike, valve/halflife), referenced in the map's `wad` key, never embedded.
 
 ## 5. Light
 - **Global (`light_environment`):** morning sun from the south-east (pitch -45, yaw 135), warm white (255 244 225), brightness 300 (raised from 260 after the style review), ambient 100; sky `grnplsnt` (clear blue). Check in game that the light pad does not burn out; lower to ≈ 260 if it does.
-- **Per zone:** lab bright and cool (point lights 200 + the whole ceiling `FIFTIES_CEIL01` as a weak texlight, a clean room's luminous ceiling); B service corridors cool 260; T tunnels warm white 320 at 256 spacing (they are low and long); CT cool; mid and A neutral. Lights on the four chokepoint doors.
+- **Per zone:** lab bright and cool (point lights 200 + the whole ceiling `FIFTIES_CEIL01` as a weak texlight, a clean room's luminous ceiling); B service corridors cool 260; T tunnels near-neutral white (250 245 235, cooled so the grey walls do not turn beige) 320 at 256 spacing (they are low and long); CT cool; mid and A neutral. Lights on the four chokepoint doors.
 - **Readability:** players must be visible in every play area; the brightness map has no dark zones (FITNESS.md). Contrast between player and background goes before mood.
 - **Compile profile final:** `-extra -bounce 8` (config/pipeline.yaml).
 
