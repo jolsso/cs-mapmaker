@@ -27,7 +27,7 @@ grid: 16
 wall: 16
 sky:
   name: grnplsnt    # clear blue sky with a sun (sunny coastal launch site)
-  sun: {pitch: -45, yaw: 135, color: [255, 244, 225], brightness: 260, ambient: 100}
+  sun: {pitch: -45, yaw: 135, color: [255, 244, 225], brightness: 300, ambient: 100}
 lights: {spacing: 320, brightness: 230, color: [240, 244, 255]}
 
 concept: "Stop the launch: hit the rocket on the open launch pad (A) or the satellite in the clean-room lab (B); whoever holds
@@ -56,13 +56,48 @@ intended_strategies:
         A with smokes on the tower"]
   CT: ["2-1-2 (A, mid/short, B)", "stack A with a tower player, retake B through control", "AWP long, rotate through CT spawn"]
 
+# Art pass (phase 7, 2026-10-18): a sunny coastal launch site (maps/de_nasa/ART_DIRECTION.md).
+# Textures from the game's own WADs (cstrike/valve, referenced, never embedded); textures and
+# light only, the layout is frozen since Gate B. Lessons from de_forge01: players (T tan/brown,
+# CT dark blue) must stand out, so floors and walls are plain, light-to-mid grey, nothing tan or
+# orange on T-facing surfaces, no busy or patterned textures on big faces, no metal floors.
+#  - A (launch pad): light plain concrete pad, cool grey cast-concrete walls, light grey steel cover,
+#    the rocket white (HL rocket stage), warning stripes only on the blast wall.
+#  - B (clean-room lab): white tile floor, white wall panels, a luminous white tile ceiling
+#    (texlight) - bright and cool, the opposite of A's sun and concrete; lab racks and consoles
+#    on the racks/console cover. bt: B's green-grey service corridors (doors, airlock).
+#  - mid: grey concrete yard, dark teal-grey block hangar walls, blue containers as cover.
+#  - T: dark asphalt floor, plain cool grey concrete walls, grey steel panel cover; CT: grey
+#    pavers, light cool wall panels, cool light. Corridor ceilings: plain grey concrete.
+# Style review 2026-10-18 (FAILED, fixed): T cover TSHULL5 was tan/rust mottled (Ts blend in) ->
+# plain grey STEEL; T tunnels dim -> light 320, spacing 256; A's vent-row concrete repeated and
+# read taupe -> plain cool grey CONCRETE01 (no trim key in LAYOUT_SPEC; TK_CEILING tried, too mottled in the sun); sun 260 -> 300; tower
+# read as concrete steps -> light steel GENERIC028, steps STEEL; mid's fine teal ribs shimmered ->
+# calm teal-grey panels OUT_WALL3A; ct_to_b dark -> area light 320; bt ceiling -> lab tile.
+# Style review round 2 (FAILED, fixed; picks by catalog mean rgb: b >= r, small spread, then
+# checked plain on a sheet): T walls C_TNNL_CCRETE read khaki -> LAB1_W8A2 (131 137 139; C1A0_W2 tried, speckled); T cover
+# STEEL was marbled -> LAB1_GDPNL5A panel (120 131 130); CT brick CORE_URBAN_136 warm taupe ->
+# light cool panels C3A2A_W1 (155 162 166; GROUTTILES tried, two-tone checker); the copper coffered CRETE3_CEIL01 everywhere -> plain CORE_URBAN_023
+# (117 117 118); mid OUT_WALL3A minty -> OUT_WALL7 teal-grey block (94 101 103); A floor
+# CRETE4_FLR01 warm/mottled -> LAB1_W8A2; ct_to_b light cooler. b_control: no per-area
+# texture key, its open end shares ct_to_b's faces (CT textures, now light grey).
+# 1st render round: T walls CRETE3_WALL01 rendered pink-tan behind T -> C_TNNL_CCRETE; the rust
+# truss ceiling (CSTRIKE_CE2XCNG) was orange in every corridor -> coffered concrete; the lab's
+# purple diamond plate (stand, balcony steps) -> light grey steel like A and CT.
 zones:
-  t: {floor: DEV_FLOOR_SAND, wall: DEV_WALL_SAND, ceiling: DEV_CEIL_SAND}
-  ct: {floor: DEV_FLOOR_BLUE, wall: DEV_WALL_BLUE, ceiling: DEV_CEIL_BLUE}
-  mid: {floor: DEV_FLOOR_GREY, wall: DEV_WALL_GREY, ceiling: DEV_CEIL_GREY}
-  a: {floor: DEV_FLOOR_RED, wall: DEV_WALL_RED, ceiling: DEV_CEIL_RED, cover: DEV_METAL}
-  b: {floor: DEV_FLOOR_GREEN, wall: DEV_WALL_GREEN, ceiling: DEV_CEIL_GREEN, cover: DEV_METAL, light: {color: [235, 245, 
-            255], brightness: 260}}                       # bright clean room
+  t: {floor: OUT_PAVE1, wall: LAB1_W8A2, ceiling: CORE_URBAN_023, cover: LAB1_GDPNL5A,
+      light: {color: [255, 240, 215], brightness: 320, spacing: 256}}
+  ct: {floor: CORE_URBAN_120, wall: C3A2A_W1, ceiling: CORE_URBAN_023, cover: TSHULL7,
+       light: {color: [225, 235, 255], brightness: 250}}
+  mid: {floor: CORE_URBAN_023, wall: OUT_WALL7, ceiling: CORE_URBAN_023, cover: BCONTAINER3,
+        light: {color: [245, 245, 240], brightness: 250}}
+  a: {floor: LAB1_W8A2, wall: CONCRETE01, ceiling: CORE_URBAN_023, cover: TSHULL7,
+      light: {color: [250, 245, 235], brightness: 250}}
+  b: {floor: CSTRIKE_FH4WTTL, wall: TSHULL9, ceiling: FIFTIES_CEIL01, cover: TSHULL7,
+      light: {color: [235, 245, 255], brightness: 200}}   # bright clean room (+ the ceiling texlight)
+  bt: {floor: C1A0_LABFLR, wall: C1A0_LABW4, ceiling: FIFTIES_CEIL01, cover: TSHULL7,
+       light: {color: [220, 240, 240], brightness: 260}}
+texlights: {FIFTIES_CEIL01: [240, 248, 255, 60]}   # the lab's luminous ceiling (clean-room panels; also the bt corridors)
 
 areas:
   # --- spawns and sites ---
@@ -75,8 +110,8 @@ areas:
   - {name: mid_s, rect: [-192, -1776, 192, -400], height: 256, outdoor: true, role: corridor, zone: mid}
   - {name: mid, rect: [-448, -384, 448, 384], height: 384, outdoor: true, role: mid, zone: mid}     # yard between the hangars
   - {name: hangar, rect: [-1264, -256, -464, 256], height: 288, role: room, zone: mid}
-  - {name: mid_to_b, rect: [-1104, 272, -848, 1104], height: 192, role: corridor, zone: b}
-  - {name: b_doors, rect: [-1264, 1120, -848, 1376], height: 192, role: corridor, zone: b}
+  - {name: mid_to_b, rect: [-1104, 272, -848, 1104], height: 192, role: corridor, zone: bt}
+  - {name: b_doors, rect: [-1264, 1120, -848, 1376], height: 192, role: corridor, zone: bt}
   - {name: a_short_up, rect: [464, -128, 720, 1264], height: 192, role: corridor, zone: a}
   - {name: a_short, rect: [736, 1104, 1264, 1376], height: 192, role: corridor, zone: a}
   # --- long A ---
@@ -90,11 +125,12 @@ areas:
   - {name: b_tunnels_s, rect: [-1792, -2432, -1280, -1664], height: 160, role: corridor, zone: t}
   - {name: b_tunnel, rect: [-1856, -1648, -1536, -400], height: 160, role: corridor, zone: t}
   - {name: b_tunnels_mid, rect: [-2048, -384, -1280, 384], height: 160, role: corridor, zone: t}
-  - {name: b_tunnel_n, rect: [-1792, 400, -1536, 656], height: 144, role: corridor, zone: b}
-  - {name: b_airlock, rect: [-1856, 672, -1440, 1008], height: 128, role: corridor, zone: b}   # the lab's airlock: close fights before the mouth
+  - {name: b_tunnel_n, rect: [-1792, 400, -1536, 656], height: 144, role: corridor, zone: bt}
+  - {name: b_airlock, rect: [-1856, 672, -1440, 1008], height: 128, role: corridor, zone: bt}   # the lab's airlock: close fights before the mouth
   # --- CT ---
   - {name: ct_to_a, rect: [912, 1536, 1264, 1856], height: 192, role: corridor, zone: ct}
-  - {name: ct_to_b, rect: [-1520, 1872, 112, 2128], height: 288, role: corridor, zone: ct}
+  - {name: ct_to_b, rect: [-1520, 1872, 112, 2128], height: 288, role: corridor, zone: ct,
+     light: {color: [225, 235, 255], brightness: 320, spacing: 256}}   # style review: dark and low-contrast
 
 doors:
   # long A
@@ -136,31 +172,31 @@ stairs:
 
 cover:
   # A: the launch pad
-  - {name: a_tower, area: a_site, pos: [2048, 1792], size: [256, 256, 128]}   # the tower's lowest deck (solid base)
-  - {name: a_tower_leg_sw, area: a_site, pos: [1936, 1680], size: [32, 32, 352], z: 128}
-  - {name: a_tower_leg_se, area: a_site, pos: [2160, 1680], size: [32, 32, 352], z: 128}
-  - {name: a_tower_leg_nw, area: a_site, pos: [1936, 1904], size: [32, 32, 352], z: 128}
-  - {name: a_tower_leg_ne, area: a_site, pos: [2160, 1904], size: [32, 32, 352], z: 128}
-  - {name: a_tower_deck2, area: a_site, pos: [2048, 1792], size: [256, 256, 16], z: 320}   # out of reach (192 above the deck)
-  - {name: a_step_1, area: a_site, pos: [1952, 1424], size: [64, 32, 16]}   # stairs up the tower's south side
-  - {name: a_step_2, area: a_site, pos: [1952, 1456], size: [64, 32, 32]}
-  - {name: a_step_3, area: a_site, pos: [1952, 1488], size: [64, 32, 48]}
-  - {name: a_step_4, area: a_site, pos: [1952, 1520], size: [64, 32, 64]}
-  - {name: a_step_5, area: a_site, pos: [1952, 1552], size: [64, 32, 80]}
-  - {name: a_step_6, area: a_site, pos: [1952, 1584], size: [64, 32, 96]}
-  - {name: a_step_7, area: a_site, pos: [1952, 1616], size: [64, 32, 112]}
-  - {name: a_step_8, area: a_site, pos: [1952, 1648], size: [64, 32, 128]}
-  - {name: a_rocket, area: a_site, pos: [1696, 1856], size: [192, 192, 384], shape: cylinder}
-  - {name: a_rocket_nose, area: a_site, pos: [1696, 1856], size: [96, 96, 64], z: 384, shape: cylinder}
+  - {name: a_tower, area: a_site, pos: [2048, 1792], size: [256, 256, 128], texture: GENERIC028}   # the tower's lowest deck (solid base)
+  - {name: a_tower_leg_sw, area: a_site, pos: [1936, 1680], size: [32, 32, 352], z: 128, texture: GENERIC028}
+  - {name: a_tower_leg_se, area: a_site, pos: [2160, 1680], size: [32, 32, 352], z: 128, texture: GENERIC028}
+  - {name: a_tower_leg_nw, area: a_site, pos: [1936, 1904], size: [32, 32, 352], z: 128, texture: GENERIC028}
+  - {name: a_tower_leg_ne, area: a_site, pos: [2160, 1904], size: [32, 32, 352], z: 128, texture: GENERIC028}
+  - {name: a_tower_deck2, area: a_site, pos: [2048, 1792], size: [256, 256, 16], z: 320, texture: GENERIC028}   # out of reach (192 above the deck)
+  - {name: a_step_1, area: a_site, pos: [1952, 1424], size: [64, 32, 16], texture: LAB1_GDPNL5A}   # stairs up the tower's south side
+  - {name: a_step_2, area: a_site, pos: [1952, 1456], size: [64, 32, 32], texture: LAB1_GDPNL5A}
+  - {name: a_step_3, area: a_site, pos: [1952, 1488], size: [64, 32, 48], texture: LAB1_GDPNL5A}
+  - {name: a_step_4, area: a_site, pos: [1952, 1520], size: [64, 32, 64], texture: LAB1_GDPNL5A}
+  - {name: a_step_5, area: a_site, pos: [1952, 1552], size: [64, 32, 80], texture: LAB1_GDPNL5A}
+  - {name: a_step_6, area: a_site, pos: [1952, 1584], size: [64, 32, 96], texture: LAB1_GDPNL5A}
+  - {name: a_step_7, area: a_site, pos: [1952, 1616], size: [64, 32, 112], texture: LAB1_GDPNL5A}
+  - {name: a_step_8, area: a_site, pos: [1952, 1648], size: [64, 32, 128], texture: LAB1_GDPNL5A}
+  - {name: a_rocket, area: a_site, pos: [1696, 1856], size: [192, 192, 384], shape: cylinder, texture: ROCKETSTAGE1}
+  - {name: a_rocket_nose, area: a_site, pos: [1696, 1856], size: [96, 96, 64], z: 384, shape: cylinder, texture: ROCKETSTAGE1}
   - {name: a_crates, area: a_site, pos: [1504, 1280], size: [128, 64, 64]}
   - {name: a_cart, area: a_site, pos: [1600, 1600], size: [128, 96, 48]}
-  - {name: a_blast_wall, area: a_site, pos: [2112, 1280], size: [192, 32, 96]}
+  - {name: a_blast_wall, area: a_site, pos: [2112, 1280], size: [192, 32, 96], texture: STRIPES1}
   - {name: a_box, area: a_site, pos: [1440, 1808], size: [64, 64, 64]}
   # B: the lab
   - {name: b_stand, area: b_site, pos: [-1792, 1424], size: [192, 192, 32]}
-  - {name: b_sat, area: b_site, pos: [-1792, 1424], size: [128, 128, 128], z: 32}
-  - {name: b_panel_w, area: b_site, pos: [-1952, 1424], size: [128, 32, 8], z: 144}
-  - {name: b_panel_e, area: b_site, pos: [-1632, 1424], size: [128, 32, 8], z: 144}
+  - {name: b_sat, area: b_site, pos: [-1792, 1424], size: [128, 128, 128], z: 32, texture: ROCKETSTAGE1}
+  - {name: b_panel_w, area: b_site, pos: [-1952, 1424], size: [128, 32, 8], z: 144, texture: BCONTAINER3}
+  - {name: b_panel_e, area: b_site, pos: [-1632, 1424], size: [128, 32, 8], z: 144, texture: BCONTAINER3}
   - {name: b_balcony, area: b_site, pos: [-1664, 1792], size: [192, 128, 128]}   # under the control door
   - {name: b_bal_step_1, area: b_site, pos: [-1968, 1792], size: [32, 128, 16]}   # steps down to the west
   - {name: b_bal_step_2, area: b_site, pos: [-1936, 1792], size: [32, 128, 32]}
@@ -169,11 +205,11 @@ cover:
   - {name: b_bal_step_5, area: b_site, pos: [-1840, 1792], size: [32, 128, 80]}
   - {name: b_bal_step_6, area: b_site, pos: [-1808, 1792], size: [32, 128, 96]}
   - {name: b_bal_step_7, area: b_site, pos: [-1776, 1792], size: [32, 128, 112]}
-  - {name: b_rack_w, area: b_site, pos: [-2144, 1200], size: [64, 192, 128]}
-  - {name: b_rack_e, area: b_site, pos: [-1440, 1584], size: [64, 128, 128]}
+  - {name: b_rack_w, area: b_site, pos: [-2144, 1200], size: [64, 192, 128], texture: C1A0_LABW1}
+  - {name: b_rack_e, area: b_site, pos: [-1440, 1584], size: [64, 128, 128], texture: C1A0_LABW1}
   - {name: b_crate, area: b_site, pos: [-1424, 1152], size: [64, 64, 64]}
-  - {name: b_console, area: b_control, pos: [-1920, 2192], size: [384, 32, 48]}
-  - {name: mid_stage, area: hangar, pos: [-864, 0], size: [384, 128, 112]}   # rocket stage on its transporter
+  - {name: b_console, area: b_control, pos: [-1920, 2192], size: [384, 32, 48], texture: C1A0_LABW3}
+  - {name: mid_stage, area: hangar, pos: [-864, 0], size: [384, 128, 112], texture: ROCKETSTAGE1}   # rocket stage on its transporter
   - {name: mid_crate, area: mid, pos: [160, -160], size: [96, 96, 64]}
   - {name: mid_s_box, area: mid_s, pos: [-64, -1024], size: [96, 64, 64]}
   - {name: long_box, area: long_mid, pos: [1856, 0], size: [192, 96, 96]}   # breaks the line along long
