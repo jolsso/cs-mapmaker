@@ -25,6 +25,7 @@
 name: de_nasa
 grid: 16
 wall: 16
+textures: {glass: GLASSBLUE1}   # the control window over the lab (halflife.wad; DEV_GLASS was the placeholder)
 sky:
   name: grnplsnt    # clear blue sky with a sun (sunny coastal launch site)
   sun: {pitch: -45, yaw: 135, color: [255, 244, 225], brightness: 300, ambient: 100}

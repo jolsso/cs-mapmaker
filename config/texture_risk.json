@@ -1009,6 +1009,56 @@
   "feature": "window",
   "by": "qwen3.8-27b"
  },
+ "C1A0_LABFLR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C1A0_LABW1": {
+  "risk": "high",
+  "feature": "control panels and monitors",
+  "by": "qwen3.8-27b"
+ },
+ "C1A0_LABW2": {
+  "risk": "high",
+  "feature": "red door and server rack",
+  "by": "qwen3.8-27b"
+ },
+ "C1A0_LABW3": {
+  "risk": "high",
+  "feature": "computer screens and server racks",
+  "by": "qwen3.8-27b"
+ },
+ "C1A0_LABW4": {
+  "risk": "high",
+  "feature": "horizontal vent grille strip",
+  "by": "qwen3.8-27b"
+ },
+ "C1A0_LABW5": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C1A0_LABW6": {
+  "risk": "high",
+  "feature": "monitor control panel",
+  "by": "qwen3.8-27b"
+ },
+ "C1A0_LABW8": {
+  "risk": "high",
+  "feature": "wired electrical console",
+  "by": "qwen3.8-27b"
+ },
+ "C3A1_W1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "C3A2A_W1": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "C3A2A_W3": {
   "risk": "low",
   "feature": "",
@@ -3269,6 +3319,26 @@
   "feature": "vertical dark soil streaks",
   "by": "qwen3.8-27b"
  },
+ "DEV_CEIL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DEV_FLOOR": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "DEV_GLASS": {
+  "risk": "high",
+  "feature": "framed window panes with diagonal reflection streaks",
+  "by": "qwen3.8-27b"
+ },
+ "DEV_WALL": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "DJCONSTBLOCK": {
   "risk": "low",
   "feature": "",
@@ -3464,6 +3534,11 @@
   "feature": "hazard stripe band",
   "by": "qwen3.8-27b"
  },
+ "FIFTIES_CEIL01": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "FIRRANGE": {
   "risk": "high",
   "feature": "firing range sign",
@@ -3527,6 +3602,11 @@
  "GATE02": {
   "risk": "high",
   "feature": "concrete slab with formwork holes",
+  "by": "qwen3.8-27b"
+ },
+ "GENERIC028": {
+  "risk": "medium",
+  "feature": "vertical streaky shading",
   "by": "qwen3.8-27b"
  },
  "GRAPH": {
@@ -3889,6 +3969,16 @@
   "feature": "rows of small windows/vents",
   "by": "qwen3.8-27b"
  },
+ "LAB1_GDPNL5": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "LAB1_W8A2": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
  "LANTERNLIT": {
   "risk": "high",
   "feature": "pair of glowing vent slits",
@@ -4145,6 +4235,11 @@
   "by": "qwen3.8-27b"
  },
  "OLDWOOD": {
+  "risk": "low",
+  "feature": "",
+  "by": "qwen3.8-27b"
+ },
+ "OUT_PAVE1": {
   "risk": "low",
   "feature": "",
   "by": "qwen3.8-27b"
@@ -5419,6 +5514,11 @@
   "feature": "R.I.P. inscriptions",
   "by": "qwen3.8-27b"
  },
+ "ROCKETSTAGE1": {
+  "risk": "high",
+  "feature": "red markers and T-100 signs",
+  "by": "qwen3.8-27b"
+ },
  "ROCKWALL": {
   "risk": "low",
   "feature": "",
@@ -5687,6 +5787,11 @@
  "STONEWALL": {
   "risk": "high",
   "feature": "rusty horizontal pipe strip",
+  "by": "qwen3.8-27b"
+ },
+ "STRIPES1": {
+  "risk": "low",
+  "feature": "",
   "by": "qwen3.8-27b"
  },
  "STUCCO256B": {
