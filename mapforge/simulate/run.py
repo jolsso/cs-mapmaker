@@ -10,7 +10,8 @@ Output: <out>/{smoke,b01,b02,...}/<run_id>/ (CSV, server.log, demos) and <out>/s
 (copied to build/<map>/simulation.json). Default <out> = build/<map>/sim/ (cleared per run);
 the loop (phase 6) passes runs/<map>/<NNN>/sim.
 
-Usage: python -m mapforge.simulate.run --map de_forge01 [--rounds N] [--smoke-only] [--watch]
+Usage: python -m mapforge.simulate.run --map de_forge01 [--rounds N [--full]] [--smoke-only]
+       [--watch]
        [--bsp build/_final/de_forge01/de_forge01.bsp]   # same file as the CS client has
 
 A spectator (or `playdemo`) needs the exact .bsp the server ran: the client refuses a map that
@@ -149,6 +150,7 @@ class Simulation:
         self.targets = fitness["targets"]
         self.min_rounds = int(fitness.get("min_rounds", 100))
         self.max_rounds = int(args.rounds or self.sim["max_rounds"])
+        self.full = bool(getattr(args, "full", False))
         self.timescale = float(self.sim["watch_timescale"] if args.watch else self.sim["timescale"])
         self.servers = 1 if args.watch else int(args.servers or self.sim["servers"])
         self.per_team = int(self.sim["bots_per_team"])
@@ -380,7 +382,9 @@ class Simulation:
                 data, _ = self.data(groups)
                 valid = [r for r in data["rounds"] if valid_round(r, self.per_team)]
                 summary = summarize(valid, float(self.sim["confidence"]), self.targets)
-                finished, stop_reason = stop_decision(summary, self.min_rounds, self.max_rounds)
+                finished, stop_reason = stop_decision(
+                    summary, self.min_rounds, self.max_rounds, not self.full
+                )
         while ok and not smoke_only and not finished:
             if CANCEL and CANCEL():
                 stop_reason, ok = "skipped", False
@@ -420,7 +424,9 @@ class Simulation:
             if new_valid == 0:
                 stop_reason, ok = f"batch {name} produced no valid rounds", False
                 break
-            stop, stop_reason = stop_decision(summary, self.min_rounds, self.max_rounds)
+            stop, stop_reason = stop_decision(
+                summary, self.min_rounds, self.max_rounds, not self.full
+            )
             if stop:
                 break
         report.update(
@@ -448,6 +454,9 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=None,
         help="this .bsp instead of the build (e.g. the final compile)",
+    )
+    parser.add_argument(
+        "--full", action="store_true", help="play all --rounds (no early stop on the targets)"
     )
     parser.add_argument("--smoke-only", action="store_true")
     parser.add_argument("--no-smoke", action="store_true")

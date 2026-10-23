@@ -150,7 +150,7 @@ tasks:
       - uv run python -m mapforge.site.build
 
   simulate:
-    desc: HLDS + YaPB bots play the map -> build/<map>/simulation.json (MAP=<name>, SOURCE=map|reference; -- --smoke-only|--watch|--rounds N)
+    desc: HLDS + YaPB bots play the map -> build/<map>/simulation.json (MAP=<name>, SOURCE=map|reference; -- --smoke-only|--watch|--rounds N [--full])
     requires:
       vars: [MAP]
     cmds:

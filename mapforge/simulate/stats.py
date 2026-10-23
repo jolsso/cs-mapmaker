@@ -52,10 +52,14 @@ def summarize(rounds: list[dict], confidence: float, targets: dict[str, list[flo
     return out
 
 
-def stop_decision(summary: dict, min_rounds: int, max_rounds: int) -> tuple[bool, str]:
+def stop_decision(
+    summary: dict, min_rounds: int, max_rounds: int, early: bool = True
+) -> tuple[bool, str]:
     n = summary["rounds"]
     if n >= max_rounds:
         return True, f"max_rounds ({max_rounds}) reached"
+    if not early:
+        return False, ""
     keys = ("t_winrate", "site_split_a")
     for k in keys:
         if summary[k]["relation"] == "outside":

@@ -86,6 +86,10 @@ def test_early_stop_only_for_results_decided_outside():
     assert stop_decision(lopsided, 100, 100) == (True, "t_winrate decided outside the target range")
     even = summarize(_rounds(10, 20, 5, 5), 0.95, targets)
     assert stop_decision(even, 100, 100) == (False, "")  # inside, but needs min_rounds
+    assert stop_decision(lopsided, 100, 1000, early=False) == (
+        False,
+        "",
+    )  # --full: only max_rounds stops
     assert stop_decision(summarize(_rounds(50, 100, 25, 25), 0.95, targets), 100, 200)[0] is False
     assert stop_decision(even, 100, 20) == (True, "max_rounds (20) reached")
 
